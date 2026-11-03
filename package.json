@@ -16,6 +16,7 @@
     "data:gwr": "mkdir -p tools/data/cache/gwr && curl -sSf -o tools/data/cache/gwr/ge.zip https://public.madd.bfs.admin.ch/ge.zip && unzip -o -q tools/data/cache/gwr/ge.zip -d tools/data/cache/gwr",
     "data:canton": "node tools/build-geneva-canton.mjs",
     "data:transit": "node tools/build-geneva-transit.mjs",
+    "data:landmarks": "node tools/build-landmarks.mjs",
     "data:facade-samples": "node tools/sample-photomesh-facades.mjs",
     "data:facades": "node tools/build-geneva-facades.mjs",
     "data": "npm run data:osm && npm run data:areas && npm run data:trees && npm run data:terrain && npm run data:decks && npm run data:geo && npm run data:surroundings && npm run data:ortho && npm run data:gwr && npm run data:facades",

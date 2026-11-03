@@ -62,7 +62,9 @@ export function hideInPhotomesh(material) {
 // a touch of the sun's colour (golden hour) and dim after dusk.
 // The coarse tiles carry the photo as vertex colours (no texture): their roofs and ground, facing up, take the
 // orthophoto instead, much sharper from the air.
-function createMaterial(map) {
+/** `landmark`: a landmark cut out of the photomesh (js/landmark-meshes.js): shown where the area tiles are not, and
+ * floodlit after dusk */
+export function createMaterial(map, { landmark = false, base: baseY = 0 } = {}) {
   const m = new THREE.MeshBasicNodeMaterial();
   const night = smoothstep(0.7, 1.45, cityUniforms.uInteriorGlow);
   // Tree crowns were flattened out of the mesh at build time (_ORTHO = 1): there the ground is the orthophoto, without
@@ -84,9 +86,12 @@ function createMaterial(map) {
   const grey = dot(photo, vec3(0.2126, 0.7152, 0.0722));
   const graded = mix(vec3(grey), photo, 1.22).max(0);
   const sun = cityUniforms.uSunColor.div(dot(cityUniforms.uSunColor, vec3(0.2126, 0.7152, 0.0722)).max(0.05)).min(1.6);
-  m.colorNode = graded.mul(mix(vec3(1), sun, 0.18)).mul(mix(float(1), float(0.16), night));
-  // cut away (and casting no shadow) within the street view's circle
-  const shown = outsideStreetView(positionWorld.xz);
+  // (a landmark after dusk: floodlit warm from below, fading up its walls)
+  const nightLevel = landmark ? mix(float(0.16), float(0.75), smoothstep(40, 0, positionWorld.y.sub(baseY))) : float(0.16);
+  const flood = landmark ? mix(vec3(1), vec3(1.15, 0.95, 0.7), night) : vec3(1);
+  m.colorNode = graded.mul(mix(vec3(1), sun, 0.18)).mul(mix(float(1), nightLevel, night)).mul(flood);
+  // cut away (and casting no shadow) within the street view's circle; a landmark: where the area tiles do not show
+  const shown = landmark ? float(1).sub(photomeshMask(positionWorld)) : outsideStreetView(positionWorld.xz);
   m.opacityNode = shown;
   m.alphaTest = 0.5;
   m.maskShadowNode = shown.greaterThan(0.5);

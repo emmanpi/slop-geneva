@@ -2,6 +2,12 @@ import * as THREE from 'three/webgpu';
 import { mx_noise_float, positionLocal, positionWorld, normalWorld, float, smoothstep, fract, floor, sin, abs, step, vertexColor, attribute, vec3, mix, max } from 'three/tsl';
 import { orthoAt } from './orthophoto.js';
 import { insidePhotomesh, photomeshOn, outsideStreetView } from './photomesh.js';
+import { GENEVA_DATA } from './geneva-geodata.js';
+
+// The landmarks shown as photographed (tools/build-landmarks.mjs, js/landmark-meshes.js): their footprints
+const LANDMARK_RINGS = Object.values(GENEVA_DATA.landmarks || {}).map((l) => l.ring);
+const ringHas = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) { if ((r[i + 1] > z) !== (r[j + 1] > z) && x < ((r[j] - r[i]) * (z - r[i + 1])) / (r[j + 1] - r[i + 1]) + r[i]) c = !c; } return c; };
+const landmarkAt = (x, z) => LANDMARK_RINGS.some((r) => ringHas(r, x, z));
 import { cityUniforms } from './tsl-materials.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -227,7 +233,8 @@ export function bakeTile(gltf, tile, stats) {
   const hide = new Float32Array(total * 3);
   for (let i = 0; i < total; i++) {
     const c = centre.get(batchOf[i]);
-    hide[i * 3] = inMesh.has(batchOf[i]) ? 1 : 0;
+    // 2: a landmark's building (js/landmark-meshes.js shows it as photographed), always folded away
+    hide[i * 3] = landmarkAt((c[0] + c[1]) / 2, (c[2] + c[3]) / 2) ? 2 : inMesh.has(batchOf[i]) ? 1 : 0;
     hide[i * 3 + 1] = (c[0] + c[1]) / 2; hide[i * 3 + 2] = (c[2] + c[3]) / 2;
   }
   const geometry = new THREE.BufferGeometry();
@@ -255,7 +262,7 @@ function createMaterial() {
   // folded to a point (no surface, no shadow) where the photomesh shows the real building: in its areas, unless the
   // building stands within the street view's circle around a camera near the ground (js/photomesh.js)
   const hideAttr = attribute('aHide', 'vec3');
-  m.positionNode = positionLocal.mul(float(1).sub(hideAttr.x.mul(photomeshOn).mul(outsideStreetView(hideAttr.yz))));
+  m.positionNode = positionLocal.mul(float(1).sub(step(1.5, hideAttr.x).max(hideAttr.x.min(1).mul(photomeshOn).mul(outsideStreetView(hideAttr.yz)))));
   const above = attribute('aGround', 'float');
   const facade = attribute('aFacade', 'vec3');
   const style = facade.x, storey = max(facade.y, 2.4), height = facade.z;
