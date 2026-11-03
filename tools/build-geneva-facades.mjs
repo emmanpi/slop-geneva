@@ -8,8 +8,9 @@
 // of windows, ground floor) are grouped into ARCHETYPES by k-means; every other building takes the archetype most
 // common among the measured buildings most like it (RegBL style, year and storeys, and nearby). A measured building
 // keeps its own colour, the others their archetype's (a little varied).
-// Output: { styles, archetypes: [{ rgb, win, shop, n }], tiles: { "<tile uri>": "s,f,a,RRGGBB;…" } } per batch id: s
-// the style index, f the storey height in dm, a the archetype, RRGGBB the wall colour (sRGB, white-balanced).
+// Output: { styles, archetypes: [{ rgb, win, shop, rough, n }], tiles: { "<tile uri>": "s,f,a,RRGGBB,w,p,t;…" } } per
+// batch id: s the style index, f the storey height in dm, a the archetype, RRGGBB the wall colour (sRGB,
+// white-balanced), w the share of windows, p the chance of shop fronts, t the wall's texture (its own where measured).
 // usage: node tools/build-geneva-facades.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,7 +25,7 @@ const ROOT = path.join(DIR, '..');
 const GWR = path.join(DIR, 'data', 'cache', 'gwr', 'gebaeude_batiment_edificio.csv');
 const OUT = path.join(ROOT, 'data', 'geneva-facades.json');
 const SAMPLES = path.join(DIR, 'data', 'cache', 'facade_samples.json');
-const ARCHETYPES = 20;
+const ARCHETYPES = 32;
 const log = (...a) => console.log('[geneva-facades]', ...a);
 
 // Facade styles (js/swissbuildings3d.js draws them in this order)
@@ -151,7 +152,7 @@ const toLab = ([r, g, b]) => {
   const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
   return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
 };
-const feature = (r) => { const [L, A, B] = toLab(r.rgb); return [L, A * 1.5, B * 1.5, r.m.win * 60, Math.min(1.3, r.m.ground) * 30]; };
+const feature = (r) => { const [L, A, B] = toLab(r.rgb); return [L, A * 1.5, B * 1.5, r.m.win * 60, Math.min(1.3, r.m.ground) * 30, Math.min(0.4, r.m.rough ?? 0.15) * 80]; };
 let seed = 20261103;
 const rnd = () => ((seed = Math.imul(seed ^ (seed >>> 15), 2246822519) + 1) >>> 0) / 4294967296;
 const pts = measured.map(feature);
@@ -178,6 +179,7 @@ const archetypes = centres.map((_, i) => {
     rgb: [0, 1, 2].map((c) => Math.round(med(mine.map((r) => r.rgb[c])))),
     win: Math.round(med(mine.map((r) => r.m.win)) * 1000) / 1000,
     shop: Math.round((mine.filter((r) => r.m.ground < 0.8).length / Math.max(1, mine.length)) * 100) / 100,
+    rough: Math.round(med(mine.map((r) => r.m.rough ?? 0.15)) * 1000) / 1000,
     n: mine.length
   };
 });
@@ -198,10 +200,17 @@ for (const r of records) {
 
 const tiles = {};
 const hex = (rgb) => rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
-for (const r of records) (tiles[r.u] ||= []).push(`${r.s},${Math.round(r.storey * 10)},${r.a},${hex(r.rgb)}`);
+// windows, shop fronts and the wall's texture: the building's own where measured, else its archetype's
+const r2 = (x) => Math.round(x * 100) / 100;
+for (const r of records) {
+  const at = archetypes[r.a];
+  const win = r.m ? r.m.win : at.win, shop = r.m ? (r.m.ground < 0.8 ? 1 : 0) : at.shop, rough = r.m ? r.m.rough ?? at.rough : at.rough;
+  (tiles[r.u] ||= []).push(`${r.s},${Math.round(r.storey * 10)},${r.a},${hex(r.rgb)},${r2(win)},${r2(shop)},${r2(rough)}`);
+}
 for (const u of Object.keys(tiles)) tiles[u] = tiles[u].join(';');
 log(`${measured.length} buildings measured in the photomesh -> ${archetypes.length} archetypes:`);
-archetypes.forEach((a, i) => log(`  ${String(i).padStart(2)}  #${hex(a.rgb)}  windows ${(a.win * 100).toFixed(0)}%  shops ${(a.shop * 100).toFixed(0)}%  (${a.n})`));
+archetypes.forEach((a, i) => log(`  ${String(i).padStart(2)}  #${hex(a.rgb)}  windows ${(a.win * 100).toFixed(0)}%  shops ${(a.shop * 100).toFixed(0)}%  texture ${a.rough.toFixed(2)}  (${a.n})`));
+log(`${measured.length} of ${records.length} buildings measured, the others from their archetype`);
 fs.writeFileSync(OUT, JSON.stringify({ source: 'OFS, Registre fédéral des bâtiments et des logements (RegBL), canton de Genève; SITG Photomaillage 3D 2019 (facade archetypes)', styles: STYLES, archetypes, fetched: new Date().toISOString().slice(0, 10), tiles }));
 log(`${matched}/${total} buildings matched;`, STYLES.map((s, i) => `${s} ${tally[i]}`).join(', '));
 log(`wrote ${OUT} (${(fs.statSync(OUT).size / 1024).toFixed(0)} KB)`);

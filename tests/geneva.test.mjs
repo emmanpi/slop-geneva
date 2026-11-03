@@ -117,8 +117,8 @@ test('every stored building tile has its facade styles from the RegBL', () => {
   }
   assert.ok(known / total > 0.8, `${known}/${total} buildings with a known style`);
   // the facade archetypes, learnt from the buildings measured in the photomesh
-  assert.equal(facades.archetypes.length, 20);
-  assert.ok(facades.archetypes.reduce((a, t) => a + t.n, 0) > 500, 'buildings measured in the photomesh');
+  assert.equal(facades.archetypes.length, 32);
+  assert.ok(facades.archetypes.reduce((a, t) => a + t.n, 0) > 5000, 'buildings measured in the photomesh');
 });
 
 test('the orthophoto covers the frame at 1 m per pixel', () => {
