@@ -25,6 +25,11 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   Saint-Pierre (~400 m), the Rhône below the Seujet dam, the climb to the Nations.
 - **Bridges at their real height** from swissSURFACE3D: the Pont du Mont-Blanc, the Pont de la Machine, the
   Coulouvrenière, the Arve bridges.
+- **The canton around the city** (`js/canton.js`, `tools/build-geneva-canton.mjs`): beyond the mapped frame, the relief
+  wears a SWISSIMAGE mosaic of the whole canton (±12 km at ~6 m, `data/geneva-canton-ortho.jpg`). The canton's
+  ~6,400 swissBUILDINGS3D tiles (Carouge, Lancy, Meyrin, Vernier, the airport, Cologny…) stream straight from swisstopo's
+  3D Tiles service around the camera, nearest first. Their reach grows with height, from ~1.5 km at street level to
+  4.5 km from the helicopter, and nothing is stored in the repository.
 - **The horizon** from swissALTIRegio, which also covers the French border regions: the Salève, the Jura, the Voirons
   and the Mont-Blanc massif.
 - **The Jet d'eau** (`js/jet-deau.js`): a GPU particle plume at OSM's fountain node, each drop on its own ballistic
@@ -87,6 +92,7 @@ npm run update:buildings
 | `data:geo` | `tools/build-geneva-geodata.mjs` | all of the above → `js/geneva-geodata.js` |
 | `data:surroundings` | `tools/build-geneva-surroundings.mjs` | swisstopo swissALTIRegio |
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
+| `data:canton` | `tools/build-geneva-canton.mjs` | swisstopo SWISSIMAGE (WMTS) and swissBUILDINGS3D 3.0 (tile index) |
 | `data:transit` | `tools/build-geneva-transit.mjs` | Horaire officiel suisse (GTFS, opentransportdata.swiss), saved to `tools/data/cache/gtfs/gtfs.zip` |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
 | `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais, Vieille-Ville) |

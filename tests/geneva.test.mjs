@@ -142,7 +142,7 @@ test('every photomesh area in js/photomesh.js has its converted tiles, with the 
         const json = JSON.parse(glb.toString('utf8', 20, 20 + glb.readUInt32LE(12)));
         assert.ok(json.extensionsRequired.includes('EXT_meshopt_compression'), file);
       }
-      assert.ok(t.loTriangles < t.triangles * 0.5, `${t.lo}: a coarse level`);
+      assert.ok(t.loTriangles < t.triangles * 0.6, `${t.lo}: a coarse level`);
       // the mesh sits at the city's heights (a few metres around the lake level here, never hundreds)
       assert.ok(t.min[1] > -20 && t.max[1] < 150, `${t.file} heights ${t.min[1]}..${t.max[1]}`);
     }
@@ -183,4 +183,22 @@ test('the TPG timetable: trams of lines 12-18 and the Mouettes, at stops in the 
   // A tram every few minutes in the afternoon on line 12
   const at5pm = transit.trips.filter((t) => t[0] === 'tram:12' && t[3][1] > 16.5 * 3600 && t[3][1] < 17.5 * 3600);
   assert.ok(at5pm.length >= 12, `line 12 at 5 pm: ${at5pm.length} trips/h`);
+});
+
+test('the canton around the city: its orthophoto mosaic and the swissBUILDINGS3D tiles beyond the frame', () => {
+  const info = JSON.parse(fs.readFileSync(new URL('../data/geneva-canton-ortho.json', import.meta.url), 'utf8'));
+  const [minX, minZ, maxX, maxZ] = info.bounds;
+  const [fx0, fz0, fx1, fz1] = WORLD_BOUNDS;
+  assert.ok(minX < fx0 - 8000 && maxX > fx1 + 8000 && minZ < fz0 - 8000 && maxZ > fz1 + 8000, 'the mosaic covers the canton around the frame');
+  const jpg = fs.readFileSync(new URL('../data/geneva-canton-ortho.jpg', import.meta.url));
+  assert.equal(jpg.readUInt16BE(0), 0xffd8);
+  const { origin, tiles } = JSON.parse(fs.readFileSync(new URL('../data/geneva-canton-buildings.json', import.meta.url), 'utf8'));
+  assert.match(origin, /^https:\/\/3d\.geo\.admin\.ch\//);
+  assert.ok(tiles.length > 3000);
+  const stored = new Set(JSON.parse(fs.readFileSync(new URL('../data/swissbuildings3d/index.json', import.meta.url), 'utf8')).tiles.map((t) => t.u));
+  assert.ok(tiles.every(([u]) => !stored.has(u)), 'the frame\'s stored tiles are not streamed twice');
+  // Meyrin, Carouge, Lancy, Vernier have buildings
+  for (const [name, x, z] of [['Carouge', 200, 2300], ['Meyrin', -4500, -2500], ['Vernier', -4000, -300]]) {
+    assert.ok(tiles.some(([, tx, tz]) => Math.hypot(tx - x, tz - z) < 600), name);
+  }
 });

@@ -342,6 +342,22 @@ async function fetchBuffer(url) {
 }
 
 /**
+ * One swissBUILDINGS3D tile from `url` as a mesh in the city's material (for js/canton.js): `stats` as in bakeTile
+ * ({ offsets, ground }). Resolves to null for a tile without buildings.
+ */
+let sharedMaterial = null;
+export async function loadSwissTile(url, { seed = 0, stats }) {
+  sharedMaterial ??= createMaterial();
+  const tile = parseB3dm(await fetchBuffer(url));
+  const gltf = await loaderFor().parseAsync(tile.glb, '');
+  const geometry = bakeTile(gltf, { ...tile, seed }, stats);
+  if (!geometry) return null;
+  const mesh = new THREE.Mesh(geometry, sharedMaterial);
+  mesh.castShadow = mesh.receiveShadow = true;
+  return mesh;
+}
+
+/**
  * Streams the city's swissBUILDINGS3D tiles into `scene`, nearest to `center` first.
  * Returns { group, ready, done }: `ready` resolves once every tile within `nearRadius` is in (or rejects when the
  * service can't be reached at all), `done` once all tiles are.

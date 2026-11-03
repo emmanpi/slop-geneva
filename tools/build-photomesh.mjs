@@ -122,11 +122,16 @@ function greenAt(img, uv, a, b, c) {
   return g > r * 1.06 && g > bl * 1.04 && g < 3 * 200;
 }
 
+// Decided per vertex (per position: the texture's seams split vertices): a vertex of a crown or clutter triangle goes
+// down to the ground unless a building's triangle uses it too, so nothing is left sticking up between the flattened
+// triangles and the ground around them.
 function removeTrees({ pos, uv, idx }, img = null) {
   const outPos = Array.from(pos), outUv = Array.from(uv), ortho = new Array(pos.length / 3).fill(0), outIdx = [];
   let flattened = 0, water = 0, cluttered = 0;
-  // flattened copies of the vertices, shared between the crown's triangles (so the flat ground simplifies away)
-  const flat = new Map();
+  const keyOf = (v) => `${pos[v * 3].toFixed(3)},${pos[v * 3 + 2].toFixed(3)},${pos[v * 3 + 1].toFixed(2)}`;
+  const keys = Array.from({ length: pos.length / 3 }, (_, v) => keyOf(v));
+  const candidate = new Set(), protect = new Set();
+  const kind = new Uint8Array(idx.length / 3); // 0 keep, 1 water, 2 flatten
   for (let t = 0; t < idx.length; t += 3) {
     const [a, b, c] = [idx[t], idx[t + 1], idx[t + 2]];
     const x = (pos[a * 3] + pos[b * 3] + pos[c * 3]) / 3, y = (pos[a * 3 + 1] + pos[b * 3 + 1] + pos[c * 3 + 1]) / 3, z = (pos[a * 3 + 2] + pos[b * 3 + 2] + pos[c * 3 + 2]) / 3;
@@ -135,31 +140,44 @@ function removeTrees({ pos, uv, idx }, img = null) {
     const vx = pos[c * 3] - pos[a * 3], vy = pos[c * 3 + 1] - pos[a * 3 + 1], vz = pos[c * 3 + 2] - pos[a * 3 + 2];
     const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
     const steep = Math.abs(ny) < 0.35 * Math.hypot(nx, ny, nz);
-    // the water surface (low and flat over the lake or a river)
-    if (!steep && y - gridHeight(TERRAIN, x, z) < 1.0 && inWater(x, z)) { water++; continue; }
     const above = y - gridHeight(TERRAIN, x, z);
+    // the water surface (low and flat over the lake or a river)
+    if (!steep && above < 1.0 && inWater(x, z)) { kind[t / 3] = 1; water++; continue; }
     // Crowns (inventoried or green), and any other clutter standing above the ground away from the buildings: trees
     // missing from the inventory, poles, lamps, signs and the photogrammetry's stray shards (the engine draws its own
     // street furniture). The bridges over the water stay, and so do the eaves (within 1.5 m of a footprint).
-    const crown = (inCrown(x, z) || (above > 2 && greenAt(img, uv, a, b, c))) && !partOfBuilding(x, z, steep);
+    const building = partOfBuilding(x, z, steep);
+    const crown = !building && (inCrown(x, z) || (above > 2 && greenAt(img, uv, a, b, c)));
     const clutter = !crown && above > 1.2 && !inWater(x, z) && !inBuilding(x, z, 0) && !inBuilding(x, z, 1.5);
-    if (clutter) cluttered++;
     if (above > 1.2 && (crown || clutter)) {
-      // New vertices on the ground, flagged for the orthophoto
-      const corners = [a, b, c].map((v) => {
-        // (keyed by position: the photo's texture seams do not matter there, the ground shows the orthophoto)
-        const vx = pos[v * 3], vz = pos[v * 3 + 2], key = `${vx.toFixed(3)},${vz.toFixed(3)}`;
-        if (flat.has(key)) return flat.get(key);
-        const n = outPos.length / 3;
-        outPos.push(vx, gridHeight(TERRAIN, vx, vz) + 0.03, vz);
-        outUv.push(uv[v * 2], uv[v * 2 + 1]);
-        ortho.push(1);
-        flat.set(key, n);
-        return n;
-      });
-      outIdx.push(...corners);
-      flattened++;
-    } else outIdx.push(a, b, c);
+      kind[t / 3] = 2;
+      if (clutter) cluttered++;
+      for (const v of [a, b, c]) candidate.add(keys[v]);
+    } else if (building || (above > 1.2 && inBuilding(x, z, 1.5))) for (const v of [a, b, c]) protect.add(keys[v]);
+  }
+  const flatKey = (v) => candidate.has(keys[v]) && !protect.has(keys[v]);
+  // the flattened vertices, on the ground and flagged for the orthophoto
+  for (let v = 0; v < pos.length / 3; v++) {
+    if (!flatKey(v)) continue;
+    outPos[v * 3 + 1] = gridHeight(TERRAIN, pos[v * 3], pos[v * 3 + 2]) + 0.03;
+    ortho[v] = 1;
+  }
+  // wholly flattened triangles share welded vertices (no texture there: the flat ground then simplifies away)
+  const welded = new Map();
+  const weld = (v) => {
+    const key = `${pos[v * 3].toFixed(3)},${pos[v * 3 + 2].toFixed(3)}`;
+    if (welded.has(key)) return welded.get(key);
+    const n = outPos.length / 3;
+    outPos.push(outPos[v * 3], outPos[v * 3 + 1], outPos[v * 3 + 2]);
+    outUv.push(uv[v * 2], uv[v * 2 + 1]);
+    ortho.push(1);
+    welded.set(key, n);
+    return n;
+  };
+  for (let t = 0; t < idx.length; t += 3) {
+    if (kind[t / 3] === 1) continue;
+    const tri = [idx[t], idx[t + 1], idx[t + 2]];
+    if (tri.every(flatKey)) { outIdx.push(...tri.map(weld)); flattened++; } else outIdx.push(...tri);
   }
   // Drop the vertices no triangle uses any more
   const remap = new Int32Array(outPos.length / 3).fill(-1);

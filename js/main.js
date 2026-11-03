@@ -10,6 +10,7 @@ import { buildLandmarks } from './landmarks.js';
 import { buildCityBlocks } from './buildings.js';
 import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
+import { buildCanton } from './canton.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
 import { buildBoats } from './boats.js';
@@ -100,6 +101,7 @@ async function initApp() {
   } catch (error) {
     console.warn('[surroundings] the horizon stays empty:', error);
   }
+  const canton = buildCanton(scene);
   markInit('surroundings');
   const trams = buildTrams(scene);
   markInit('trams');
@@ -775,6 +777,7 @@ async function initApp() {
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
     boats.update(dt, elapsed);
     photomesh.update(cameraSystem.camera.position);
+    canton.update(cameraSystem.camera);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
     trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);
     if (!document.hidden && now >= nextPlayerSave) {
@@ -826,7 +829,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },

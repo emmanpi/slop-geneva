@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, float, mix, mx_noise_float, normalWorld, positionWorld, smoothstep, vec3 } from 'three/tsl';
+import { attribute, float, mix, mx_noise_float, normalWorld, positionWorld, smoothstep, texture, uniform, vec2, vec3 } from 'three/tsl';
 import { parseTerrain, gridHeight } from './terrain-grid.js';
 import { TERRAIN, groundHeight } from './terrain.js';
 import { createWaterMaterial } from './tsl-materials.js';
@@ -93,7 +93,11 @@ function ringMeshes(grid, hole, innerHeight, materials, skirt) {
 
 // Meadows and woods of the plateau, rock above the tree line, snow on the gentler slopes of the high Alps, lakes
 // (colours in linear space)
-function createMaterial() {
+// Within the canton's orthophoto (data/geneva-canton-ortho.jpg, tools/build-geneva-canton.mjs: ±12.1 km at ~6 m) the
+// ground is the photo, fading to the painted relief towards the mosaic's edges
+const CANTON_ORTHO = new URL('../data/geneva-canton-ortho.jpg', import.meta.url);
+const CANTON_INFO = new URL('../data/geneva-canton-ortho.json', import.meta.url);
+function createMaterial(canton = null) {
   const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.95, metalness: 0 });
   const altitude = attribute('aAltitude', 'float').add(FRAME.H0);
   const lake = smoothstep(0.6, 1.0, attribute('aLake', 'float'));
@@ -106,7 +110,14 @@ function createMaterial() {
   const rock = mix(vec3(0.13, 0.12, 0.11), vec3(0.2, 0.19, 0.17), fine);
   const snowline = smoothstep(2300, 2700, altitude.add(fine.mul(250))).mul(smoothstep(0.55, 0.3, slope));
   const ground = mix(mix(lowland, rock, smoothstep(1600, 2100, altitude.add(fine.mul(200)))), vec3(0.85, 0.88, 0.92), snowline);
-  m.colorNode = mix(ground, vec3(0.03, 0.07, 0.09), lake);
+  let land = ground;
+  if (canton) {
+    const [minX, minZ, maxX, maxZ] = canton.info.bounds;
+    const u = positionWorld.x.sub(minX).div(maxX - minX), v = positionWorld.z.sub(minZ).div(maxZ - minZ);
+    const edge = smoothstep(0.0, 0.03, u).mul(smoothstep(1.0, 0.97, u)).mul(smoothstep(0.0, 0.03, v)).mul(smoothstep(1.0, 0.97, v));
+    land = mix(ground, texture(canton.map, vec2(u, v)).rgb.mul(canton.ready), edge.mul(canton.ready));
+  }
+  m.colorNode = mix(land, vec3(0.03, 0.07, 0.09), lake);
   m.roughnessNode = mix(float(0.95), float(0.12), lake);
   return m;
 }
@@ -115,7 +126,18 @@ export async function buildSurroundings(scene) {
   const res = await fetch(URL_SURROUNDINGS);
   if (!res.ok) throw new Error(`${URL_SURROUNDINGS}: ${res.status}`);
   const [mid, far] = parseRings(await res.arrayBuffer());
-  const materials = { land: createMaterial(), lake: createWaterMaterial() };
+  // the canton's photo streams in after the relief (black until then: faded in with `ready`)
+  let canton = null;
+  const info = await fetch(CANTON_INFO).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (info) {
+    const ready = uniform(0);
+    const map = new THREE.TextureLoader().load(CANTON_ORTHO.href, () => { ready.value = 1; });
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.flipY = false;
+    map.anisotropy = 8;
+    canton = { info, map, ready };
+  }
+  const materials = { land: createMaterial(canton), lake: createWaterMaterial() };
   const group = new THREE.Group();
   group.name = 'surroundings';
   group.userData.terrain = 'absolute';
@@ -124,5 +146,9 @@ export async function buildSurroundings(scene) {
   group.add(...ringMeshes(mid, frame, groundHeight, materials, 15));
   group.add(...ringMeshes(far, midBox, (x, z) => gridHeight(mid, x, z), materials, 40));
   scene.add(group);
+  // The ground beyond the city as drawn (the mid ring, with the curvature): js/canton.js stands its buildings on it
+  surroundingsHeight = (x, z) => gridHeight(mid, x, z) - curvatureDrop(x, z, CITY_RADIUS);
   return group;
 }
+
+export let surroundingsHeight = null;
