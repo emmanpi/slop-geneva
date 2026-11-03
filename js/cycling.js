@@ -81,6 +81,35 @@ function buildNetwork() {
   return { lines, near };
 }
 
+/** Is there a cycle track or lane along (x, z), running about the direction (dx, dz)? For js/traffic.js: its bicycles
+ * keep off the streets the cyclists of the cycle network ride (lazily indexed on 20 m cells) */
+let alongIndex = null;
+export function cycleRouteAlong(x, z, dx, dz) {
+  if (!alongIndex) {
+    alongIndex = new Map();
+    for (const l of buildNetwork().lines) {
+      for (let i = 2; i < l.pts.length; i += 2) {
+        const ax = l.pts[i - 2], az = l.pts[i - 1], bx = l.pts[i], bz = l.pts[i + 1], L = Math.hypot(bx - ax, bz - az) || 1;
+        const seg = { ax, az, bx, bz, ux: (bx - ax) / L, uz: (bz - az) / L, L };
+        for (let t = 0; t <= L; t += 10) {
+          const k = `${Math.floor((ax + seg.ux * t) / 20)},${Math.floor((az + seg.uz * t) / 20)}`;
+          if (!alongIndex.has(k)) alongIndex.set(k, new Set());
+          alongIndex.get(k).add(seg);
+        }
+      }
+    }
+  }
+  const i0 = Math.floor(x / 20), j0 = Math.floor(z / 20);
+  for (let i = i0 - 1; i <= i0 + 1; i++) for (let j = j0 - 1; j <= j0 + 1; j++) {
+    for (const s of alongIndex.get(`${i},${j}`) || []) {
+      if (Math.abs(s.ux * dx + s.uz * dz) < 0.85) continue;
+      const t = Math.max(0, Math.min(s.L, (x - s.ax) * s.ux + (z - s.az) * s.uz));
+      if (Math.hypot(s.ax + s.ux * t - x, s.az + s.uz * t - z) < 12) return true;
+    }
+  }
+  return false;
+}
+
 function at(l, s, out) {
   s = Math.max(0, Math.min(l.len, s));
   let lo = 0, hi = l.cum.length - 1;

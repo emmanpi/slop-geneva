@@ -19,6 +19,7 @@ import { buildPlanes } from './planes.js';
 import { buildFireworks } from './fireworks.js';
 import { buildQuays } from './quays.js';
 import { buildCycling } from './cycling.js';
+import { createDataPanel } from './data-panel.js';
 import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -178,6 +179,9 @@ async function initApp() {
   trafficSystem.setTramBodies(trams.bodies);
   // The cycle tracks and lanes, and their cyclists (the traffic's bicycles)
   const cycling = buildCycling(scene, trafficSystem.bikeParts);
+  // The Data panel: every layer added, its source and numbers (some live)
+  const dataPanel = createDataPanel({ swissStream, canton, photomesh, cycling, trams, trafficSystem, boats, planes, weather });
+  document.getElementById('btn-data')?.addEventListener('click', () => dataPanel.open());
   const highwayTraffic = createHighwayTraffic(scene, cityGrid.highwayLanes);
   const beforePaint = new Set(scene.children);
   buildRoadPaint(scene, trafficSystem.network);

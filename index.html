@@ -75,6 +75,7 @@
   <link rel="modulepreload" href="./js/fireworks.js" />
   <link rel="modulepreload" href="./js/quays.js" />
   <link rel="modulepreload" href="./js/cycling.js" />
+  <link rel="modulepreload" href="./js/data-panel.js" />
   <link rel="modulepreload" href="./js/main.js" />
   <script type="module" src="./js/main.js"></script>
   <!-- Inter (UI) & Overpass (street-name signs: modelled on Highway Gothic, the US road sign typeface) -->
@@ -98,6 +99,7 @@
       <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .4-8A6 6 0 0 0 6.4 9.6 4.5 4.5 0 0 0 7 18.5z"/></symbol>
       <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-13.5 15-14-0.5 10-6 15-14 15M5 19l8-8"/></symbol>
       <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8 12 3.5zM3.5 12l8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5"/></symbol>
       <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.2s-6.6-5.7-6.6-11.2a6.6 6.6 0 0 1 13.2 0c0 5.5-6.6 11.2-6.6 11.2z"/><circle cx="12" cy="10" r="2.4"/></symbol>
       <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4.5 3.5 6.6v13l5.5-2.1 6 2.1 5.5-2.1v-13L15 6.6 9 4.5zM9 4.5v13M15 6.6v13"/></symbol>
       <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
@@ -171,6 +173,9 @@
       <button id="btn-teleport" class="tool-btn" type="button" popovertarget="teleport-popover" title="Teleport the active player">
         <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span class="tool-label">Teleport</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
+      <button id="btn-data" class="tool-btn" type="button" title="Les données : toutes les couches ajoutées, leurs sources et leurs chiffres">
+        <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg><span class="tool-label">Données</span>
+      </button>
       <button id="btn-photomesh" class="tool-btn" type="button" aria-pressed="true" title="Photomaillage 3D (SITG) : la vraie ville en photo sur la vieille ville et Plainpalais. Désactivé, les textures sont déchargées et les façades procédurales reprennent [P]">
         <svg class="icon" aria-hidden="true"><use href="#i-cube"/></svg><span class="tool-label">Photomesh</span>
       </button>
@@ -234,6 +239,13 @@
     <button id="btn-credits" class="attribution-btn" type="button">Data &amp; credits</button>
   </div>
 
+  <dialog id="data-dialog" class="credits-dialog data-dialog" aria-labelledby="data-title">
+    <div class="credits-head">
+      <h2 id="data-title">Ce que Slop Genève ajoute</h2>
+      <form method="dialog"><button class="credits-close" type="submit" aria-label="Fermer">×</button></form>
+    </div>
+    <div id="data-body"></div>
+  </dialog>
   <dialog id="credits-dialog" class="credits-dialog" aria-labelledby="credits-title">
     <div class="credits-head">
       <h2 id="credits-title">Data &amp; credits</h2>

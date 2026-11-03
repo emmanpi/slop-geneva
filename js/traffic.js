@@ -24,6 +24,7 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSignAtlas, createBusLines } from './tpg-buses.js';
 import { simClock } from './sim-clock.js';
+import { cycleRouteAlong } from './cycling.js';
 
 // js/traffic.js
 // Manhattan traffic and pedestrians on the road graph road-network.js derives from the city as built:
@@ -96,6 +97,8 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     n.road = new Array(n.sideCount).fill(null); // an edge arriving or leaving over each side's crosswalk: the road it spans
   }
   for (const e of edges) {
+    // a cycle lane or track along it (js/cycling.js): the cyclists ride that, the traffic's bicycles keep off it
+    e.cycle = [0.25, 0.5, 0.75].filter((t) => cycleRouteAlong(e.sx + e.dx * e.len * t, e.sz + e.dz * e.len * t, e.dx, e.dz)).length >= 2;
     e.occ = e.lanes.map(() => []); // vehicles in each lane, sorted by position
     // e.inSide / e.outSide: the crosswalks crossed on the way into e.to / out of e.from; e.axisIndex: its group at e.to;
     // e.opposite: the oncoming edge of its road there (road-network.js)
@@ -709,6 +712,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
       const m = e.moves[k];
       let w = m.turn === 'S' ? (v.bus ? 8 : 3) : 1;
       if (v.bus && m.turn !== 'S' && m.to.lanes.length < 2) w *= 0.05;
+      if (v.bike && m.to.cycle) w *= 0.01; // (on to the cycle lane's street only when there is no other way)
       if (fromLane) {
         if (m.out[v.lane] < 0) w = 0;
       } else if (Math.abs(nearestLane(m, v.lane) - v.lane) * 22 > e.len - v.s) {
@@ -1484,7 +1488,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     }
     for (let attempt = 0; attempt < 12; attempt++) {
       const e = nearEdges[Math.floor(Math.random() * nearEdges.length)];
-      if (!e || (v.bus && e.axis !== 'ave') || e.len < 2 * v.half + 10) continue;
+      if (!e || (v.bus && e.axis !== 'ave') || (v.bike && e.cycle) || e.len < 2 * v.half + 10) continue;
       const lane = Math.floor(Math.random() * e.lanes.length);
       const along = (focusX - e.sx) * e.dx + (focusZ - e.sz) * e.dz;
       const minS = Math.max(v.half + 5, along - rMax);
@@ -1854,7 +1858,9 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
       const d = v.edge ? Math.hypot(v.x - focusX, v.z - focusZ) : Infinity;
       // (buses placed before the timetable came in are placed again, on lines, once it has: at start-up)
       const reline = v.bus && !v.line && busesToReline > 0;
-      if (d <= (jump ? NEAR_RADIUS : VEHICLE_RADIUS) && !reline) continue;
+      // a bicycle that had no other way than a street with a cycle lane: placed again elsewhere once out of sight
+      const offCycle = v.bike && v.edge?.cycle && hasView && !visible(v.x, v.z, 3);
+      if (d <= (jump ? NEAR_RADIUS : VEHICLE_RADIUS) && !reline && !offCycle) continue;
       if (reline) busesToReline--;
       budget--;
       spawnVehicle(v, jump ? 0 : 100, NEAR_RADIUS, !jump);

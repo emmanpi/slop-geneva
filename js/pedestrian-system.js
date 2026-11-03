@@ -579,4 +579,4 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
   return { peds, meshes: pedCrowd.meshes, update };
 }
 
-export { createPedestrianSystem };
+export { createPedestrianSystem, NUM_PEDS };
