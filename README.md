@@ -50,6 +50,9 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **Genève Aéroport** (`js/planes.js`): airliners land and take off on Cointrin's 3,900 m runway, one movement every
   2 to 3 minutes from 6:00 to 23:00, arrivals on a 3° glide path. The runway in use follows the wind: into the bise
   they land towards the north-east, otherwise towards the south-west.
+- **Fireworks over the Rade** (`js/fireworks.js`) on the 1st of August, at the Fêtes de Genève (mid-August) and at
+  New Year's midnight, from barges off the Pâquis, or at any time with `?evenement=feux`. They are drawn as a GPU
+  particle system of peonies, gold willows and rings.
 - **The Mouettes genevoises** (`js/boats.js`): lines M1 to M4 cross the Rade on their timetable. A boat sails its
   line's next trip from the pier it reached and waits at the pier in between. It crosses on a smooth course over the
   water, rocking with a wake.

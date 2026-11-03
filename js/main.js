@@ -16,6 +16,7 @@ import { buildJetDeau } from './jet-deau.js';
 import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
+import { buildFireworks } from './fireworks.js';
 import { buildPhotomesh, photomeshOn } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -111,6 +112,7 @@ async function initApp() {
   const weather = createWeather({ scene, lighting: lightingSystem, jet });
   const boats = buildBoats(scene);
   const planes = buildPlanes(scene);
+  const fireworks = buildFireworks(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,
@@ -816,6 +818,7 @@ async function initApp() {
     weather.update(dt, cameraSystem.camera);
     planes.setWind(weather.state.current);
     planes.update();
+    fireworks.update(dt);
     photomesh.update(cameraSystem.camera.position);
     canton.update(cameraSystem.camera);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
@@ -870,7 +873,8 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes, fireworksSystem: fireworks,
+          fireworks(on = true) { fireworks.set(on); },
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },
