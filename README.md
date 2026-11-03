@@ -33,6 +33,9 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   (opentransportdata.swiss) for lines 12, 14, 15, 17 and 18. Each trip drives in from the edge of the network along
   the OSM tracks, waits at its stops for its departure time and shows its line's colour on the displays. The city's
   clock (`js/sim-clock.js`, top left) runs from the hour of the chosen light, or `?heure=HH:MM`.
+- **The Mouettes genevoises** (`js/boats.js`): lines M1 to M4 cross the Rade on their timetable. A boat sails its
+  line's next trip from the pier it reached and waits at the pier in between. It crosses on a smooth course over the
+  water, rocking with a wake.
 - **Seasons** (`js/seasons.js`, `js/phenology.js`): each inventoried tree follows its genus through the year. Maples
   go orange and red, limes and birches yellow, planes tan and chestnuts brown early. Oaks stay bronze late, deciduous
   trees stand bare in winter and conifers stay green. The Season menu picks the day (default: today), as do `?saison=`
@@ -83,7 +86,7 @@ npm run update:buildings
 
 ## Ideas
 
-- The Mouettes genevoises crossing the Rade, the CGN paddle steamers.
+- The CGN paddle steamers (in the timetable from spring to autumn).
 - A French interface.
 
 ## License and data

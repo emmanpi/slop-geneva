@@ -44,7 +44,7 @@ const WATER = GENEVA_DATA.water.map((w) => {
   for (let i = 0; i < w.ring.length; i += 2) { minX = Math.min(minX, w.ring[i]); maxX = Math.max(maxX, w.ring[i]); minZ = Math.min(minZ, w.ring[i + 1]); maxZ = Math.max(maxZ, w.ring[i + 1]); }
   return { ring: w.ring, holes: w.holes || [], minX, maxX, minZ, maxZ };
 });
-const inWater = (x, z) => WATER.some((w) => x >= w.minX && x <= w.maxX && z >= w.minZ && z <= w.maxZ && pip(w.ring, x, z) && !w.holes.some((h) => pip(h, x, z)));
+export const inWater = (x, z) => WATER.some((w) => x >= w.minX && x <= w.maxX && z >= w.minZ && z <= w.maxZ && pip(w.ring, x, z) && !w.holes.some((h) => pip(h, x, z)));
 
 // Bridgeheads: the survey lowers the ground under bridges towards the river, bridgeheads included. The data tool lists
 // where the surveyed road is higher (GENEVA_DATA.terrainPatches); the ground rises smoothly to meet it there (never

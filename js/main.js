@@ -12,6 +12,7 @@ import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
+import { buildBoats } from './boats.js';
 import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -103,6 +104,7 @@ async function initApp() {
   const trams = buildTrams(scene);
   markInit('trams');
   buildJetDeau(scene);
+  const boats = buildBoats(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   buildPhotomesh(scene);
@@ -771,6 +773,7 @@ async function initApp() {
       cameraSystem.camera
     );
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
+    boats.update(dt, elapsed);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
     trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);
     if (!document.hidden && now >= nextPlayerSave) {
@@ -822,7 +825,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },
