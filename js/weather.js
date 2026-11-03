@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import { Fn, float, fract, hash, instanceIndex, length, mix, smoothstep, time, uniform, vec2, vec3 } from 'three/tsl';
 import { cityUniforms, transparentEffectMRT } from './tsl-materials.js';
 import { simClock } from './sim-clock.js';
+import { tr } from './i18n.js';
 
 // Geneva's weather: live from MeteoSwiss's automatic station at Genève-Cointrin (open data, 10-minute values, CORS
 // open), or a chosen sky. It sets the clouds, the haze and the fog over the light of the hour (lighting.js
@@ -138,12 +139,12 @@ export function createWeather({ scene, lighting, jet }) {
   /** A short line for the toolbar: "9° · bise 24 km/h" */
   function summary() {
     const w = state.current;
-    if (!w) return 'Météo';
-    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    if (!w) return tr('Weather', 'Météo');
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', tr('SW', 'SO'), tr('W', 'O'), tr('NW', 'NO')];
     const from = dirs[Math.round(((w.dir % 360) + 360) % 360 / 45) % 8];
     const kmh = Math.round(w.wind * 3.6);
-    const wind = from === 'NE' || from === 'N' && kmh > 12 ? `bise ${kmh} km/h` : kmh < 6 ? 'calme' : `${from} ${kmh} km/h`;
-    const sky = w.fog > 0.5 ? 'stratus' : w.rain > 0.02 ? (w.temp <= 0.8 ? 'neige' : 'pluie') : '';
+    const wind = from === 'NE' || from === 'N' && kmh > 12 ? `bise ${kmh} km/h` : kmh < 6 ? tr('calm', 'calme') : `${from} ${kmh} km/h`;
+    const sky = w.fog > 0.5 ? 'stratus' : w.rain > 0.02 ? (w.temp <= 0.8 ? tr('snow', 'neige') : tr('rain', 'pluie')) : '';
     return `${Math.round(w.temp)}° · ${sky ? `${sky} · ` : ''}${wind}`;
   }
 

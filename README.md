@@ -51,8 +51,11 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   2 to 3 minutes from 6:00 to 23:00, arrivals on a 3° glide path. The runway in use follows the wind: into the bise
   they land towards the north-east, otherwise towards the south-west.
 - **Fireworks over the Rade** (`js/fireworks.js`) on the 1st of August, at the Fêtes de Genève (mid-August) and at
-  New Year's midnight, from barges off the Pâquis, or at any time with `?evenement=feux`. They are drawn as a GPU
+  New Year's midnight, from barges off the Pâquis. The Season menu's Events (1st of August, Fêtes de Genève, New
+  Year) set the date, the night and the hour, or use `?evenement=feux` at any time. They are drawn as a GPU
   particle system of peonies, gold willows and rings.
+- **English or French**: the interface is in English by default. The toolbar's **FR / EN** button switches it live
+  (remembered; `?lang=fr`).
 - **The Data panel** (toolbar, `js/data-panel.js`): every layer this project adds to an engine that knows nothing of
   Geneva, with its open data source and its numbers. Some are live: trams running, buses on their lines, cyclists and
   the weather.

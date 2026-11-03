@@ -15,11 +15,15 @@ export function dayOfYear(date) {
 }
 
 export const SEASON_PRESETS = {
-  aujourdhui: { label: "Aujourd'hui", day: null },
-  printemps: { label: 'Printemps', sub: 'fin avril', day: 115 },
-  ete: { label: 'Été', sub: 'mi-juillet', day: 195 },
-  automne: { label: 'Automne', sub: 'fin octobre', day: 300 },
-  hiver: { label: 'Hiver', sub: 'mi-janvier', day: 15 }
+  aujourdhui: { en: 'Today', label: "Aujourd'hui", day: null },
+  printemps: { en: 'Spring', label: 'Printemps', sub: 'fin avril', day: 115 },
+  ete: { en: 'Summer', label: 'Été', sub: 'mi-juillet', day: 195 },
+  automne: { en: 'Autumn', label: 'Automne', sub: 'fin octobre', day: 300 },
+  hiver: { en: 'Winter', label: 'Hiver', sub: 'mi-janvier', day: 15 },
+  // The evenings of the fireworks over the Rade (js/fireworks.js): the date, the night and the hour
+  premieraout: { en: '1st of August', label: '1er Août', day: 212.5, hour: 22 + 5 / 60, event: true },
+  fetes: { en: 'Fêtes de Genève', label: 'Fêtes de Genève', day: 226.5, hour: 22 + 10 / 60, event: true },
+  nouvelan: { en: 'New Year', label: 'Nouvel An', day: 0.2, hour: 0, event: true }
 };
 
 /** The day of the year the trees show (0..365) */

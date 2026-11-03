@@ -20,6 +20,7 @@ import { buildFireworks } from './fireworks.js';
 import { buildQuays } from './quays.js';
 import { buildCycling } from './cycling.js';
 import { createDataPanel } from './data-panel.js';
+import { applyI18n, setLang, lang, tr } from './i18n.js';
 import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -182,6 +183,21 @@ async function initApp() {
   // The Data panel: every layer added, its source and numbers (some live)
   const dataPanel = createDataPanel({ swissStream, canton, photomesh, cycling, trams, trafficSystem, boats, planes, weather });
   document.getElementById('btn-data')?.addEventListener('click', () => dataPanel.open());
+  // English by default; the EN / FR button switches live (js/i18n.js)
+  applyI18n();
+  document.getElementById('btn-lang')?.addEventListener('click', () => setLang(lang() === 'fr' ? 'en' : 'fr'));
+  window.addEventListener('langchange', () => {
+    const mode = controllerManager.activeMode;
+    renderControlHints(mode);
+    if (elMode && MODE_LABELS[mode]) elMode.textContent = tr(...MODE_LABELS[mode]);
+    const preset = cameraSystem.getActivePreset();
+    if (elCamera) elCamera.textContent = tr(preset.name, CAMERA_LABELS[preset.id]);
+    const active = document.querySelector('[data-season].active')?.dataset.season;
+    const seasonLabel = document.getElementById('season-label');
+    if (seasonLabel) seasonLabel.textContent = active && SEASON_PRESETS[active] ? tr(SEASON_PRESETS[active].en, SEASON_PRESETS[active].label) : tr('Season', 'Saison');
+    const wl = document.getElementById('weather-label');
+    if (wl) wl.textContent = weather.summary();
+  });
   const highwayTraffic = createHighwayTraffic(scene, cityGrid.highwayLanes);
   const beforePaint = new Set(scene.children);
   buildRoadPaint(scene, trafficSystem.network);
@@ -348,12 +364,16 @@ async function initApp() {
 
   // Keyboard guide for each mode: [keys, action]
   const controlHints = {
-    person: [[['W', 'S'], 'Walk'], [['A', 'D'], 'Turn'], [['Shift'], 'Sprint'], [['Space'], 'Jump'], [['Drag'], 'Orbit']],
-    car: [[['W', 'S'], 'Drive / Reverse'], [['A', 'D'], 'Steer'], [['Shift'], 'Boost'], [['B'], 'Horn'], [['Drag'], 'Orbit']],
-    cyclist: [[['W', 'S'], 'Pedal / Brake'], [['A', 'D'], 'Lean & Turn'], [['Shift'], 'Sprint'], [['Drag'], 'Orbit']],
-    cargobike: [[['W', 'S'], 'Pedal / Brake'], [['A', 'D'], 'Lean & Turn'], [['Shift'], 'Sprint'], [['Drag'], 'Orbit']],
-    helicopter: [[['W', 'S'], 'Pitch'], [['A', 'D'], 'Yaw'], [['Space', 'E'], 'Ascend'], [['Q', 'C'], 'Descend'], [['Shift'], 'Boost']]
+    person: [[['W', 'S'], ['Walk', 'Marcher']], [['A', 'D'], ['Turn', 'Tourner']], [['Shift'], ['Sprint', 'Courir']], [['Space'], ['Jump', 'Sauter']], [['Drag'], ['Orbit', 'Orbite']]],
+    car: [[['W', 'S'], ['Drive / Reverse', 'Avancer / Reculer']], [['A', 'D'], ['Steer', 'Braquer']], [['Shift'], ['Boost', 'Turbo']], [['B'], ['Horn', 'Klaxon']], [['Drag'], ['Orbit', 'Orbite']]],
+    cyclist: [[['W', 'S'], ['Pedal / Brake', 'Pédaler / Freiner']], [['A', 'D'], ['Lean & Turn', 'Pencher et tourner']], [['Shift'], ['Sprint', 'Sprinter']], [['Drag'], ['Orbit', 'Orbite']]],
+    cargobike: [[['W', 'S'], ['Pedal / Brake', 'Pédaler / Freiner']], [['A', 'D'], ['Lean & Turn', 'Pencher et tourner']], [['Shift'], ['Sprint', 'Sprinter']], [['Drag'], ['Orbit', 'Orbite']]],
+    helicopter: [[['W', 'S'], ['Pitch', 'Tangage']], [['A', 'D'], ['Yaw', 'Lacet']], [['Space', 'E'], ['Ascend', 'Monter']], [['Q', 'C'], ['Descend', 'Descendre']], [['Shift'], ['Boost', 'Turbo']]]
   };
+  // The player's vehicles and the follow cameras, in both languages
+  const MODE_LABELS = { person: ['Pedestrian', 'Piéton'], car: ['Genève Taxi', 'Taxi genevois'], cyclist: ['Genève Cyclist', 'Cycliste genevois'], cargobike: ['Cargo bike', 'Vélo-cargo'], helicopter: ['Sightseeing Helicopter', 'Hélicoptère de tourisme'] };
+  const CAMERA_LABELS = { chase: 'Poursuite', action: 'Action, plan bas', pov: 'Vue subjective', drone: 'Réalisation aérienne', fixed: 'Caméra de test' };
+
   // Boosted top speeds in km/h (controllers.js caps them at 8.2, 36, 19 & 52 m/s): full scale of the speed meter
   const topSpeedKmh = { person: 30, car: 130, cyclist: 69, cargobike: 69, helicopter: 188 };
 
@@ -369,7 +389,7 @@ async function initApp() {
       }
       const label = document.createElement('span');
       label.className = 'hint-label';
-      label.textContent = action;
+      label.textContent = tr(...action);
       item.appendChild(label);
       return item;
     });
@@ -394,7 +414,7 @@ async function initApp() {
     document.body.dataset.mode = mode;
     placeModeIndicator();
     const ent = controllerManager.getActiveEntity();
-    if (elMode) elMode.textContent = ent.label;
+    if (elMode) elMode.textContent = MODE_LABELS[mode] ? tr(...MODE_LABELS[mode]) : ent.label;
     renderControlHints(mode);
 
     // If currently on a static scenic camera, switch to 3rd-Person Chase so user sees their selected character/vehicle
@@ -410,7 +430,7 @@ async function initApp() {
       btn.classList.toggle('active', btn.getAttribute('data-camera') === camId);
     });
     const preset = cameraSystem.getActivePreset();
-    if (elCamera) elCamera.textContent = preset.name;
+    if (elCamera) elCamera.textContent = tr(preset.name, CAMERA_LABELS[preset.id]);
   }
 
   // Steps through CAMERA_PRESETS (V / Shift+V, and the arrows either side of the camera name)
@@ -481,9 +501,15 @@ async function initApp() {
   const seasonButtons = document.querySelectorAll('[data-season]');
   function selectSeason(id) {
     setSeason(id);
+    // an evening of fireworks: night, and the show's hour on the city's clock
+    const preset = SEASON_PRESETS[id];
+    if (preset?.event) {
+      selectTime('midnight');
+      simClock.seconds = preset.hour * 3600;
+    }
     seasonButtons.forEach((b) => b.classList.toggle('active', b.dataset.season === id));
     const label = document.getElementById('season-label');
-    if (label) label.textContent = SEASON_PRESETS[id]?.label || 'Saison';
+    if (label) label.textContent = SEASON_PRESETS[id] ? tr(SEASON_PRESETS[id].en, SEASON_PRESETS[id].label) : tr('Season', 'Saison');
   }
   initSeasonFromURL();
 
@@ -603,7 +629,7 @@ async function initApp() {
       gamepadControls.setEnabled(!open);
       const mapHint = document.getElementById('fullmap-hover-info');
       if (open && touchControls.available && mapHint) {
-        mapHint.textContent = 'Tap to teleport · Drag to pan · Use + / − to zoom';
+        mapHint.textContent = tr('Tap to teleport · Drag to pan · Use + / − to zoom', 'Toucher pour s’y rendre · Glisser pour déplacer · + / − pour zoomer');
       }
     },
     onTeleport: teleportTo

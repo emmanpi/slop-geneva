@@ -76,6 +76,7 @@
   <link rel="modulepreload" href="./js/quays.js" />
   <link rel="modulepreload" href="./js/cycling.js" />
   <link rel="modulepreload" href="./js/data-panel.js" />
+  <link rel="modulepreload" href="./js/i18n.js" />
   <link rel="modulepreload" href="./js/main.js" />
   <script type="module" src="./js/main.js"></script>
   <!-- Inter (UI) & Overpass (street-name signs: modelled on Highway Gothic, the US road sign typeface) -->
@@ -122,7 +123,7 @@
   <!-- Loading Screen -->
   <div id="loading-overlay" role="status" aria-live="polite">
     <div class="loader">
-      <img class="loader-logo" src="./assets/geneva-flag.svg" alt="Geneva flag" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mta-bullet loader-bullet',textContent:'G'}))" />
+      <img class="loader-logo loader-arms" src="./assets/geneva-coat-of-arms.svg" alt="Coat of arms of Geneva" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mta-bullet loader-bullet',textContent:'G'}))" />
       <div class="loader-title">Slop Genève</div>
       <div class="loader-track is-indeterminate" aria-hidden="true"><span id="loading-progress" class="loader-fill"></span></div>
       <div id="loading-status">Initializing WebGPURenderer &amp; TSL Shaders...</div>
@@ -141,7 +142,7 @@
           <h1>Slop Genève</h1>
           <a class="repo-link" href="https://github.com/colorfield/slop-zurich" target="_blank" rel="noopener noreferrer" aria-label="Slop Zürich, the base of Slop Genève, on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps · <span id="hud-clock" title="Heure de la ville (horaires TPG)">16:45</span></div>
+        <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps · <span id="hud-clock" title="The city's clock (TPG timetables)" data-fr-title="Heure de la ville (horaires TPG)">16:45</span></div>
       </div>
     </div>
   </header>
@@ -150,43 +151,44 @@
   <div class="hud hud-top-right">
     <div id="hud-toolbar" class="panel toolbar">
       <div class="time-switch" role="group" aria-label="Atmosphere &amp; time of day">
-        <button id="time-golden" class="time-btn active" data-time="golden" type="button" title="Golden Hour">
-          <svg class="icon" aria-hidden="true"><use href="#i-golden"/></svg><span class="seg-label">Golden Hour</span>
+        <button id="time-golden" class="time-btn active" data-time="golden" type="button" title="Golden Hour" data-fr-title="Heure dorée">
+          <svg class="icon" aria-hidden="true"><use href="#i-golden"/></svg><span class="seg-label" data-fr="Heure dorée">Golden Hour</span>
         </button>
-        <button id="time-midday" class="time-btn" data-time="midday" type="button" title="Sunny Midday">
-          <svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><span class="seg-label">Midday</span>
+        <button id="time-midday" class="time-btn" data-time="midday" type="button" title="Sunny Midday" data-fr-title="Midi ensoleillé">
+          <svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><span class="seg-label" data-fr="Midi">Midday</span>
         </button>
-        <button id="time-twilight" class="time-btn" data-time="twilight" type="button" title="Blue Hour">
-          <svg class="icon" aria-hidden="true"><use href="#i-twilight"/></svg><span class="seg-label">Blue Hour</span>
+        <button id="time-twilight" class="time-btn" data-time="twilight" type="button" title="Blue Hour" data-fr-title="Heure bleue">
+          <svg class="icon" aria-hidden="true"><use href="#i-twilight"/></svg><span class="seg-label" data-fr="Heure bleue">Blue Hour</span>
         </button>
-        <button id="time-midnight" class="time-btn" data-time="midnight" type="button" title="Night 23:00">
-          <svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg><span class="seg-label">Night</span>
+        <button id="time-midnight" class="time-btn" data-time="midnight" type="button" title="Night 23:00" data-fr-title="Nuit, 23 h">
+          <svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg><span class="seg-label" data-fr="Nuit">Night</span>
         </button>
       </div>
       <span class="toolbar-divider" aria-hidden="true"></span>
-      <button id="btn-weather" class="tool-btn" type="button" popovertarget="weather-popover" title="Météo (MeteoSwiss, Genève-Cointrin)">
-        <svg class="icon" aria-hidden="true"><use href="#i-cloud"/></svg><span class="tool-label" id="weather-label">Météo</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      <button id="btn-weather" class="tool-btn" type="button" popovertarget="weather-popover" title="Weather (MeteoSwiss, Genève-Cointrin)" data-fr-title="Météo (MeteoSwiss, Genève-Cointrin)">
+        <svg class="icon" aria-hidden="true"><use href="#i-cloud"/></svg><span class="tool-label" id="weather-label">Weather</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
-      <button id="btn-season" class="tool-btn" type="button" popovertarget="season-popover" title="Saison des arbres">
-        <svg class="icon" aria-hidden="true"><use href="#i-leaf"/></svg><span class="tool-label" id="season-label">Saison</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      <button id="btn-season" class="tool-btn" type="button" popovertarget="season-popover" title="The trees' season" data-fr-title="Saison des arbres">
+        <svg class="icon" aria-hidden="true"><use href="#i-leaf"/></svg><span class="tool-label" id="season-label">Season</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
-      <button id="btn-teleport" class="tool-btn" type="button" popovertarget="teleport-popover" title="Teleport the active player">
-        <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span class="tool-label">Teleport</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      <button id="btn-teleport" class="tool-btn" type="button" popovertarget="teleport-popover" title="Teleport the active player" data-fr-title="Téléporter le joueur">
+        <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span class="tool-label" data-fr="Aller à">Teleport</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
-      <button id="btn-data" class="tool-btn" type="button" title="Les données : toutes les couches ajoutées, leurs sources et leurs chiffres">
-        <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg><span class="tool-label">Données</span>
+      <button id="btn-data" class="tool-btn" type="button" title="The data: every layer added, its sources and numbers" data-fr-title="Les données : toutes les couches ajoutées, leurs sources et leurs chiffres">
+        <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg><span class="tool-label" data-fr="Données">Data</span>
       </button>
-      <button id="btn-photomesh" class="tool-btn" type="button" aria-pressed="true" title="Photomaillage 3D (SITG) : la vraie ville en photo sur la vieille ville et Plainpalais. Désactivé, les textures sont déchargées et les façades procédurales reprennent [P]">
+      <button id="btn-photomesh" class="tool-btn" type="button" aria-pressed="true" title="SITG 3D photomesh: the real city in photos over the old town and Plainpalais. Off, its textures are unloaded and the procedural facades take over [P]" data-fr-title="Photomaillage 3D (SITG) : la vraie ville en photo sur la vieille ville et Plainpalais. Désactivé, les textures sont déchargées et les façades procédurales reprennent [P]">
         <svg class="icon" aria-hidden="true"><use href="#i-cube"/></svg><span class="tool-label">Photomesh</span>
       </button>
-      <button id="btn-open-map" class="tool-btn" type="button" title="Full Genève city street map [M]">
-        <svg class="icon" aria-hidden="true"><use href="#i-map"/></svg><span class="tool-label">Map</span><kbd>M</kbd>
+      <button id="btn-open-map" class="tool-btn" type="button" title="Full Genève city street map [M]" data-fr-title="Plan complet de Genève [M]">
+        <svg class="icon" aria-hidden="true"><use href="#i-map"/></svg><span class="tool-label" data-fr="Plan">Map</span><kbd>M</kbd>
       </button>
       <span class="toolbar-divider" aria-hidden="true"></span>
-      <button id="btn-sound" class="tool-btn icon-only" type="button" title="Mute sound [N]" aria-label="Mute sound" aria-pressed="true">
+      <button id="btn-lang" class="tool-btn" type="button" title="Français" data-fr-title="English"><span class="tool-label" data-fr="EN">FR</span></button>
+      <button id="btn-sound" class="tool-btn icon-only" type="button" title="Mute sound [N]" data-fr-title="Couper le son [N]" aria-label="Mute sound" data-fr-aria="Couper le son" aria-pressed="true">
         <svg class="icon" aria-hidden="true"><use href="#i-sound"/></svg>
       </button>
-      <button id="btn-toggle-hud" class="tool-btn icon-only" type="button" title="Clean view: hide the HUD [H]" aria-label="Hide HUD" aria-pressed="false">
+      <button id="btn-toggle-hud" class="tool-btn icon-only" type="button" title="Clean view: hide the HUD [H]" data-fr-title="Vue dégagée : masquer l’interface [H]" aria-label="Hide HUD" data-fr-aria="Masquer l’interface" aria-pressed="false">
         <svg class="icon icon-hide" aria-hidden="true"><use href="#i-eye"/></svg><svg class="icon icon-show" aria-hidden="true"><use href="#i-eye-off"/></svg>
       </button>
     </div>
@@ -194,28 +196,32 @@
 
   <!-- Weather (js/weather.js) -->
   <div id="weather-popover" class="popover" popover data-side="below" data-anchor="hud-toolbar" aria-label="Météo">
-    <div class="pop-title">Météo</div>
-    <button class="pop-item active" data-weather="reel" type="button"><span class="pop-name">Météo réelle</span><span class="pop-sub">MeteoSwiss · Genève-Cointrin</span></button>
-    <button class="pop-item" data-weather="beau" type="button"><span class="pop-name">Beau temps</span><span class="pop-sub">soleil, petit vent du sud-ouest</span></button>
-    <button class="pop-item" data-weather="bise" type="button"><span class="pop-name">Bise</span><span class="pop-sub">ciel clair, vent froid du nord-est</span></button>
-    <button class="pop-item" data-weather="pluie" type="button"><span class="pop-name">Pluie</span><span class="pop-sub">ciel couvert, averses</span></button>
-    <button class="pop-item" data-weather="brouillard" type="button"><span class="pop-name">Stratus</span><span class="pop-sub">le brouillard de novembre</span></button>
-    <button class="pop-item" data-weather="neige" type="button"><span class="pop-name">Neige</span><span class="pop-sub">flocons, gel</span></button>
+    <div class="pop-title" data-fr="Météo">Weather</div>
+    <button class="pop-item active" data-weather="reel" type="button"><span class="pop-name" data-fr="Météo réelle">Live weather</span><span class="pop-sub" data-fr="MeteoSwiss · Genève-Cointrin">MeteoSwiss · Genève-Cointrin</span></button>
+    <button class="pop-item" data-weather="beau" type="button"><span class="pop-name" data-fr="Beau temps">Fair</span><span class="pop-sub" data-fr="soleil, petit vent du sud-ouest">sun, a light south-west wind</span></button>
+    <button class="pop-item" data-weather="bise" type="button"><span class="pop-name" data-fr="Bise">Bise</span><span class="pop-sub" data-fr="ciel clair, vent froid du nord-est">clear sky, cold north-east wind</span></button>
+    <button class="pop-item" data-weather="pluie" type="button"><span class="pop-name" data-fr="Pluie">Rain</span><span class="pop-sub" data-fr="ciel couvert, averses">overcast, showers</span></button>
+    <button class="pop-item" data-weather="brouillard" type="button"><span class="pop-name" data-fr="Stratus">Stratus</span><span class="pop-sub" data-fr="le brouillard de novembre">November’s fog</span></button>
+    <button class="pop-item" data-weather="neige" type="button"><span class="pop-name" data-fr="Neige">Snow</span><span class="pop-sub" data-fr="flocons, gel">flakes, frost</span></button>
   </div>
 
   <!-- Seasons (js/seasons.js) -->
   <div id="season-popover" class="popover" popover data-side="below" data-anchor="hud-toolbar" aria-label="Saison des arbres">
-    <div class="pop-title">Saison</div>
-    <button class="pop-item active" data-season="aujourdhui" type="button"><span class="pop-name">Aujourd’hui</span><span class="pop-sub">date réelle</span></button>
-    <button class="pop-item" data-season="printemps" type="button"><span class="pop-name">Printemps</span><span class="pop-sub">fin avril · feuilles nouvelles</span></button>
-    <button class="pop-item" data-season="ete" type="button"><span class="pop-name">Été</span><span class="pop-sub">mi-juillet</span></button>
-    <button class="pop-item" data-season="automne" type="button"><span class="pop-name">Automne</span><span class="pop-sub">fin octobre · couleurs</span></button>
-    <button class="pop-item" data-season="hiver" type="button"><span class="pop-name">Hiver</span><span class="pop-sub">mi-janvier · arbres nus</span></button>
+    <div class="pop-title" data-fr="Saison">Season</div>
+    <button class="pop-item active" data-season="aujourdhui" type="button"><span class="pop-name" data-fr="Aujourd’hui">Today</span><span class="pop-sub" data-fr="date réelle">the real date</span></button>
+    <button class="pop-item" data-season="printemps" type="button"><span class="pop-name" data-fr="Printemps">Spring</span><span class="pop-sub" data-fr="fin avril · feuilles nouvelles">late April · new leaves</span></button>
+    <button class="pop-item" data-season="ete" type="button"><span class="pop-name" data-fr="Été">Summer</span><span class="pop-sub" data-fr="mi-juillet">mid-July</span></button>
+    <button class="pop-item" data-season="automne" type="button"><span class="pop-name" data-fr="Automne">Autumn</span><span class="pop-sub" data-fr="fin octobre · couleurs">late October · colours</span></button>
+    <button class="pop-item" data-season="hiver" type="button"><span class="pop-name" data-fr="Hiver">Winter</span><span class="pop-sub" data-fr="mi-janvier · arbres nus">mid-January · bare trees</span></button>
+    <div class="pop-title" data-fr="Évènements">Events</div>
+    <button class="pop-item" data-season="premieraout" type="button"><span class="pop-name" data-fr="1er Août">1st of August</span><span class="pop-sub" data-fr="fête nationale · feu d’artifice sur la Rade, 22 h">Swiss National Day · fireworks over the Rade, 22:00</span></button>
+    <button class="pop-item" data-season="fetes" type="button"><span class="pop-name">Fêtes de Genève</span><span class="pop-sub" data-fr="mi-août · le grand feu d’artifice">mid-August · the great fireworks display</span></button>
+    <button class="pop-item" data-season="nouvelan" type="button"><span class="pop-name" data-fr="Nouvel An">New Year</span><span class="pop-sub" data-fr="minuit · feu d’artifice">midnight · fireworks</span></button>
   </div>
 
   <!-- Teleport Destinations (native popover: light-dismiss & Esc) -->
   <div id="teleport-popover" class="popover" popover data-side="below" data-anchor="hud-toolbar" aria-label="Teleport the active player">
-    <div class="pop-title">Teleport to</div>
+    <div class="pop-title" data-fr="Aller à">Teleport to</div>
     <button id="tp-cornavin" class="pop-item tp-btn" data-teleport="cornavin" type="button"><span class="pop-name">Gare Cornavin</span><span class="pop-sub">Place de Cornavin · Grottes</span></button>
     <button id="tp-montblanc" class="pop-item tp-btn" data-teleport="montblanc" type="button"><span class="pop-name">Pont du Mont-Blanc</span><span class="pop-sub">Rade · Pâquis</span></button>
     <button id="tp-jetdeau" class="pop-item tp-btn" data-teleport="jetdeau" type="button"><span class="pop-name">Jet d’eau</span><span class="pop-sub">Quai Gustave-Ador · Eaux-Vives</span></button>
@@ -241,8 +247,8 @@
 
   <dialog id="data-dialog" class="credits-dialog data-dialog" aria-labelledby="data-title">
     <div class="credits-head">
-      <h2 id="data-title">Ce que Slop Genève ajoute</h2>
-      <form method="dialog"><button class="credits-close" type="submit" aria-label="Fermer">×</button></form>
+      <h2 id="data-title" data-fr="Ce que Slop Genève ajoute">What Slop Genève adds</h2>
+      <form method="dialog"><button class="credits-close" type="submit" aria-label="Close" data-fr-aria="Fermer">×</button></form>
     </div>
     <div id="data-body"></div>
   </dialog>
@@ -279,6 +285,7 @@
       <li>
         <b>RegBL</b>: the building periods and storeys behind the facades.<br>
         <b>MeteoSwiss</b>: the live weather at Genève-Cointrin.<br>
+        <b>Coat of arms of Geneva</b> on the loading screen: Wikimedia Commons, Jérôme Blum (public domain).<br>
         <b>opentransportdata.swiss</b>: the official timetable (GTFS) the TPG trams run on.<br>
         <span class="credits-source">Federal Statistical Office (FSO), Federal Register of Buildings and Dwellings, <a href="https://www.housing-stat.ch/" target="_blank" rel="noopener noreferrer">housing-stat.ch</a> (open data)</span>
       </li>
@@ -301,20 +308,20 @@
     <div id="hud-controls-hint" class="controls-hint"></div>
     <nav id="mode-switch" class="panel mode-switch" aria-label="Third-Person Navigation Mode">
       <span class="mode-indicator" aria-hidden="true"></span>
-      <button id="mode-person" class="mode-btn" data-mode="person" type="button" title="Person [1]">
-        <svg class="icon" aria-hidden="true"><use href="#i-walk"/></svg><span class="mode-label">Walk</span><kbd>1</kbd>
+      <button id="mode-person" class="mode-btn" data-mode="person" type="button" title="Person [1]" data-fr-title="Piéton [1]">
+        <svg class="icon" aria-hidden="true"><use href="#i-walk"/></svg><span class="mode-label" data-fr="Marcher">Walk</span><kbd>1</kbd>
       </button>
-      <button id="mode-car" class="mode-btn" data-mode="car" type="button" title="Car · Yellow Cab [2]">
-        <svg class="icon" aria-hidden="true"><use href="#i-car"/></svg><span class="mode-label">Drive</span><kbd>2</kbd>
+      <button id="mode-car" class="mode-btn" data-mode="car" type="button" title="Car · Yellow Cab [2]" data-fr-title="Voiture · taxi [2]">
+        <svg class="icon" aria-hidden="true"><use href="#i-car"/></svg><span class="mode-label" data-fr="Conduire">Drive</span><kbd>2</kbd>
       </button>
-      <button id="mode-cyclist" class="mode-btn active" data-mode="cyclist" type="button" title="Cyclist [3]">
-        <svg class="icon" aria-hidden="true"><use href="#i-bike"/></svg><span class="mode-label">Cycle</span><kbd>3</kbd>
+      <button id="mode-cyclist" class="mode-btn active" data-mode="cyclist" type="button" title="Cyclist [3]" data-fr-title="Cycliste [3]">
+        <svg class="icon" aria-hidden="true"><use href="#i-bike"/></svg><span class="mode-label" data-fr="Vélo">Cycle</span><kbd>3</kbd>
       </button>
-      <button id="mode-cargobike" class="mode-btn" data-mode="cargobike" type="button" title="Cargo bike [4]">
-        <svg class="icon" aria-hidden="true"><use href="#i-bike"/></svg><span class="mode-label">Cargo bike</span><kbd>4</kbd>
+      <button id="mode-cargobike" class="mode-btn" data-mode="cargobike" type="button" title="Cargo bike [4]" data-fr-title="Vélo-cargo [4]">
+        <svg class="icon" aria-hidden="true"><use href="#i-bike"/></svg><span class="mode-label" data-fr="Vélo-cargo">Cargo bike</span><kbd>4</kbd>
       </button>
-      <button id="mode-helicopter" class="mode-btn" data-mode="helicopter" type="button" title="Helicopter [5]">
-        <svg class="icon" aria-hidden="true"><use href="#i-heli"/></svg><span class="mode-label">Fly</span><kbd>5</kbd>
+      <button id="mode-helicopter" class="mode-btn" data-mode="helicopter" type="button" title="Helicopter [5]" data-fr-title="Hélicoptère [5]">
+        <svg class="icon" aria-hidden="true"><use href="#i-heli"/></svg><span class="mode-label" data-fr="Voler">Fly</span><kbd>5</kbd>
       </button>
     </nav>
   </footer>
@@ -331,13 +338,13 @@
         <div class="gauge-meter" aria-hidden="true"><span id="hud-speed-meter"></span></div>
       </div>
       <div id="camera-switch" class="camera-switch">
-        <button id="cam-prev" class="icon-btn" type="button" title="Previous camera" aria-label="Previous camera">
+        <button id="cam-prev" class="icon-btn" type="button" title="Previous camera" data-fr-title="Caméra précédente" aria-label="Previous camera" data-fr-aria="Caméra précédente">
           <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg>
         </button>
-        <button id="cam-menu-btn" class="camera-current" type="button" popovertarget="camera-popover" title="All cameras [V cycles]">
+        <button id="cam-menu-btn" class="camera-current" type="button" popovertarget="camera-popover" title="All cameras [V cycles]" data-fr-title="Toutes les caméras [V pour défiler]">
           <svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg><span id="hud-active-camera">3rd-Person Chase</span><kbd>V</kbd>
         </button>
-        <button id="cam-next" class="icon-btn" type="button" title="Next camera [V]" aria-label="Next camera">
+        <button id="cam-next" class="icon-btn" type="button" title="Next camera [V]" data-fr-title="Caméra suivante [V]" aria-label="Next camera" data-fr-aria="Caméra suivante">
           <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>
         </button>
       </div>
@@ -353,7 +360,7 @@
       </div>
       <span class="touch-caption">Move &amp; steer</span>
     </div>
-    <p class="touch-look-hint">Drag to look · Pinch to zoom</p>
+    <p class="touch-look-hint" data-fr="Glisser pour regarder · Pincer pour zoomer">Drag to look · Pinch to zoom</p>
     <div class="touch-actions" role="group" aria-label="Hold to perform an action">
       <button class="touch-action" data-touch-action="up" type="button" aria-label="Jump" aria-pressed="false" hidden>
         <span aria-hidden="true">↑</span><span data-touch-label="up">Jump</span>
@@ -366,11 +373,11 @@
 
   <!-- All Cameras: 3 Follow Cameras + 7 Iconic NYC Vantage Cameras + Auto-Director Drone -->
   <div id="camera-popover" class="popover" popover data-side="above" data-anchor="hud-cluster" data-align="hud-cluster" aria-label="Multiple Camera Angles">
-    <div class="pop-title">Follow</div>
-    <button id="cam-chase" class="pop-item cam-btn active" data-camera="chase" type="button"><span class="pop-name">3rd-Person Chase</span></button>
-    <button id="cam-action" class="pop-item cam-btn" data-camera="action" type="button"><span class="pop-name">Low-Angle Action</span><kbd>6</kbd></button>
-    <button id="cam-pov" class="pop-item cam-btn" data-camera="pov" type="button"><span class="pop-name">First-Person / Cockpit</span><kbd>7</kbd></button>
-    <div class="pop-title">Scenic</div>
+    <div class="pop-title" data-fr="Suivre">Follow</div>
+    <button id="cam-chase" class="pop-item cam-btn active" data-camera="chase" type="button"><span class="pop-name" data-fr="Poursuite">3rd-Person Chase</span></button>
+    <button id="cam-action" class="pop-item cam-btn" data-camera="action" type="button"><span class="pop-name" data-fr="Action, plan bas">Low-Angle Action</span><kbd>6</kbd></button>
+    <button id="cam-pov" class="pop-item cam-btn" data-camera="pov" type="button"><span class="pop-name" data-fr="Vue subjective">First-Person / Cockpit</span><kbd>7</kbd></button>
+    <div class="pop-title" data-fr="Points de vue">Scenic</div>
     <button id="cam-centralPark" class="pop-item cam-btn" data-camera="centralPark" type="button"><span class="pop-name">Promenade de la Treille</span></button>
     <button id="cam-fifthAve" class="pop-item cam-btn" data-camera="fifthAve" type="button"><span class="pop-name">Pont de la Machine &amp; Saint-Pierre</span><kbd>8</kbd></button>
     <button id="cam-timesSquare" class="pop-item cam-btn" data-camera="timesSquare" type="button"><span class="pop-name">Rue du Rhône</span><kbd>9</kbd></button>
@@ -378,7 +385,7 @@
     <button id="cam-observatory" class="pop-item cam-btn" data-camera="observatory" type="button"><span class="pop-name">Tours de Saint-Pierre</span></button>
     <button id="cam-bryantPark" class="pop-item cam-btn" data-camera="bryantPark" type="button"><span class="pop-name">Place des Nations</span></button>
     <button id="cam-waterfront" class="pop-item cam-btn" data-camera="waterfront" type="button"><span class="pop-name">Rade &amp; Jet d’eau</span></button>
-    <button id="cam-drone" class="pop-item cam-btn" data-camera="drone" type="button"><span class="pop-name">Auto-Director Aerial</span></button>
+    <button id="cam-drone" class="pop-item cam-btn" data-camera="drone" type="button"><span class="pop-name" data-fr="Réalisation aérienne">Auto-Director Aerial</span></button>
   </div>
 
   <!-- Full-Screen Interactive New York City Street Map ([M]) -->
@@ -399,8 +406,8 @@
         <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
         <input id="fullmap-search" class="fullmap-search" type="text" placeholder="Search streets &amp; landmarks — Rue du Rhône, Quai du Mont-Blanc, Saint-Pierre…" aria-label="Search street or landmark" autocomplete="off" spellcheck="false" />
       </label>
-      <button id="close-fullmap-btn" class="panel tool-btn fullmap-close" type="button" title="Close map [M / Esc]">
-        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg><span class="tool-label">Close</span><kbd>Esc</kbd>
+      <button id="close-fullmap-btn" class="panel tool-btn fullmap-close" type="button" title="Close map [M / Esc]" data-fr-title="Fermer le plan [M / Échap]">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg><span class="tool-label" data-fr="Fermer">Close</span><kbd>Esc</kbd>
       </button>
     </div>
 

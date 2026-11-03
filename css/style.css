@@ -1585,3 +1585,6 @@ body.touch-enabled .pop-item { min-height: 44px; }
 .data-table td { font-variant-numeric: tabular-nums; }
 .data-src { display: block; color: var(--text-2); font-size: 11px; }
 @media (max-width: 560px) { .data-big { grid-template-columns: repeat(2, 1fr); } .data-table th { width: 36%; } }
+
+/* The loading screen's coat of arms: the eagle and the key under the sun of the IHS, "Post Tenebras Lux" */
+.loader-logo.loader-arms { height: 168px; max-width: 160px; margin-bottom: 18px; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)); }

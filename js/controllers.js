@@ -781,7 +781,7 @@ class ThirdPersonControllerManager {
 
     return {
       type: 'car',
-      label: 'Züri Taxi',
+      label: 'Genève Taxi',
       mesh: root,
       chassisPivot,
       carState,
