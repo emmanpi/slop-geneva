@@ -1562,12 +1562,12 @@ function createLoftedBusMaterial() {
   const glass = clamp(max(max(frontGlass, rearGlass), max(max(sideBand.mul(mullion), driverWin), max(d0.glass, d1.glass))), 0.0, 1.0);
   const seal = clamp(max(max(frontSeal, rearSeal), max(max(sideSeal, signBand), doorFrame)), 0.0, 1.0);
 
-  // MTA livery
+  // TPG livery: white with an orange band and a darker orange line, charcoal skirt
   const shadeY = smoothstep(0.34, 1.2, p.y).mul(0.2).add(0.8);
   const blueStripe = smoothstep(0.9, 0.93, p.y).mul(smoothstep(1.2, 1.17, p.y));
   const cyanRibbon = smoothstep(0.84, 0.86, p.y).mul(smoothstep(0.885, 0.865, p.y));
   const skirt = smoothstep(0.53, 0.5, p.y);
-  const livery = mix(mix(mix(color(0xf0f4f8), color(0x0058b8), blueStripe), color(0x00a8e8), cyanRibbon), color(0x1c2026), skirt).mul(shadeY);
+  const livery = mix(mix(mix(color(0xf2f2f0), color(0xee5a00), blueStripe), color(0xb83a00), cyanRibbon), color(0x1c2026), skirt).mul(shadeY);
 
   // Lamps: twin round headlamps & amber turn signals in black pods; red tail / brake light columns, amber turn &
   // white reverse lamps at the rear corners; plates

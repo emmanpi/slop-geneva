@@ -22,6 +22,8 @@ import {
   createLoftedBusMaterial
 } from './actor-models.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createSignAtlas, createBusLines } from './tpg-buses.js';
+import { simClock } from './sim-clock.js';
 
 // js/traffic.js
 // Manhattan traffic and pedestrians on the road graph road-network.js derives from the city as built:
@@ -48,29 +50,6 @@ const LOOKAHEAD = 70; // metres a driver looks ahead for vehicles, stop lines an
 const VEHICLE_RADIUS = 380;
 const NEAR_RADIUS = 350;
 const VEHICLE_SPAWN_DISTANCE = 250;
-
-function createBusDestinationTexture() {
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 64;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#0c0f14';
-  ctx.fillRect(0, 0, 256, 64);
-  ctx.fillStyle = '#0058b8';
-  ctx.fillRect(6, 8, 62, 48);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '900 26px Inter, Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('M1', 37, 33);
-  ctx.fillStyle = '#ff9d1c';
-  ctx.font = '800 22px JetBrains Mono, monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText('5 AV / HARLEM', 78, 33);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
@@ -290,9 +269,13 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   const busHeaderGeo = buildBusSignGeometry();
 
   const busBodyMat = createLoftedBusMaterial();
-  const busDestMat = new THREE.MeshBasicNodeMaterial({
-    map: createBusDestinationTexture()
-  });
+  // TPG lines & destinations (js/tpg-buses.js): one row of the sign atlas per bus (aSign)
+  const signs = createSignAtlas();
+  const busDestMat = signs.material;
+  const busSignRows = new THREE.InstancedBufferAttribute(new Float32Array(NUM_BUSES), 1);
+  busHeaderGeo.setAttribute('aSign', busSignRows);
+  const busLines = createBusLines(edges);
+  let busesToReline = -1;
 
   const busWheelMat = createBusWheelMaterial();
   const busBodyInst = new THREE.InstancedMesh(busBodyGeo, busBodyMat, NUM_BUSES);
@@ -713,6 +696,14 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   const weights = [];
   function chooseMove(v, fromLane) {
     const e = v.edge;
+    // A TPG bus on its line: the move onto the line's next edge
+    if (v.line) {
+      const { edges: route } = v.line.route;
+      const next = route[v.line.idx] === e ? route[v.line.idx + 1] : undefined;
+      const m = next && e.moves.find((mv) => mv.to === next);
+      if (m) return m;
+      v.line = null; // off its line (the end of the roads near the player): on like any bus
+    }
     let total = 0;
     for (let k = 0; k < e.moves.length; k++) {
       const m = e.moves[k];
@@ -1101,6 +1092,20 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
         v.leaderSpeed = v._tramSpeed;
       }
     }
+    // A TPG bus at its stops: pulls up, doors open for 12-22 s
+    if (v.line && !v.conn) {
+      for (const st of v.line.route.stops) {
+        if (st.e !== e || v.line.served.has(st)) continue;
+        const d = st.s - v.s;
+        if (d < -2) { v.line.served.add(st); continue; }
+        if (d < 1.5 && v.speed < 0.5) {
+          if (!v.line.dwellUntil) v.line.dwellUntil = clock + 12 + Math.random() * 10;
+          if (clock >= v.line.dwellUntil) { v.line.served.add(st); v.line.dwellUntil = 0; continue; }
+        }
+        if (d < LOOKAHEAD) worst = Math.min(worst, stopAt(v, Math.max(0, d)));
+        break;
+      }
+    }
     const acc = Math.min(freeAcc(v) + worst, (cap - v.speed) * 2);
     v.acc = clamp(acc, -9, v.driver.a);
   }
@@ -1126,6 +1131,10 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   function leave(v) {
     v.s = v.cs - v.conn.len;
     v.edge = v.move.to;
+    if (v.line) {
+      if (v.line.route.edges[v.line.idx + 1] === v.edge) v.line.idx++;
+      else v.line = null;
+    }
     v.lane = v.out;
     v.trail = v.conn; // the rear axle is still on it
     v.conn = null;
@@ -1446,6 +1455,33 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
 
   // Put v in a free lane around the focus. Normal replenishment protects the near view; teleports can fill it.
   function spawnVehicle(v, rMin, rMax, protectView) {
+    if (v.bus) {
+      v.line = null;
+      v.signRow = 0;
+      const line = busLines.assign(new Set(nearEdges), simClock.seconds);
+      if (line) {
+        const e = line.route.edges[line.idx];
+        for (let attempt = 0; attempt < 6; attempt++) {
+          const lane = Math.floor(Math.random() * e.lanes.length);
+          const s = v.half + 5 + Math.random() * Math.max(0, e.len - 2 * v.half - 10);
+          const x = e.sx + e.dx * s + e.rx * e.lanes[lane];
+          const z = e.sz + e.dz * s + e.rz * e.lanes[lane];
+          const d = Math.hypot(x - focusX, z - focusZ);
+          if (d < rMin || d > rMax || (protectView && nearView(x, z, v.half + 4, VEHICLE_SPAWN_DISTANCE))) continue;
+          if (player.active && Math.hypot(x - player.x, z - player.z) < 25) continue;
+          if (!laneClear(e.occ[lane], s, v.half + 8)) continue;
+          // stops already behind it count as served
+          for (const st of line.route.stops) {
+            const k = line.route.edges.indexOf(st.e);
+            if (k < line.idx || (k === line.idx && st.s < s)) line.served.add(st);
+          }
+          v.line = line;
+          v.signRow = signs.rowFor(line.ref, line.headsign);
+          place(v, e, lane, s);
+          return true;
+        }
+      }
+    }
     for (let attempt = 0; attempt < 12; attempt++) {
       const e = nearEdges[Math.floor(Math.random() * nearEdges.length)];
       if (!e || (v.bus && e.axis !== 'ave') || e.len < 2 * v.half + 10) continue;
@@ -1632,6 +1668,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     dummy.updateMatrix();
     busBodyInst.setMatrixAt(i, dummy.matrix);
     busHeaderInst.setMatrixAt(i, dummy.matrix);
+    busSignRows.array[i] = b.signRow || 0;
     writeLampState(b, busStates.array, i * 4);
 
     const dxCam = b.x - camX;
@@ -1809,12 +1846,16 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     // 1. Cars & buses
     // Limit attempted placements, not just successes, and rotate through the pool so an awkward location
     // cannot monopolize a frame. Previous-frame lane lists protect spawn spacing; rebuild before driving.
+    if (busLines.state.ready && busesToReline < 0) busesToReline = buses.filter((b) => !b.line).length;
     let budget = jump ? vehicles.length : 24;
     for (let scanned = 0; scanned < vehicles.length && budget > 0; scanned++) {
       const v = vehicles[vehicleCursor];
       vehicleCursor = (vehicleCursor + 1) % vehicles.length;
       const d = v.edge ? Math.hypot(v.x - focusX, v.z - focusZ) : Infinity;
-      if (d <= (jump ? NEAR_RADIUS : VEHICLE_RADIUS)) continue;
+      // (buses placed before the timetable came in are placed again, on lines, once it has: at start-up)
+      const reline = v.bus && !v.line && busesToReline > 0;
+      if (d <= (jump ? NEAR_RADIUS : VEHICLE_RADIUS) && !reline) continue;
+      if (reline) busesToReline--;
       budget--;
       spawnVehicle(v, jump ? 0 : 100, NEAR_RADIUS, !jump);
     }
@@ -1890,6 +1931,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     syncInst(carShadowInst, visibleCars);
     syncInst(busBodyInst, visibleBuses);
     syncInst(busHeaderInst, visibleBuses);
+    flagRange(busSignRows, visibleBuses);
     syncInst(busWheelLeftInst, visibleBuses * 2);
     syncInst(busWheelRightInst, visibleBuses * 2);
     syncInst(busShadowInst, visibleBuses);
@@ -1913,6 +1955,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     update,
     setCollisionListener,
     setTramBodies(bodies) { tramBodies = bodies; },
+    busLines,
     cars,
     buses,
     bikes,

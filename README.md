@@ -38,6 +38,9 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   (opentransportdata.swiss) for lines 12, 14, 15, 17 and 18. Each trip drives in from the edge of the network along
   the OSM tracks, waits at its stops for its departure time and shows its line's colour on the displays. The city's
   clock (`js/sim-clock.js`, top left) runs from the hour of the chosen light, or `?heure=HH:MM`.
+- **TPG buses on their lines** (`js/tpg-buses.js`): a bus the traffic puts on the road near the player takes a trip
+  running at the city's clock and follows its line over the road graph from stop to stop. It stops at each stop for
+  12 to 22 s and shows its line and destination on its signs. Buses wear the TPG's white and orange.
 - **The Mouettes genevoises** (`js/boats.js`): lines M1 to M4 cross the Rade on their timetable. A boat sails its
   line's next trip from the pier it reached and waits at the pier in between. It crosses on a smooth course over the
   water, rocking with a wake.
