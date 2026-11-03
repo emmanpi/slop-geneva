@@ -236,6 +236,8 @@ export const waterSurfaceHeight = (x, z) => gridHeight(WATER_LEVEL, x, z);
     const x = minX + i * cell, z = minZ + j * cell;
     if (!inDeep(x, z)) continue;
     const k = j * cols + i;
+    // (only the water's own surface: piers and jetties standing in the lake's polygon, the Bains des Pâquis', stay)
+    if (heights[k] > WATER_LEVEL.heights[k] + 0.3) continue;
     heights[k] = Math.min(heights[k], WATER_LEVEL.heights[k] - 1.5);
   }
 }
