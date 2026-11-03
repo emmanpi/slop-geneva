@@ -2,6 +2,9 @@
 // data: 100 m tiles of OBJ + JPEG in LV95 / LN02, listed by the PHOTOMESH_2019 feature service) over an area into
 // glTF binaries in the world frame (js/geneva-frame.js): data/photomesh/<area>/<tile>.glb and index.json.
 // Vertices: x = E - E0, y = h - H0, z = N0 - N; each tile keeps its own texture, downsampled (default 1024 px).
+// Each tile also gets a coarse level (<tile>.lo.glb: ~12% of the triangles with the tile's borders kept, vertex
+// colours from the photo): js/photomesh.js shows those from afar and streams the full tiles in around the camera.
+// The lake and the rivers are cut out of the mesh (the engine draws its own water).
 // usage: node tools/build-photomesh.mjs <area> <minE> <minN> <maxE> <maxN> [--texture 1024]
 //   e.g. node tools/build-photomesh.mjs plainpalais 2499600 1116800 2500000 1117300
 import fs from 'node:fs';
@@ -9,6 +12,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import jpeg from 'jpeg-js';
+import { MeshoptSimplifier, MeshoptEncoder } from 'meshoptimizer';
 import { FRAME, lv95ToWorld } from '../js/geneva-frame.js';
 import { parseTerrain, gridHeight } from '../js/terrain-grid.js';
 import { GENEVA_DATA } from '../js/geneva-geodata.js';
@@ -98,10 +102,31 @@ const inBuilding = (x, z, d) => near(footprints, x, z).some((b) => x > b.x0 - d 
   (d ? [[d, 0], [-d, 0], [0, d], [0, -d]] : [[0, 0]]).some(([dx, dz]) => pip(b.ring, x + dx, z + dz)));
 const partOfBuilding = (x, z, steep) => inBuilding(x, z, 0) || (steep && inBuilding(x, z, 1.0));
 const inCrown = (x, z) => near(trees, x, z).some((t) => Math.hypot(t.x - x, t.z - z) < t.r);
+const WATER = GENEVA_DATA.water.map((w) => {
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (let i = 0; i < w.ring.length; i += 2) { x0 = Math.min(x0, w.ring[i]); x1 = Math.max(x1, w.ring[i]); z0 = Math.min(z0, w.ring[i + 1]); z1 = Math.max(z1, w.ring[i + 1]); }
+  return { ring: w.ring, holes: w.holes || [], x0, x1, z0, z1 };
+});
+const inWater = (x, z) => WATER.some((w) => x >= w.x0 && x <= w.x1 && z >= w.z0 && z <= w.z1 && pip(w.ring, x, z) && !w.holes.some((h) => pip(h, x, z)));
 
-function removeTrees({ pos, uv, idx }) {
+// Foliage by its colour in the photo (summer 2019): green over red and blue, for the crowns missing from the inventory
+// (courtyards, private gardens)
+function greenAt(img, uv, a, b, c) {
+  if (!img) return false;
+  let r = 0, g = 0, bl = 0;
+  for (const v of [a, b, c]) {
+    const x = Math.round(uv[v * 2] * (img.width - 1)), y = Math.round(uv[v * 2 + 1] * (img.height - 1));
+    const o = (y * img.width + x) * 4;
+    r += img.data[o]; g += img.data[o + 1]; bl += img.data[o + 2];
+  }
+  return g > r * 1.06 && g > bl * 1.04 && g < 3 * 200;
+}
+
+function removeTrees({ pos, uv, idx }, img = null) {
   const outPos = Array.from(pos), outUv = Array.from(uv), ortho = new Array(pos.length / 3).fill(0), outIdx = [];
-  let flattened = 0;
+  let flattened = 0, water = 0, cluttered = 0;
+  // flattened copies of the vertices, shared between the crown's triangles (so the flat ground simplifies away)
+  const flat = new Map();
   for (let t = 0; t < idx.length; t += 3) {
     const [a, b, c] = [idx[t], idx[t + 1], idx[t + 2]];
     const x = (pos[a * 3] + pos[b * 3] + pos[c * 3]) / 3, y = (pos[a * 3 + 1] + pos[b * 3 + 1] + pos[c * 3 + 1]) / 3, z = (pos[a * 3 + 2] + pos[b * 3 + 2] + pos[c * 3 + 2]) / 3;
@@ -110,14 +135,26 @@ function removeTrees({ pos, uv, idx }) {
     const vx = pos[c * 3] - pos[a * 3], vy = pos[c * 3 + 1] - pos[a * 3 + 1], vz = pos[c * 3 + 2] - pos[a * 3 + 2];
     const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
     const steep = Math.abs(ny) < 0.35 * Math.hypot(nx, ny, nz);
-    if (y - gridHeight(TERRAIN, x, z) > 1.2 && inCrown(x, z) && !partOfBuilding(x, z, steep)) {
+    // the water surface (low and flat over the lake or a river)
+    if (!steep && y - gridHeight(TERRAIN, x, z) < 1.0 && inWater(x, z)) { water++; continue; }
+    const above = y - gridHeight(TERRAIN, x, z);
+    // Crowns (inventoried or green), and any other clutter standing above the ground away from the buildings: trees
+    // missing from the inventory, poles, lamps, signs and the photogrammetry's stray shards (the engine draws its own
+    // street furniture). The bridges over the water stay, and so do the eaves (within 1.5 m of a footprint).
+    const crown = (inCrown(x, z) || (above > 2 && greenAt(img, uv, a, b, c))) && !partOfBuilding(x, z, steep);
+    const clutter = !crown && above > 1.2 && !inWater(x, z) && !inBuilding(x, z, 0) && !inBuilding(x, z, 1.5);
+    if (clutter) cluttered++;
+    if (above > 1.2 && (crown || clutter)) {
       // New vertices on the ground, flagged for the orthophoto
       const corners = [a, b, c].map((v) => {
+        // (keyed by position: the photo's texture seams do not matter there, the ground shows the orthophoto)
+        const vx = pos[v * 3], vz = pos[v * 3 + 2], key = `${vx.toFixed(3)},${vz.toFixed(3)}`;
+        if (flat.has(key)) return flat.get(key);
         const n = outPos.length / 3;
-        const vx = pos[v * 3], vz = pos[v * 3 + 2];
         outPos.push(vx, gridHeight(TERRAIN, vx, vz) + 0.03, vz);
         outUv.push(uv[v * 2], uv[v * 2 + 1]);
         ortho.push(1);
+        flat.set(key, n);
         return n;
       });
       outIdx.push(...corners);
@@ -131,13 +168,48 @@ function removeTrees({ pos, uv, idx }) {
     if (remap[v] < 0) { remap[v] = O.length; P.push(outPos[v * 3], outPos[v * 3 + 1], outPos[v * 3 + 2]); U.push(outUv[v * 2], outUv[v * 2 + 1]); O.push(ortho[v]); }
     return remap[v];
   });
-  return { pos: new Float32Array(P), uv: new Float32Array(U), ortho: new Float32Array(O), idx: O.length > 65535 ? new Uint32Array(idx2) : new Uint16Array(idx2), flattened };
+  return { pos: new Float32Array(P), uv: new Float32Array(U), ortho: new Float32Array(O), idx: O.length > 65535 ? new Uint32Array(idx2) : new Uint16Array(idx2), flattened, water, cluttered };
 }
 
-// Box-filtered downsample of a JPEG to TEXTURE px
-function shrinkJpeg(buf) {
-  const img = jpeg.decode(buf, { useTArray: true, maxMemoryUsageInMB: 1024 });
-  const f = Math.max(1, Math.round(img.width / TEXTURE)), w = Math.round(img.width / f), h = Math.round(img.height / f);
+// Coarse level: meshoptimizer's edge collapses down to ~12% of the triangles (across the texture's seams: Permissive; tile borders locked so the
+// coarse tile meets its neighbours' full ones without cracks)
+await MeshoptSimplifier.ready;
+await MeshoptEncoder.ready;
+function simplify({ pos, uv, ortho, idx }, ratio = 0.12, error = 0.02, flags = ['LockBorder', 'Permissive']) {
+  const target = ratio ? Math.max(300, Math.floor((idx.length / 3) * ratio)) * 3 : 3;
+  const [lod] = MeshoptSimplifier.simplify(Uint32Array.from(idx), pos, 3, target, error, flags);
+  const remap = new Int32Array(pos.length / 3).fill(-1);
+  const P = [], U = [], O = [];
+  const out = Array.from(lod, (v) => {
+    if (remap[v] < 0) { remap[v] = O.length; P.push(pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]); U.push(uv[v * 2], uv[v * 2 + 1]); O.push(ortho[v]); }
+    return remap[v];
+  });
+  return { pos: new Float32Array(P), uv: new Float32Array(U), ortho: new Float32Array(O), idx: O.length > 65535 ? new Uint32Array(out) : new Uint16Array(out) };
+}
+
+// Vertex colours for the coarse level, from the photo around each vertex's own texture coordinates (collapsing across
+// the texture's seams scrambles any texture mapping; each kept vertex is an original one, with its own uv)
+function vertexColours({ uv }, img) {
+  const out = new Float32Array((uv.length / 2) * 3);
+  const r = Math.max(1, Math.round(img.width / 512));
+  for (let i = 0; i < uv.length / 2; i++) {
+    const cx = Math.round(uv[i * 2] * (img.width - 1)), cy = Math.round(uv[i * 2 + 1] * (img.height - 1));
+    let R = 0, G = 0, B = 0, n = 0;
+    for (let y = Math.max(0, cy - r); y <= Math.min(img.height - 1, cy + r); y++) for (let x = Math.max(0, cx - r); x <= Math.min(img.width - 1, cx + r); x++) {
+      const o = (y * img.width + x) * 4;
+      R += img.data[o]; G += img.data[o + 1]; B += img.data[o + 2]; n++;
+    }
+    // sRGB -> linear (glTF vertex colours are linear)
+    const lin = (c) => { c /= 255 * n; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    out[i * 3] = lin(R); out[i * 3 + 1] = lin(G); out[i * 3 + 2] = lin(B);
+  }
+  return out;
+}
+
+// Box-filtered downsample of a JPEG to `size` px
+const decodeJpeg = (buf) => jpeg.decode(buf, { useTArray: true, maxMemoryUsageInMB: 1024 });
+function shrinkJpeg(img, size = TEXTURE) {
+  const f = Math.max(1, Math.round(img.width / size)), w = Math.round(img.width / f), h = Math.round(img.height / f);
   const out = new Uint8Array(w * h * 4);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     let r = 0, g = 0, b = 0;
@@ -151,32 +223,49 @@ function shrinkJpeg(buf) {
   return Buffer.from(jpeg.encode({ data: out, width: w, height: h }, 85).data);
 }
 
-// glTF binary: one mesh, one textured unlit material
-function writeGlb(file, { pos, uv, idx, ortho }, image) {
+// glTF binary: one mesh, one unlit material: textured (uv + image), or with vertex colours (color, no image).
+// Geometry compressed with EXT_meshopt_compression (three.js GLTFLoader + MeshoptDecoder); the image as is
+function writeGlb(file, { pos, uv, idx, ortho, color }, image) {
   const pad = (n) => (n + 3) & ~3;
-  const parts = [Buffer.from(pos.buffer), Buffer.from(uv.buffer), Buffer.from(idx.buffer), image, Buffer.from(ortho.buffer)];
+  const u8 = (a) => new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+  const attrs = [['POSITION', pos, 3], ...(image ? [['TEXCOORD_0', uv, 2]] : []), ...(color ? [['COLOR_0', color, 3]] : []), ['_ORTHO', ortho, 1]];
+  const encoded = [
+    ...attrs.map(([, a, n]) => ({ data: MeshoptEncoder.encodeVertexBuffer(u8(a), a.length / n, n * 4), raw: a.byteLength, stride: n * 4, count: a.length / n, mode: 'ATTRIBUTES' })),
+    { data: MeshoptEncoder.encodeIndexBuffer(u8(idx), idx.length, idx.BYTES_PER_ELEMENT), raw: idx.byteLength, stride: idx.BYTES_PER_ELEMENT, count: idx.length, mode: 'TRIANGLES' },
+    ...(image ? [null] : [])
+  ];
   const views = [];
-  let offset = 0;
-  for (const p of parts) { views.push({ buffer: 0, byteOffset: offset, byteLength: p.length }); offset = pad(offset + p.length); }
+  const chunks = [];
+  let offset = 0, fallback = 0;
+  encoded.forEach((e) => {
+    const data = e ? Buffer.from(e.data) : image;
+    chunks.push([offset, data]);
+    if (e) {
+      views.push({ buffer: 1, byteOffset: fallback, byteLength: e.raw, ...(e.mode === 'ATTRIBUTES' ? { byteStride: e.stride } : {}),
+        extensions: { EXT_meshopt_compression: { buffer: 0, byteOffset: offset, byteLength: data.length, byteStride: e.stride, count: e.count, mode: e.mode } } });
+      fallback = pad(fallback + e.raw);
+    } else views.push({ buffer: 0, byteOffset: offset, byteLength: data.length });
+    offset = pad(offset + data.length);
+  });
   const bin = Buffer.alloc(offset);
-  parts.forEach((p, i) => p.copy(bin, views[i].byteOffset));
+  for (const [o, d] of chunks) d.copy(bin, o);
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < pos.length; i += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], pos[i + k]); max[k] = Math.max(max[k], pos[i + k]); }
+  const TYPES = { 1: 'SCALAR', 2: 'VEC2', 3: 'VEC3' };
+  const accessors = attrs.map(([, a, n], i) => ({ bufferView: i, componentType: 5126, count: a.length / n, type: TYPES[n], ...(i === 0 ? { min, max } : {}) }));
+  accessors.push({ bufferView: attrs.length, componentType: idx instanceof Uint32Array ? 5125 : 5123, count: idx.length, type: 'SCALAR' });
   const json = {
     asset: { version: '2.0', generator: 'slop-geneva tools/build-photomesh.mjs', copyright: 'SITG, État de Genève: Photomaillage 3D 2019' },
-    extensionsUsed: ['KHR_materials_unlit'],
+    extensionsUsed: ['KHR_materials_unlit', 'EXT_meshopt_compression'], extensionsRequired: ['EXT_meshopt_compression'],
     scene: 0, scenes: [{ nodes: [0] }], nodes: [{ mesh: 0 }],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0, TEXCOORD_0: 1, _ORTHO: 3 }, indices: 2, material: 0 }] }],
-    materials: [{ pbrMetallicRoughness: { baseColorTexture: { index: 0 }, metallicFactor: 0, roughnessFactor: 1 }, extensions: { KHR_materials_unlit: {} } }],
-    textures: [{ source: 0, sampler: 0 }], samplers: [{ magFilter: 9729, minFilter: 9987, wrapS: 33071, wrapT: 33071 }],
-    images: [{ bufferView: 3, mimeType: 'image/jpeg' }],
-    accessors: [
-      { bufferView: 0, componentType: 5126, count: pos.length / 3, type: 'VEC3', min, max },
-      { bufferView: 1, componentType: 5126, count: uv.length / 2, type: 'VEC2' },
-      { bufferView: 2, componentType: idx instanceof Uint32Array ? 5125 : 5123, count: idx.length, type: 'SCALAR' },
-      { bufferView: 4, componentType: 5126, count: ortho.length, type: 'SCALAR' }
-    ],
-    bufferViews: views, buffers: [{ byteLength: bin.length }]
+    meshes: [{ primitives: [{ attributes: Object.fromEntries(attrs.map(([name], i) => [name, i])), indices: attrs.length, material: 0 }] }],
+    materials: [{ pbrMetallicRoughness: { ...(image ? { baseColorTexture: { index: 0 } } : {}), metallicFactor: 0, roughnessFactor: 1 }, extensions: { KHR_materials_unlit: {} } }],
+    ...(image ? {
+      textures: [{ source: 0, sampler: 0 }], samplers: [{ magFilter: 9729, minFilter: 9987, wrapS: 33071, wrapT: 33071 }],
+      images: [{ bufferView: attrs.length + 1, mimeType: 'image/jpeg' }]
+    } : {}),
+    accessors,
+    bufferViews: views, buffers: [{ byteLength: bin.length }, { byteLength: fallback, extensions: { EXT_meshopt_compression: { fallback: true } } }]
   };
   let jsonBuf = Buffer.from(JSON.stringify(json));
   jsonBuf = Buffer.concat([jsonBuf, Buffer.alloc(pad(jsonBuf.length) - jsonBuf.length, 0x20)]);
@@ -188,7 +277,7 @@ function writeGlb(file, { pos, uv, idx, ortho }, image) {
 }
 
 const tiles = [];
-let bytes = 0;
+let bytes = 0, loBytes = 0;
 for (const url of urls) {
   const name = path.basename(url, '.zip');
   const zip = path.join(CACHE, `${name}.zip`), dir = path.join(CACHE, name);
@@ -203,17 +292,24 @@ for (const url of urls) {
   }
   const mtl = fs.readFileSync(path.join(dir, `${name}.mtl`), 'utf8');
   const texture = /map_Kd\s+(.+)/.exec(mtl)[1].trim().replace(/\\/g, '/');
-  const geometry = removeTrees(parseObj(fs.readFileSync(path.join(dir, `${name}.obj`), 'utf8')));
-  const image = shrinkJpeg(fs.readFileSync(path.join(dir, texture)));
+  const source = decodeJpeg(fs.readFileSync(path.join(dir, texture)));
+  const cut = removeTrees(parseObj(fs.readFileSync(path.join(dir, `${name}.obj`), 'utf8')), source);
+  // the full level: within ~20 cm of the survey (the flattened crowns and flat ground collapse), seams & borders kept
+  const geometry = { ...cut, ...simplify(cut, 0, 0.0015, ['LockBorder']) };
+  if (!geometry.idx.length) { log(`${name}: all water, skipped`); continue; }
   const file = path.join(OUT, `${name}.glb`);
-  const { min, max } = writeGlb(file, geometry, image);
+  const { min, max } = writeGlb(file, geometry, shrinkJpeg(source));
+  const coarse = simplify(geometry);
+  coarse.color = vertexColours(coarse, source);
+  writeGlb(path.join(OUT, `${name}.lo.glb`), coarse, null);
   bytes += fs.statSync(file).size;
-  tiles.push({ file: `${name}.glb`, triangles: geometry.idx.length / 3, min: min.map((v) => Math.round(v * 10) / 10), max: max.map((v) => Math.round(v * 10) / 10) });
-  log(`${name}: ${geometry.idx.length / 3} triangles, ${geometry.flattened} of tree crowns flattened onto the ground`);
+  loBytes += fs.statSync(path.join(OUT, `${name}.lo.glb`)).size;
+  tiles.push({ file: `${name}.glb`, lo: `${name}.lo.glb`, triangles: geometry.idx.length / 3, loTriangles: coarse.idx.length / 3, min: min.map((v) => Math.round(v * 10) / 10), max: max.map((v) => Math.round(v * 10) / 10) });
+  log(`${name}: ${cut.idx.length / 3} -> ${geometry.idx.length / 3} triangles (coarse ${coarse.idx.length / 3}), ${geometry.flattened} of crowns & clutter flattened onto the ground (${geometry.cluttered} clutter), ${geometry.water} on the water cut`);
 }
 fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({
   source: 'SITG, État de Genève: Photomaillage 3D 2019 (open data)', area, lv95: [minE, minN, maxE, maxN],
   // the area in world coordinates [minX, minZ, maxX, maxZ]: the engine hides its own buildings, ground & trees there
   bounds: [minE - FRAME.E0, FRAME.N0 - maxN, maxE - FRAME.E0, FRAME.N0 - minN], texture: TEXTURE, tiles
 }, null, 1));
-log(`wrote ${tiles.length} tiles to ${OUT} (${(bytes / 1048576).toFixed(1)} MB)`);
+log(`wrote ${tiles.length} tiles to ${OUT} (${(bytes / 1048576).toFixed(1)} MB, coarse ${(loBytes / 1048576).toFixed(1)} MB)`);

@@ -43,10 +43,18 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **Inventaire cantonal des arbres isolés** (SITG): ~39,000 trees with their surveyed height and crown.
 - The **quartiers** of the Ville de Genève (Cité, Pâquis, Eaux-Vives, Plainpalais, Jonction…) and the neighbouring
   communes for place names, plus teleports and viewpoints.
-- **The real city in 3D, over a test area**: the SITG's textured photomesh (Photomaillage 3D 2019, 100 m tiles of
-  OBJ + JPEG) converted to glTF in the world frame (`tools/build-photomesh.mjs`, `data/photomesh/<area>/`). The first
-  area is the Plaine de Plainpalais (400 × 500 m); there it replaces the engine's buildings, ground and trees
-  (`js/photomesh.js`, `PHOTOMESH_AREAS`).
+- **The real city in 3D over the old town and Plainpalais**: the SITG's textured photomesh (Photomaillage 3D 2019,
+  100 m tiles of OBJ + JPEG) converted to glTF in the world frame (`tools/build-photomesh.mjs`, `data/photomesh/<area>/`).
+  The two areas are the Vieille-Ville with the Rues Basses, the Bastions and the Rive quarter (800 × 800 m), and the
+  Plaine de Plainpalais (400 × 500 m). There the photomesh replaces the engine's buildings and ground. Its tree crowns
+  are flattened onto the orthophoto, and the engine's own trees stand on it (`js/photomesh.js`, `PHOTOMESH_AREAS`).
+  - Each tile has two levels. The full one is simplified to ~20 cm of the survey, with a 1024 px texture. The coarse
+    one keeps ~12% of the triangles and carries vertex colours from the photo, with the orthophoto on what faces up.
+    Geometry is compressed with `EXT_meshopt_compression`.
+  - The coarse tiles load with the city (~10 MB). The full tiles stream in around the camera, within 240 m and 28 at
+    most, and are released again beyond 340 m.
+- **The follow camera stays on the player's side of the walls** (`js/cameras.js`): it is pulled in short of the first
+  building between the player and the camera, which matters in the old town's narrow streets.
 - **LV95 world frame** (`js/geneva-frame.js`): 1 unit = 1 m, `x = E − 2500000`, `z = 1118000 − N`,
   `y = height − 372 m` (lake level). The mapped area is LV95 E 2498300–2502300, N 1116500–1121300 (4.0 × 4.8 km).
 
@@ -81,7 +89,7 @@ npm run update:buildings
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
 | `data:transit` | `tools/build-geneva-transit.mjs` | Horaire officiel suisse (GTFS, opentransportdata.swiss), saved to `tools/data/cache/gtfs/gtfs.zip` |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
-| `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais) |
+| `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais, Vieille-Ville) |
 | `update:buildings` | `tools/update-swissbuildings3d.mjs` | swisstopo swissBUILDINGS3D 3.0 (3D Tiles) |
 
 ## Ideas

@@ -184,6 +184,42 @@ class CameraSystem {
     this.camera.updateProjectionMatrix();
   }
 
+  // The follow cameras stay on the player's side of the walls: pulled in along the line from the player's head to the
+  // camera, short of the first building collider it crosses (the old town's narrow streets, the photomesh's walls)
+  pullInFromWalls(entity) {
+    const cm = this.controllerManager;
+    if (!cm?.nearColliders) return;
+    const ox = entity.position.x, oy = entity.position.y + 1.6, oz = entity.position.z;
+    const dx = this.currentPos.x - ox, dy = this.currentPos.y - oy, dz = this.currentPos.z - oz;
+    const len = Math.hypot(dx, dy, dz);
+    if (len < 0.5) return;
+    let tMin = 1;
+    for (const c of cm.nearColliders((ox + this.currentPos.x) / 2, (oz + this.currentPos.z) / 2, len / 2 + 1)) {
+      // the segment in the collider's frame (oriented boxes rotate into their axes)
+      const o = c.obb;
+      const cx = o ? o.cx : (c.minX + c.maxX) * 0.5, cz = o ? o.cz : (c.minZ + c.maxZ) * 0.5;
+      const hx = o ? o.hx : (c.maxX - c.minX) * 0.5, hz = o ? o.hz : (c.maxZ - c.minZ) * 0.5;
+      const cs = o ? o.cs : 1, sn = o ? o.sn : 0;
+      const px = (ox - cx) * cs - (oz - cz) * sn, pz = (ox - cx) * sn + (oz - cz) * cs;
+      const vx = dx * cs - dz * sn, vz = dx * sn + dz * cs;
+      let t0 = 0, t1 = 1;
+      for (const [p, v, h] of [[px, vx, hx], [pz, vz, hz]]) {
+        if (Math.abs(v) < 1e-9) { if (Math.abs(p) > h) { t0 = 2; break; } continue; }
+        let a = (-h - p) / v, b = (h - p) / v;
+        if (a > b) [a, b] = [b, a];
+        t0 = Math.max(t0, a); t1 = Math.min(t1, b);
+        if (t0 > t1) break;
+      }
+      if (t0 > t1 || t0 >= tMin || t0 <= 0) continue; // missed, further, or the player stands inside it
+      const y = oy + dy * t0;
+      if (y > c.maxY || y < (c.minY ?? -Infinity)) continue;
+      tMin = t0;
+    }
+    if (tMin >= 1) return;
+    const t = Math.max(0.12, tMin - 0.35 / len);
+    this.currentPos.set(ox + dx * t, oy + dy * t, oz + dz * t);
+  }
+
   update(dt, elapsed) {
     const entity = this.controllerManager.getActiveEntity();
     const desiredPos = this._desiredPos;
@@ -370,6 +406,7 @@ class CameraSystem {
       this.currentPos.set(entity.position.x, this.followBaseY, entity.position.z).add(this.followOffset);
       this.currentLookAt.set(entity.position.x, this.followBaseY, entity.position.z).add(this.followLookOffset);
       this.currentPos.y = Math.max(0.55, this.currentPos.y);
+      if (entity.type !== 'helicopter') this.pullInFromWalls(entity);
     } else {
       this.followEntity = null;
       const k = 1 - Math.exp(-dt * 8.5);

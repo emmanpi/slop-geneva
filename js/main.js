@@ -107,7 +107,7 @@ async function initApp() {
   const boats = buildBoats(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
-  buildPhotomesh(scene);
+  const photomesh = buildPhotomesh(scene);
   const boroughs = buildBoroughs(scene, { sidewalks: cityGrid.sidewalks });
   markInit('boroughs');
   const { colliders: landmarkColliders } = buildLandmarks(scene);
@@ -774,6 +774,7 @@ async function initApp() {
     );
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
     boats.update(dt, elapsed);
+    photomesh.update(cameraSystem.camera.position);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
     trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);
     if (!document.hidden && now >= nextPlayerSave) {
@@ -825,7 +826,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },
