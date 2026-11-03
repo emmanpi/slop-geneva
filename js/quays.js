@@ -86,6 +86,7 @@ export function buildQuays(scene) {
     const s = segs[si];
     const L = Math.hypot(s.x1 - s.x0, s.z1 - s.z0);
     const { top0, top1, drop, underDeck } = s;
+    const band = s.band ?? BAND;
     const w = s.water;
     // the foam, out over the water from the shore
     const o = 1.8, fy = w + 0.07;
@@ -105,10 +106,10 @@ export function buildQuays(scene) {
         quad(coping, p0, p1, i1, i0, [along, 0], [along + L, 0], [along + L, 0], [along, 0]);
         quad(coping, [p1[0], top1 - 0.1, p1[2]], [p0[0], top0 - 0.1, p0[2]], p0, p1, [along + L, 0], [along, 0], [along, 0], [along + L, 0]);
         // the bank laid flat behind it
-        quad(bank, i0, i1, [s.x1 + s.nx * BAND, top1, s.z1 + s.nz * BAND], [s.x0 + s.nx * BAND, top0, s.z0 + s.nz * BAND]);
+        quad(bank, i0, i1, [s.x1 + s.nx * band, top1, s.z1 + s.nz * band], [s.x0 + s.nx * band, top0, s.z0 + s.nz * band]);
       }
       // a railing on the high quays: posts every ~2.2 m, two rails
-      if (drop > RAILING && !underDeck) rail.push({ x0: s.x0 + s.nx * 0.25, z0: s.z0 + s.nz * 0.25, x1: s.x1 + s.nx * 0.25, z1: s.z1 + s.nz * 0.25, y0: cy0, y1: cy1, L });
+      if ((s.railing || drop > RAILING) && !underDeck) rail.push({ x0: s.x0 + s.nx * 0.25, z0: s.z0 + s.nz * 0.25, x1: s.x1 + s.nx * 0.25, z1: s.z1 + s.nz * 0.25, y0: cy0, y1: cy1, L });
     } else beaches++;
     along += L;
   }
@@ -149,6 +150,16 @@ export function buildQuays(scene) {
     railMesh.userData.terrain = 'absolute';
     group.add(railMesh);
   }
+  // The railings are solid: one oriented box per piece (0.25 m in from the edge, 1.05 m high), for the player
+  const colliders = rail.map((r) => {
+    const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2, L = Math.hypot(r.x1 - r.x0, r.z1 - r.z0) || 1e-6;
+    const ux = (r.x1 - r.x0) / L, uz = (r.z1 - r.z0) / L;
+    const hx = L / 2 + 0.05, hz = 0.12, cs = ux, sn = -uz;
+    const ex = Math.abs(cs) * hx + Math.abs(sn) * hz, ez = Math.abs(sn) * hx + Math.abs(cs) * hz;
+    const y = Math.min(r.y0, r.y1);
+    return { minX: cx - ex, maxX: cx + ex, minZ: cz - ez, maxZ: cz + ez, baseY: y, minY: y - 0.5, maxY: Math.max(r.y0, r.y1) + 1.05, obb: { cx, cz, hx, hz, cs, sn } };
+  });
+  group.userData.colliders = colliders;
   group.userData.stats = { segments: segs.length, walls, beaches, railings: rail.length };
   scene.add(group);
   return group;

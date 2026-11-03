@@ -226,6 +226,8 @@ const WATER_LEVEL = (() => {
 })();
 export const waterSurfaceHeight = (x, z) => gridHeight(WATER_LEVEL, x, z);
 
+// The jetties' paths (below: raised above the water, with quay walls and railings along both sides, see SHORE)
+const jettyPaths = [];
 // Under the water (lake and rivers, not the ponds) the ground drops 1.5 m below the surface: the banks then meet the
 // water steeply, where js/quays.js stands its quay walls, instead of a sloping band of terrain sticking out of it
 {
@@ -250,6 +252,7 @@ export const waterSurfaceHeight = (x, z) => gridHeight(WATER_LEVEL, x, z);
       const ax = r.pts[p - 2], az = r.pts[p - 1], bx = r.pts[p], bz = r.pts[p + 1];
       if (!inDeep((ax + bx) / 2, (az + bz) / 2)) continue;
       const L = Math.hypot(bx - ax, bz - az) || 1e-6, ux = (bx - ax) / L, uz = (bz - az) / L;
+      jettyPaths.push({ ax, az, bx, bz, half });
       const i0 = Math.max(0, Math.floor((Math.min(ax, bx) - half - minX) / cell)), i1 = Math.min(cols - 1, Math.ceil((Math.max(ax, bx) + half - minX) / cell));
       const j0 = Math.max(0, Math.floor((Math.min(az, bz) - half - minZ) / cell)), j1 = Math.min(rows - 1, Math.ceil((Math.max(az, bz) + half - minZ) / cell));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
@@ -483,7 +486,7 @@ function quayHeight(x, z) {
     const t = ((x - s.x0) * s.ux + (z - s.z0) * s.uz) / s.L;
     if (t < 0 || t > 1) continue;
     const d = (x - s.x0) * s.nx + (z - s.z0) * s.nz;
-    if (d < -0.12 || d > QUAY.BAND) continue;
+    if (d < -0.12 || d > (s.band ?? QUAY.BAND)) continue;
     const h = s.top0 + (s.top1 - s.top0) * t + (d < 0.45 ? 0.08 : 0); // the coping stone stands 8 cm proud
     if (h > best) best = h;
   }
@@ -516,6 +519,32 @@ export const SHORE = (() => {
       }
     }
   }
+  // the jetties: a wall and a railing along both sides of their paths, at the raised top (0.8 m above the water), where
+  // the side faces open water (not another raised path beside it)
+  const jetty = [];
+  for (const p of jettyPaths) {
+    const L = Math.hypot(p.bx - p.ax, p.bz - p.az);
+    if (L < 0.5) continue;
+    const ux = (p.bx - p.ax) / L, uz = (p.bz - p.az) / L;
+    const n = Math.max(1, Math.ceil(L / QUAY.STEP));
+    for (const side of [1, -1]) {
+      const ox = -uz * side, oz = ux * side; // outwards
+      for (let k = 0; k < n; k++) {
+        const t0 = (L * k) / n, t1 = (L * (k + 1)) / n;
+        const x0 = p.ax + ux * t0 + ox * p.half, z0 = p.az + uz * t0 + oz * p.half;
+        const x1 = p.ax + ux * t1 + ox * p.half, z1 = p.az + uz * t1 + oz * p.half;
+        const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+        if (!inWater(mx + ox * 2, mz + oz * 2)) continue;
+        const water = waterSurfaceHeight(mx + ox * 3, mz + oz * 3);
+        if (gridHeight(TERRAIN, mx + ox * 1.5, mz + oz * 1.5) > water + 0.3) continue; // another path beside it
+        const top = water + 0.8;
+        // (drawn with the land on the left of x0 -> x1, like the shores)
+        const seg = side > 0 ? { x0: x1, z0: z1, x1: x0, z1: z0 } : { x0, z0, x1, z1 };
+        const sux = (seg.x1 - seg.x0) / (L / n), suz = (seg.z1 - seg.z0) / (L / n);
+        jetty.push({ ...seg, nx: -ox, nz: -oz, ux: sux, uz: suz, L: L / n, water, top0: top, top1: top, drop: 0.8, wall: true, band: p.half, railing: true, jetty: true });
+      }
+    }
+  }
   // the quay's height: the bank behind each segment, smoothed along the shore (±7 m)
   const raw = segs.map((s) => gridHeight(TERRAIN, (s.x0 + s.x1) / 2 + s.nx * QUAY.BAND, (s.z0 + s.z1) / 2 + s.nz * QUAY.BAND) + 0.05);
   const joined = segs.map((s, i) => i > 0 && Math.hypot(s.x0 - segs[i - 1].x1, s.z0 - segs[i - 1].z1) < 0.5);
@@ -536,11 +565,13 @@ export const SHORE = (() => {
     s.underDeck = deck((s.x0 + s.x1) / 2 + s.nx * 0.25, (s.z0 + s.z1) / 2 + s.nz * 0.25, s.water) ||
       deck(s.x0 + s.nx * 0.25, s.z0 + s.nz * 0.25, s.water) || deck(s.x1 + s.nx * 0.25, s.z1 + s.nz * 0.25, s.water);
   });
+  segs.push(...jetty.map((s) => ({ ...s, underDeck: deck((s.x0 + s.x1) / 2 + s.nx * 0.25, (s.z0 + s.z1) / 2 + s.nz * 0.25, s.water) })));
   // the levelled banks, indexed for groundHeight
   const cells = new Map();
   for (const s of segs) {
     if (!s.wall || s.underDeck) continue;
-    const xs = [s.x0, s.x1, s.x0 + s.nx * QUAY.BAND, s.x1 + s.nx * QUAY.BAND], zs = [s.z0, s.z1, s.z0 + s.nz * QUAY.BAND, s.z1 + s.nz * QUAY.BAND];
+    const band = s.band ?? QUAY.BAND;
+    const xs = [s.x0, s.x1, s.x0 + s.nx * band, s.x1 + s.nx * band], zs = [s.z0, s.z1, s.z0 + s.nz * band, s.z1 + s.nz * band];
     for (let i = Math.floor((Math.min(...xs) - 0.2) / QCELL); i <= Math.floor((Math.max(...xs) + 0.2) / QCELL); i++) {
       for (let j = Math.floor((Math.min(...zs) - 0.2) / QCELL); j <= Math.floor((Math.max(...zs) + 0.2) / QCELL); j++) {
         const k = i * 100003 + j;

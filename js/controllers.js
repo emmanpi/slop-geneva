@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { surfaceHeight, deckHeight, ROAD_TOP, SIDEWALK_TOP } from './terrain.js';
+import { surfaceHeight, deckHeight, groundHeight, waterSurfaceHeight, ROAD_TOP, SIDEWALK_TOP } from './terrain.js';
 import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
@@ -1632,6 +1632,8 @@ class ThirdPersonControllerManager {
   // The water, unless a bridge deck carries whoever is up on it (at about height `y`; there is no going under it)
   isUnbridgedWater(x, z, y) {
     if (typeof waterAt !== 'function' || !waterAt(x, z)) return false;
+    // a jetty or a pier standing in the water's polygon (raised terrain: js/terrain.js) is dry ground
+    if (groundHeight(x, z) > waterSurfaceHeight(x, z) + 0.3) return false;
     const deck = deckHeight(x, z);
     return !(deck === deck && (y === undefined || y > deck - 1));
   }

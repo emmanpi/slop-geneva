@@ -117,7 +117,7 @@ async function initApp() {
   const boats = buildBoats(scene);
   const planes = buildPlanes(scene);
   const fireworks = buildFireworks(scene);
-  buildQuays(scene);
+  const quays = buildQuays(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,
@@ -161,7 +161,7 @@ async function initApp() {
   markInit('swissbuildings3d');
   const cityBlocks = buildCityBlocks(scene, { bag: !!swissBuildings });
   markInit('blocks');
-  const allColliders = liftColliders([...landmarkColliders, ...cityBlocks.colliders, ...boroughs.colliders, ...(cityGrid.colliders || [])]);
+  const allColliders = liftColliders([...landmarkColliders, ...cityBlocks.colliders, ...boroughs.colliders, ...(cityGrid.colliders || []), ...(quays.userData.colliders || [])]);
 
   const streetDetails = buildStreetDetails(scene);
   markInit('streetDetails');
