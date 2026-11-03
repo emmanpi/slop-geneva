@@ -1634,7 +1634,7 @@ class ThirdPersonControllerManager {
     if (typeof waterAt !== 'function' || !waterAt(x, z)) return false;
     // a jetty or a pier standing in the water's polygon (raised terrain: js/terrain.js) is dry ground
     if (groundHeight(x, z) > waterSurfaceHeight(x, z) + 0.3) return false;
-    const deck = deckHeight(x, z);
+    const deck = deckHeight(x, z, y);
     return !(deck === deck && (y === undefined || y > deck - 1));
   }
 

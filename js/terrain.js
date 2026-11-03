@@ -99,7 +99,9 @@ for (const list of [GENEVA_DATA.roads, GENEVA_DATA.railways]) {
 }
 
 /** Height of the bridge deck under (x, z) (nearest bridge centreline within its half width), or NaN */
-export function deckHeight(x, z) {
+// Where decks overlap (a quay's walkway passing under the Pont du Mont-Blanc), the one nearest `nearY` (something's
+// current height), else the highest; among decks at about the same height, the nearest centreline
+export function deckHeight(x, z, nearY) {
   const list = deckCells.get(Math.floor(x / DECK_CELL) * 65536 + Math.floor(z / DECK_CELL));
   if (!list) return NaN;
   let best = Infinity, h = NaN;
@@ -107,7 +109,11 @@ export function deckHeight(x, z) {
     const dx = s.bx - s.ax, dz = s.bz - s.az, L2 = dx * dx + dz * dz || 1e-9;
     const t = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / L2));
     const d = Math.hypot(s.ax + t * dx - x, s.az + t * dz - z);
-    if (d <= s.half && d < best) { best = d; h = s.ya + t * (s.yb - s.ya); }
+    if (d > s.half) continue;
+    const y = s.ya + t * (s.yb - s.ya);
+    // (score: metres off in height count far more than metres off the centreline)
+    const score = (nearY === undefined || !Number.isFinite(nearY) ? -y : Math.abs(y - nearY)) * 100 + d;
+    if (score < best) { best = score; h = y; }
   }
   return h;
 }
@@ -115,7 +121,7 @@ export function deckHeight(x, z) {
 /** The surface at (x, z) for something at about `nearY`: a bridge deck, or the ground under a bridge (never the water) */
 export function surfaceHeight(x, z, nearY) {
   const g = groundHeight(x, z);
-  const d = deckHeight(x, z);
+  const d = deckHeight(x, z, nearY);
   if (!(d === d)) return g;
   if (nearY === undefined || d - g < 2) return d > g ? d : g;
   return Math.abs(nearY - d) <= Math.abs(nearY - g) || inWater(x, z) ? d : g;

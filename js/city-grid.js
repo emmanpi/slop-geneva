@@ -384,7 +384,9 @@ function buildBerlinCityGrid(scene) {
   for (const s of bridgeSlabs) {
     const half = deckHalfWidth(s.road);
     const nx = -s.uz, nz = s.ux;
-    const deckAt = (x, z) => { const d = deckHeight(x, z); return d === d ? d : groundHeight(x, z); };
+    // (its own deck, where decks overlap: the one at about its own height)
+    const ownY = s.road.ys ? s.road.ys.reduce((a, y) => a + y, 0) / s.road.ys.length : undefined;
+    const deckAt = (x, z) => { const d = deckHeight(x, z, ownY); return d === d ? d : groundHeight(x, z); };
     const pieces = Math.max(1, Math.ceil(s.len / 6));
     for (let k = 0; k < pieces; k++) {
       const t0 = k / pieces, t1 = (k + 1) / pieces;
@@ -416,7 +418,7 @@ function buildBerlinCityGrid(scene) {
         const offset = side * (half - PARAPET / 2);
         const edge = (i) => {
           const t = (i + 0.5) / steps, x = a.x + (b.x - a.x) * t + nx * side * (half + 0.5), z = a.z + (b.z - a.z) * t + nz * side * (half + 0.5);
-          const other = deckHeight(x, z);
+          const other = deckHeight(x, z, ya + (yb - ya) * t);
           return !(other === other && Math.abs(other - (ya + (yb - ya) * t)) < 1.5);
         };
         for (let i = 0; i < steps;) {
