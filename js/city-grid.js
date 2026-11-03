@@ -22,9 +22,11 @@ import {
   clamp,
   fwidth,
   length,
-  screenCoordinate
+  screenCoordinate,
+  mx_noise_float
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { orthoAt } from './orthophoto.js';
 import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
@@ -75,6 +77,21 @@ let sidewalkBlocks;
 let fdrViaduct;
 let berlinStreetSites = [];
 
+// Inside the photographed frame, a ground material takes the SWISSIMAGE orthophoto's colour (the real sand of
+// Plainpalais, the real asphalt, lawns and paving), with a fine grain so that it doesn't look flat up close; its own
+// procedural colour remains only beyond the frame. Decals (the painted markings) disappear: the photo has the real ones.
+function fadeToOrtho(mat) {
+  if (mat.userData.orthoFade || !mat.colorNode) return mat;
+  const ortho = orthoAt(positionWorld);
+  if (mat.transparent && mat.opacityNode) mat.opacityNode = mat.opacityNode.mul(float(1).sub(ortho.weight));
+  else {
+    const grain = mx_noise_float(positionWorld.xz.mul(2.7)).mul(0.07).add(mx_noise_float(positionWorld.xz.mul(0.45)).mul(0.05)).add(1.0);
+    mat.colorNode = mix(mat.colorNode, ortho.color.mul(grain), ortho.weight);
+  }
+  mat.userData.orthoFade = true;
+  return mat;
+}
+
 function buildBerlinCityGrid(scene) {
   const group = new THREE.Group();
   group.name = 'BerlinMitteCityGrid';
@@ -85,6 +102,8 @@ function buildBerlinCityGrid(scene) {
   const lawnMat = createParkLawnMaterial(false);
   const pavingMat = createParkPavingMaterial();
   const paintMat = createRoadPaintMaterial();
+  // Every ground layer takes the SWISSIMAGE orthophoto's colour (fadeToOrtho)
+  for (const mat of [roadMat, sidewalkMat, lawnMat, pavingMat, paintMat]) fadeToOrtho(mat);
   const collections = new Map();
   // Everything is built flat (small y offsets above y = 0) and laid on the terrain before merging: ground layers are
   // draped, solids displaced; geometry of a bridge follows its deck; `absolute` geometry is already in world heights.
@@ -452,8 +471,9 @@ function buildBerlinCityGrid(scene) {
     }
   }
   const depths = carveDepths(carveStrips);
-  for (const mesh of buildTerrainMeshes(sidewalkMat, { depths, carve: (x, z) => (waterAt(x, z) ? 2.5 : 0) })) {
-    mesh.userData.sharesPipelineWith = group.children[0];
+  // The bare ground between the mapped surfaces (courtyards, track fields, verges): the orthophoto too
+  const groundMat = fadeToOrtho(createSidewalkMaterial());
+  for (const mesh of buildTerrainMeshes(groundMat, { depths, carve: (x, z) => (waterAt(x, z) ? 2.5 : 0) })) {
     group.add(mesh);
   }
   // Lay the flat-built layers on the terrain (see `collect`)

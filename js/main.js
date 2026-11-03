@@ -12,7 +12,7 @@ import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
-import { placeOnTerrain, liftColliders } from './terrain.js';
+import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
 import { buildStreetDetails } from './street-details.js';
 import { createTrafficSystem, createHighwayTraffic } from './traffic.js';
@@ -112,6 +112,7 @@ async function initApp() {
   try {
     const savedSpawn = (() => { try { const s = JSON.parse(localStorage.getItem('slopgeneva-player-state')); return s?.version === SAVE_VERSION ? s.entities?.[s.activeMode] : null; } catch { return null; } })();
     const stream = swissStream = streamSwissBuildings(scene, {
+      groundHeight,
       center: Number.isFinite(savedSpawn?.x) ? savedSpawn : defaultSpawn,
       onProgress: (done, total) => { if (loadingStatus && !swissBuildings) loadingStatus.textContent = `Loading swissBUILDINGS3D ${done}/${total}…`; }
     });

@@ -11,7 +11,7 @@ import { createJetSprayMaterial } from './tsl-materials.js';
 
 const SPRITES = 2600;
 // The bise blows from the north-east, down the lake: the spray falls back towards the south-west (x east, z south)
-const WIND = new THREE.Vector2(-0.55, 0.42);
+const WIND = new THREE.Vector2(-0.5, 0.38);
 
 export function jetPosition() {
   const node = GENEVA_DATA.fountains.find((f) => /^jet d'eau$/i.test(f.name));

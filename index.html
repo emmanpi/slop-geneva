@@ -61,6 +61,7 @@
   <link rel="modulepreload" href="./js/surroundings.js" />
   <link rel="modulepreload" href="./js/trams.js" />
   <link rel="modulepreload" href="./js/jet-deau.js" />
+  <link rel="modulepreload" href="./js/orthophoto.js" />
   <link rel="modulepreload" href="./js/main.js" />
   <script type="module" src="./js/main.js"></script>
   <!-- Inter (UI) & Overpass (street-name signs: modelled on Highway Gothic, the US road sign typeface) -->
@@ -198,6 +199,7 @@
         <b>swissBUILDINGS3D 3.0</b>: buildings and roofs.<br>
         <b>swissALTI3D</b>: the terrain.<br>
         <b>swissSURFACE3D Raster</b>: the bridge decks.<br>
+        <b>SWISSIMAGE</b>: the orthophoto on the roofs and the ground.<br>
         <span class="credits-source">© swisstopo, Federal Office of Topography swisstopo (<a href="https://www.swisstopo.admin.ch/de/nutzungsbedingungen-kostenlose-geodaten-und-geodienste" target="_blank" rel="noopener noreferrer">terms of use</a>)</span>
       </li>
       <li>
@@ -211,6 +213,10 @@
       <li>
         <b>Inventaire cantonal des arbres</b>: the trees.<br>
         <span class="credits-source">État de Genève (OCAN), <a href="https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles" target="_blank" rel="noopener noreferrer">Inventaire cantonal des arbres isolés, SITG</a> (open data)</span>
+      </li>
+      <li>
+        <b>RegBL</b>: the building periods and storeys behind the facades.<br>
+        <span class="credits-source">Federal Statistical Office (FSO), Federal Register of Buildings and Dwellings, <a href="https://www.housing-stat.ch/" target="_blank" rel="noopener noreferrer">housing-stat.ch</a> (open data)</span>
       </li>
     </ul>
     <p class="credits-source">Code under the MIT License, after colorfield's <a href="https://github.com/colorfield/slop-zurich" target="_blank" rel="noopener noreferrer">Slop Zürich</a> and mrdoob's <a href="https://github.com/mrdoob/slop-newyork" target="_blank" rel="noopener noreferrer">Slop New York</a>. Built with <a href="https://threejs.org" target="_blank" rel="noopener noreferrer">three.js</a> (MIT).</p>
@@ -365,7 +371,7 @@
       <span class="legend-item"><span class="legend-swatch landmark-swatch"></span>Landmark</span>
       <span class="legend-item"><span class="legend-swatch gps-swatch"></span>GPS route</span>
       <span class="legend-item"><span class="legend-swatch bridge-swatch"></span>Bridge / Hwy</span>
-      <span class="legend-item legend-credits">© swisstopo · © OpenStreetMap contributors · SITG</span>
+      <span class="legend-item legend-credits">© swisstopo · © OpenStreetMap contributors · SITG · OFS RegBL</span>
       <span id="fullmap-counts" class="legend-counts"></span>
     </div>
   </section>

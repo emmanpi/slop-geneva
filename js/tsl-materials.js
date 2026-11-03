@@ -2955,9 +2955,9 @@ function createJetSprayMaterial({ origin, speed = 52.4, wind }) {
     const tt = t.toVar();
     const y = v0.mul(tt).sub(tt.mul(tt).mul(JET_GRAVITY / 2)).max(0);
     // The wind pushes harder on the slow, broken water near the top and on the way down
-    const push = tt.mul(tt).mul(0.5).mul(mix(float(0.25), float(1), falling));
+    const push = tt.mul(tt).mul(0.5).mul(mix(float(0.15), float(0.6), falling));
     const angle = aParams.z.mul(6.2832);
-    const radius = mix(float(0.35), float(2.2), smoothstep(0.0, 0.5, life)).add(falling.mul(tt.sub(flight.mul(0.5)).max(0).mul(1.6))).mul(fract(aParams.z.mul(7.31)).mul(0.7).add(0.3));
+    const radius = mix(float(0.15), float(1.2), smoothstep(0.0, 0.5, life)).add(falling.mul(tt.sub(flight.mul(0.5)).max(0).mul(0.7))).mul(fract(aParams.z.mul(7.31)).mul(0.7).add(0.3));
     return vec3(
       uOrigin.x.add(uWind.x.mul(push)).add(cos(angle).mul(radius)),
       uOrigin.y.add(y),
@@ -2965,9 +2965,9 @@ function createJetSprayMaterial({ origin, speed = 52.4, wind }) {
     );
   })();
 
-  // A tight jet at the nozzle (~1 m), a crown of mist at the top (~7 m), wide veils of spray on the way down (~11 m)
+  // A tight jet at the nozzle (~0.6 m), a crown of mist at the top (~3.5 m), veils of spray on the way down (~5 m)
   mat.scaleNode = Fn(() => {
-    const s = mix(float(1.1), float(7.0), smoothstep(0.05, 0.5, life)).add(falling.mul(4.0)).mul(aParams.w);
+    const s = mix(float(0.6), float(3.5), smoothstep(0.05, 0.5, life)).add(falling.mul(1.6)).mul(aParams.w);
     return vec2(s, s);
   })();
 
@@ -2988,7 +2988,7 @@ function createJetSprayMaterial({ origin, speed = 52.4, wind }) {
   mat.opacityNode = Fn(() => {
     const fadeIn = smoothstep(0.0, 0.015, life);
     // The rising column is dense water; the spray thins out as it falls back into the lake
-    const density = mix(float(0.85), float(0.32), falling);
+    const density = mix(float(0.8), float(0.22), falling);
     const splash = smoothstep(1.0, 0.94, life);
     return clamp(texNode.a.mul(fadeIn).mul(density).mul(splash), 0.0, 0.85);
   })();

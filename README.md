@@ -13,6 +13,14 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 
 - **swisstopo swissBUILDINGS3D 3.0**: every building with its real roof, from the 3D Tiles of `3d.geo.admin.ch`,
   stored in the repository (`data/swissbuildings3d/`).
+- **The real ground and roofs**: a SWISSIMAGE orthophoto mosaic of the frame at 1 m per pixel (`data/geneva-ortho.jpg`)
+  colours the roofs and every ground surface (the sand of Plainpalais, asphalt, lawns, paving). The crowns and
+  shadows of the 39,000 inventoried trees are filled out of the photo from the ground around them, since the engine
+  draws its own trees.
+- **Facades by period** from the Federal Register of Buildings (RegBL): each building's year or period of
+  construction and storeys pick its style (`data/geneva-facades.json`): the old town's stone with shutters and
+  cornices, the 19th-century molasse with tall windows, string courses and wrought-iron balconies, post-war balcony
+  slabs, contemporary glazing, office curtain walls. Windows light up after dusk.
 - **swisstopo swissALTI3D**: the terrain (2 m, resampled to 4 m): the Léman at 372 m, the old town's hill around
   Saint-Pierre (~400 m), the Rhône below the Seujet dam, the climb to the Nations.
 - **Bridges at their real height** from swissSURFACE3D: the Pont du Mont-Blanc, the Pont de la Machine, the
@@ -56,6 +64,8 @@ npm run update:buildings
 | `data:decks` | `tools/fetch-bridge-decks.mjs` | swisstopo swissSURFACE3D Raster |
 | `data:geo` | `tools/build-geneva-geodata.mjs` | all of the above → `js/geneva-geodata.js` |
 | `data:surroundings` | `tools/build-geneva-surroundings.mjs` | swisstopo swissALTIRegio |
+| `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
+| `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
 | `update:buildings` | `tools/update-swissbuildings3d.mjs` | swisstopo swissBUILDINGS3D 3.0 (3D Tiles) |
 
 ## Ideas
@@ -71,4 +81,4 @@ The code is available under the [MIT License](LICENSE).
 Data: © [swisstopo](https://www.swisstopo.admin.ch/) (swissBUILDINGS3D 3.0, swissALTI3D, swissSURFACE3D,
 swissALTIRegio, open government data), © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL),
 [SITG / État de Genève](https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles) (Inventaire
-cantonal des arbres isolés).
+cantonal des arbres isolés), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements).

@@ -98,3 +98,29 @@ test('the Jet d\'eau stands in the lake at the tip of the Jetée des Eaux-Vives'
   assert.ok(Math.hypot(jet.x - p.x, jet.z - p.z) < 40, 'near its surveyed position');
   assert.ok(Math.abs(gridHeight(TERRAIN, jet.x, jet.z)) < 1, 'at lake level');
 });
+
+test('every stored building tile has its facade styles from the RegBL', () => {
+  const index = JSON.parse(fs.readFileSync(new URL('../data/swissbuildings3d/index.json', import.meta.url), 'utf8'));
+  const facades = JSON.parse(fs.readFileSync(new URL('../data/geneva-facades.json', import.meta.url), 'utf8'));
+  assert.deepEqual(facades.styles, ['ancien', 'xixe', 'moderne', 'contemporain', 'bureaux', 'inconnu']);
+  let known = 0, total = 0;
+  for (const t of index.tiles) {
+    const entries = facades.tiles[t.u];
+    assert.ok(typeof entries === 'string', t.u);
+    for (const e of entries.split(';').filter(Boolean)) {
+      const [style, storey] = e.split(',').map(Number);
+      assert.ok(style >= 0 && style < facades.styles.length && storey >= 24 && storey <= 50, `${t.u}: ${e}`);
+      total++; if (style !== 5) known++;
+    }
+  }
+  assert.ok(known / total > 0.8, `${known}/${total} buildings with a known style`);
+});
+
+test('the orthophoto covers the frame at 1 m per pixel', () => {
+  const meta = JSON.parse(fs.readFileSync(new URL('../data/geneva-ortho.json', import.meta.url), 'utf8'));
+  assert.deepEqual(meta.lv95, FRAME.lv95);
+  assert.equal(meta.width, FRAME.lv95[2] - FRAME.lv95[0]);
+  assert.equal(meta.height, FRAME.lv95[3] - FRAME.lv95[1]);
+  const jpg = fs.readFileSync(new URL('../data/geneva-ortho.jpg', import.meta.url));
+  assert.equal(jpg.readUInt16BE(0), 0xffd8, 'a JPEG');
+});

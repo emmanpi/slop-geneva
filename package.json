@@ -12,12 +12,16 @@
     "data:decks": "node tools/fetch-bridge-decks.mjs",
     "data:geo": "node tools/build-geneva-geodata.mjs",
     "data:surroundings": "node tools/build-geneva-surroundings.mjs",
-    "data": "npm run data:osm && npm run data:areas && npm run data:trees && npm run data:terrain && npm run data:decks && npm run data:geo && npm run data:surroundings",
+    "data:ortho": "node tools/build-geneva-ortho.mjs",
+    "data:gwr": "mkdir -p tools/data/cache/gwr && curl -sSf -o tools/data/cache/gwr/ge.zip https://public.madd.bfs.admin.ch/ge.zip && unzip -o -q tools/data/cache/gwr/ge.zip -d tools/data/cache/gwr",
+    "data:facades": "node tools/build-geneva-facades.mjs",
+    "data": "npm run data:osm && npm run data:areas && npm run data:trees && npm run data:terrain && npm run data:decks && npm run data:geo && npm run data:surroundings && npm run data:ortho && npm run data:gwr && npm run data:facades",
     "update:buildings": "node tools/update-swissbuildings3d.mjs",
     "serve": "python3 -m http.server 8766 --bind 127.0.0.1",
     "test": "node --test tests/*.cjs tests/*.mjs"
   },
   "devDependencies": {
-    "geotiff": "^2.1.3"
+    "geotiff": "^2.1.3",
+    "jpeg-js": "^0.4.4"
   }
 }

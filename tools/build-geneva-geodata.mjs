@@ -40,13 +40,67 @@ for (const e of osm.elements) {
     const levels = num(t['building:levels']);
     let h = num(t.height), src = 'height';
     if (h == null && levels != null) { h = levels * 3.2 + (t['roof:shape'] && t['roof:shape'] !== 'flat' ? 3 : 1); src = 'building:levels'; }
-    if (h == null) { h = 14; src = 'default'; } // Geneva's centre is mostly 5-7 storey blocks
+    // Without a height (and before the survey below): small footprints are sheds, kiosks and garages, the rest Geneva's
+    // 5-7 storey blocks
+    if (h == null) { const a = Math.abs(ringArea(ring)); h = a < 40 ? 3 : a < 120 ? 6 : 14; src = 'default'; }
     buildings.push({
       id: `${e.type[0]}${e.id}${i ? '_' + i : ''}`, ring: flat(ring), holes: p.holes.map((hh) => flat(cleanRing(hh))), h: r1(h),
       roofHeight: r1(num(t['roof:height']) ?? 0), roofShape: t['roof:shape'] || 'flat', levels: levels ?? 0,
       name: t.name || '', kind: t.building, heightSource: src
     });
   }
+}
+
+// --- Real heights for the footprints OSM leaves without one ---------------------------------------------------------------
+// Most of Geneva's OSM buildings carry no height. The stored swissBUILDINGS3D tiles give every surveyed building its
+// height (batch table Height, at its Latitude/Longitude); failing that, the RegBL storeys (GASTW) give an estimate.
+// They set the colliders and the fallback extrusions (a kiosk is not 14 m high).
+{
+  const SB = path.join(DIR, '..', 'data', 'swissbuildings3d');
+  const points = [];
+  if (fs.existsSync(path.join(SB, 'index.json'))) {
+    const index = JSON.parse(fs.readFileSync(path.join(SB, 'index.json'), 'utf8'));
+    for (const t of index.tiles) {
+      const b = fs.readFileSync(path.join(SB, index.base, t.u));
+      const ftJ = b.readUInt32LE(12), ftB = b.readUInt32LE(16), btJ = b.readUInt32LE(20);
+      const bt = btJ ? JSON.parse(b.toString('utf8', 28 + ftJ + ftB, 28 + ftJ + ftB + btJ)) : {};
+      (bt.Latitude || []).forEach((lat, k) => {
+        if (!(bt.Height?.[k] > 0)) return;
+        const [x, z] = toWorld(bt.Longitude[k], lat);
+        points.push({ x, z, h: bt.Height[k], src: 'swissbuildings3d' });
+      });
+    }
+  }
+  const GWR = path.join(CACHE, 'gwr', 'gebaeude_batiment_edificio.csv');
+  if (fs.existsSync(GWR)) {
+    const lines = fs.readFileSync(GWR, 'utf8').split('\n'), head = lines[0].split('\t');
+    const cE = head.indexOf('GKODE'), cN = head.indexOf('GKODN'), cF = head.indexOf('GASTW');
+    for (let i = 1; i < lines.length; i++) {
+      const f = lines[i].split('\t');
+      if (!f[cF]) continue;
+      const { x, z } = lv95ToWorld(+f[cE], +f[cN]);
+      if (inFrame(x, z)) points.push({ x, z, h: +f[cF] * 3.1 + 1, src: 'regbl' });
+    }
+  }
+  const CELL = 40, grid = new Map();
+  for (const p of points) { const k = `${Math.floor(p.x / CELL)},${Math.floor(p.z / CELL)}`; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(p); }
+  const inside = (ring, x, z) => { let c = false; for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2) { if ((ring[i + 1] > z) !== (ring[j + 1] > z) && x < ((ring[j] - ring[i]) * (z - ring[i + 1])) / (ring[j + 1] - ring[i + 1]) + ring[i]) c = !c; } return c; };
+  const tally = { swissbuildings3d: 0, regbl: 0 };
+  for (const b of buildings) {
+    if (b.heightSource === 'height') continue;
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (let i = 0; i < b.ring.length; i += 2) { x0 = Math.min(x0, b.ring[i]); x1 = Math.max(x1, b.ring[i]); z0 = Math.min(z0, b.ring[i + 1]); z1 = Math.max(z1, b.ring[i + 1]); }
+    let best = null;
+    for (let i = Math.floor(x0 / CELL); i <= Math.floor(x1 / CELL); i++) for (let j = Math.floor(z0 / CELL); j <= Math.floor(z1 / CELL); j++) {
+      for (const p of grid.get(`${i},${j}`) || []) {
+        if (!inside(b.ring, p.x, p.z)) continue;
+        // the survey first, then the tallest
+        if (!best || (p.src === 'swissbuildings3d' && best.src !== 'swissbuildings3d') || (p.src === best.src && p.h > best.h)) best = p;
+      }
+    }
+    if (best) { b.h = r1(Math.max(2.5, best.h)); b.heightSource = best.src; tally[best.src]++; }
+  }
+  log(`footprint heights: ${tally.swissbuildings3d} from swissBUILDINGS3D, ${tally.regbl} from the RegBL storeys`);
 }
 
 // --- Roads & railways ---------------------------------------------------------------------------------------------------
