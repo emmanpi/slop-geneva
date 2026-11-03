@@ -53,6 +53,10 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **Fireworks over the Rade** (`js/fireworks.js`) on the 1st of August, at the Fêtes de Genève (mid-August) and at
   New Year's midnight, from barges off the Pâquis, or at any time with `?evenement=feux`. They are drawn as a GPU
   particle system of peonies, gold willows and rings.
+- **The cycle network** (`js/cycling.js`): OSM's cycle tracks (the two-way track along the lake's quays among them,
+  asphalt) and the cycle lanes along the streets (`cycleway:left/right`). They are marked in Swiss yellow: lane edge
+  lines (dashed where advisory), bicycle pictograms and the two-way tracks' dashed centre line. About 70 cyclists ride
+  the network around the camera, keeping right on the tracks and riding the lanes' way.
 - **The quays** (`js/quays.js`): along every shore of the Léman and the Rhône, where the bank stands high, a
   dressed-stone quay wall rises from below the water, wet and darker at the waterline with a line of algae. It has a
   coping stone, the quay's paving laid flat up to the wall and a painted iron railing on the high quays. A line of foam

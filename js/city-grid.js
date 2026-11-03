@@ -312,7 +312,7 @@ function buildBerlinCityGrid(scene) {
       const pieces = outsideRoads(stripPoints(s, half), nearbyCarriageways(s.a, s.b, half), s);
       for (const piece of pieces) {
         const geometry = berlinPolygonGeometry(piece, [], 0.055);
-        setPavingStyle(geometry, s.road.kind === 'cycleway' ? 0 : 2);
+        setPavingStyle(geometry, s.road.kind === 'cycleway' ? 3 : 2); // cycle tracks: asphalt
         collect(geometry, pavingMat);
         clippedPedestrianPieces++;
       }

@@ -18,6 +18,7 @@ import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
 import { buildFireworks } from './fireworks.js';
 import { buildQuays } from './quays.js';
+import { buildCycling } from './cycling.js';
 import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -175,6 +176,8 @@ async function initApp() {
   ], streetDetails.signalIntersections);
   markInit('traffic');
   trafficSystem.setTramBodies(trams.bodies);
+  // The cycle tracks and lanes, and their cyclists (the traffic's bicycles)
+  const cycling = buildCycling(scene, trafficSystem.bikeParts);
   const highwayTraffic = createHighwayTraffic(scene, cityGrid.highwayLanes);
   const beforePaint = new Set(scene.children);
   buildRoadPaint(scene, trafficSystem.network);
@@ -821,6 +824,7 @@ async function initApp() {
     planes.setWind(weather.state.current);
     planes.update();
     fireworks.update(dt);
+    cycling.update(dt, cameraSystem.camera);
     {
       // street level: the procedural city near the camera, the photomesh beyond (js/photomesh.js)
       const c = cameraSystem.camera.position;
@@ -880,7 +884,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes, fireworksSystem: fireworks,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes, fireworksSystem: fireworks, cycling,
           fireworks(on = true) { fireworks.set(on); },
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },

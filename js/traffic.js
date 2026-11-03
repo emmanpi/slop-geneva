@@ -1959,6 +1959,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     cars,
     buses,
     bikes,
+    bikeParts: { bikeGeo, riderGeo, skinGeo, bikeMat, bikePalette, jacketPalette },
     peds: pedestrianSystem.peds,
     network
   };

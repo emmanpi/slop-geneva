@@ -171,6 +171,22 @@ for (const e of osm.elements) {
   // Geneva's tram streets: the tracks share the carriageway (OSM railway=tram ways run along them)
   const kept = rdp(pts, 0.5);
   const record = { id: `w${e.id}`, pts: flat(kept), bridge, tunnel, layer, name: t.name || '', width: r1(width), lanes, oneway, reverse: t.oneway === '-1', kind, nodeIds: e.nodes || [] };
+  // Cycle lanes along a street (OSM cycleway, cycleway:both|left|right): [left, right] of the way's drawing direction,
+  // 'L' a lane (solid line), 'A' an advisory lane (dashed), 'B' a shared bus lane, 'T' a track beside it; lowercase:
+  // ridden against the way's direction (a contraflow lane on a one-way street)
+  {
+    const code = (v) => (/^lane$/.test(v || '') ? 'L' : /^opposite_lane$/.test(v || '') ? 'l' : /^share_busway$/.test(v || '') ? 'B' : /^track$/.test(v || '') ? 'T' : /^opposite_track$/.test(v || '') ? 't' : '');
+    const side = (k) => {
+      const v = t[`cycleway:${k}`] ?? t['cycleway:both'] ?? (k === 'right' || !oneway ? t.cycleway : undefined);
+      let c = code(v);
+      if (c === 'L' && /advisory/.test(t[`cycleway:${k}:lane`] || t['cycleway:both:lane'] || t['cycleway:lane'] || '')) c = 'A';
+      if (c && t[`cycleway:${k}:oneway`] === '-1') c = c.toLowerCase();
+      return c;
+    };
+    let left = side('left'), right = side('right');
+    if (oneway && t.cycleway === 'opposite_lane' && !left) left = 'l';
+    if (kind !== 'cycleway' && (left || right)) record.cyc = `${left || '-'}${right || '-'}`;
+  }
   roads.push(record);
   noteLevel(e, pts, kept, record, bridge, tunnel);
   if (DRIVABLE.has(kind) && !tunnel && t.access !== 'no' && t.motor_vehicle !== 'no' && e.nodes && e.nodes.length === e.geometry.length) {

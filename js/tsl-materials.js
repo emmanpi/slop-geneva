@@ -1405,7 +1405,8 @@ const pavingJoints = Fn(([style, wx, wz]) => {
   const granJoint = max(gridLine(wx.add(offG), 0.9, 0.01), gridLine(wz, 0.45, 0.01));
   const blueJoint = max(gridLine(wx, 0.6, 0.012), gridLine(wz, 0.6, 0.012));
   const isGranite = step(0.5, style).mul(float(1.0).sub(step(1.5, style)));
-  return mix(mix(hexJoint, granJoint, isGranite), blueJoint, step(1.5, style));
+  // (style 3: asphalt, the cycle tracks: no joints)
+  return mix(mix(hexJoint, granJoint, isGranite), blueJoint, step(1.5, style)).mul(float(1.0).sub(step(2.5, style)));
 });
 
 /**
