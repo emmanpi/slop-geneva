@@ -6,6 +6,7 @@ import { groundHeight } from './terrain.js';
 const HAZE = 0.3;
 import {
   Fn,
+  dot,
   float,
   vec3,
   vec4,
@@ -178,10 +179,14 @@ class LightingSystem {
     this.uSkyExposure = uniform(0.148);
     this.uNightFactor = uniform(0.0);
     this.uNightSkyColor = uniform(new THREE.Color(0x0b1528));
+    this.uOvercast = uniform(0.0); // js/weather.js: 0 clear .. 1 a low grey cloud deck
     const rawSkyNode = this.sky.material.colorNode;
     this.sky.material.colorNode = Fn(() => {
       const raw = rawSkyNode;
-      const dayCol = raw.rgb.mul(this.uSkyExposure);
+      const lit = raw.rgb.mul(this.uSkyExposure);
+      // overcast: the sky's brightness as a flat, slightly blue grey, a little dimmer
+      const lum = dot(lit, vec3(0.2126, 0.7152, 0.0722));
+      const dayCol = mix(lit, vec3(lum).mul(vec3(0.82, 0.86, 0.92)).mul(0.85), this.uOvercast.mul(0.9));
       const finalSky = mix(dayCol, this.uNightSkyColor, this.uNightFactor);
       return vec4(finalSky, float(1.0));
     })();
@@ -268,33 +273,45 @@ class LightingSystem {
     this.scene.add(this.sky);
   }
 
+  // Weather over the light of the hour (js/weather.js): overcast 0..1 dims the sun and fills the sky with cloud, fog
+  // 0..1 thickens the haze and brings it down, wet 0..1 the roads
+  setWeather({ overcast = 0, fog = 0, wet = 0 } = {}) {
+    this.weather = { overcast, fog, wet };
+    this.applyPreset(this.activePresetId, true);
+  }
+
   applyPreset(presetId, force = false) {
     const p = TIME_PRESETS[presetId] || TIME_PRESETS.golden;
     if (!force && this.activePresetId === p.id && this.envRenderTarget !== null) {
       return;
     }
     this.activePresetId = p.id;
+    const w = this.weather || { overcast: 0, fog: 0, wet: 0 };
+    const lerp = (a, b, t) => a + (b - a) * t;
 
     this.sunLight.color.setHex(p.sunColor);
-    this.sunLight.intensity = p.sunIntensity;
+    this.sunLight.intensity = p.sunIntensity * (1 - 0.8 * w.overcast) * (1 - 0.5 * w.fog);
     this.sunLight.position.copy(p.sunDir);
     this.sunLight.updateMatrixWorld();
 
     this.hemiLight.color.setHex(p.hemiSky);
     this.hemiLight.groundColor.setHex(p.hemiGround);
-    this.hemiLight.intensity = p.hemiIntensity;
+    this.hemiLight.intensity = p.hemiIntensity * (1 - 0.12 * w.overcast);
 
     this.scene.fog.color.setHex(p.fogColor);
     this.scene.fog.density = p.fogDensity;
-    if (this.uFogDensity) this.uFogDensity.value = p.fogDensity * HAZE;
+    if (this.uFogDensity) this.uFogDensity.value = p.fogDensity * HAZE * (1 + 1.5 * w.overcast + 14 * w.fog);
+    if (this.uFogHeight) this.uFogHeight.value = lerp(900, 140, w.fog);
 
     // Update physical Preetham SkyMesh uniforms
-    this.sky.turbidity.value = p.turbidity;
+    this.sky.turbidity.value = p.turbidity + 6 * w.overcast + 8 * w.fog;
     this.sky.rayleigh.value = p.rayleigh;
     this.sky.mieCoefficient.value = p.mieCoefficient;
+    // a grey sky under cloud (the sky's colour node, above)
+    this.uOvercast.value = Math.max(w.overcast, w.fog);
     this.sky.mieDirectionalG.value = p.mieDirectionalG;
-    this.sky.cloudCoverage.value = p.cloudCoverage;
-    this.sky.cloudDensity.value = p.cloudDensity;
+    this.sky.cloudCoverage.value = lerp(p.cloudCoverage, 0.97, Math.max(w.overcast, w.fog));
+    this.sky.cloudDensity.value = lerp(p.cloudDensity, 0.95, Math.max(w.overcast, w.fog));
     this.sky.sunPosition.value.copy(p.sunDir);
     this.uSkyExposure.value = p.skyExposure;
     this.uNightFactor.value = p.nightFactor;
@@ -304,12 +321,12 @@ class LightingSystem {
     cityUniforms.uSkyHorizonColor.value.setHex(p.skyHorizon);
     cityUniforms.uSkySunDir.value.copy(p.sunDir);
     cityUniforms.uInteriorGlow.value = p.interiorGlow;
-    cityUniforms.uRoadWetness.value = p.roadWetness;
+    cityUniforms.uRoadWetness.value = Math.max(p.roadWetness * (1 - 0.6 * (1 - w.overcast) * (this.weather ? 1 : 0)), w.wet);
     if (cityUniforms.uCanyonBounce) {
       cityUniforms.uCanyonBounce.value = p.canyonBounce;
     }
 
-    this.scene.environmentIntensity = p.envIntensity;
+    this.scene.environmentIntensity = p.envIntensity * (1 - 0.2 * w.overcast);
     this.bakeEnvironmentMap();
   }
 

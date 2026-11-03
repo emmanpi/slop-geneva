@@ -41,6 +41,10 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **The Mouettes genevoises** (`js/boats.js`): lines M1 to M4 cross the Rade on their timetable. A boat sails its
   line's next trip from the pier it reached and waits at the pier in between. It crosses on a smooth course over the
   water, rocking with a wake.
+- **Weather** (`js/weather.js`): by default the live values of MeteoSwiss's station at Genève-Cointrin (every 10
+  minutes), or a chosen sky (fair, bise, rain, November stratus, snow). The weather sets the cloud deck and haze, wet
+  roads, rain or snow around the camera and the wind in the trees and on the Jet d'eau. The Jet d'eau runs from 10:00
+  to 22:30 and stops in a gale or a frost. The Weather menu or `?meteo=` picks the sky.
 - **Seasons** (`js/seasons.js`, `js/phenology.js`): each inventoried tree follows its genus through the year. Maples
   go orange and red, limes and birches yellow, planes tan and chestnuts brown early. Oaks stay bronze late, deciduous
   trees stand bare in winter and conifers stay green. The Season menu picks the day (default: today), as do `?saison=`
@@ -111,4 +115,5 @@ Data: © [swisstopo](https://www.swisstopo.admin.ch/) (swissBUILDINGS3D 3.0, swi
 swissALTIRegio, open government data), © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL),
 [SITG / État de Genève](https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles) (Inventaire
 cantonal des arbres isolés, Photomaillage 3D 2019), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements),
-[opentransportdata.swiss](https://opentransportdata.swiss/) (horaire officiel, GTFS).
+[opentransportdata.swiss](https://opentransportdata.swiss/) (horaire officiel, GTFS),
+[MeteoSwiss](https://opendata.swiss/) (SwissMetNet, Genève-Cointrin).

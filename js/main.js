@@ -13,6 +13,7 @@ import { buildSurroundings } from './surroundings.js';
 import { buildCanton } from './canton.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
+import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
 import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
@@ -105,7 +106,8 @@ async function initApp() {
   markInit('surroundings');
   const trams = buildTrams(scene);
   markInit('trams');
-  buildJetDeau(scene);
+  const jet = buildJetDeau(scene);
+  const weather = createWeather({ scene, lighting: lightingSystem, jet });
   const boats = buildBoats(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
@@ -453,6 +455,18 @@ async function initApp() {
     if (label) label.textContent = SEASON_PRESETS[id]?.label || 'Saison';
   }
   initSeasonFromURL();
+
+  // Weather (js/weather.js): MeteoSwiss's live values at Cointrin unless the menu or ?meteo= picks a sky
+  const weatherButtons = document.querySelectorAll('[data-weather]');
+  const weatherLabel = document.getElementById('weather-label');
+  function selectWeather(id) {
+    weatherButtons.forEach((b) => b.classList.toggle('active', b.dataset.weather === id));
+    return weather.set(id).then(() => { if (weatherLabel) weatherLabel.textContent = weather.summary(); });
+  }
+  weatherButtons.forEach((btn) => btn.addEventListener('click', () => { selectWeather(btn.dataset.weather); closePopovers(); }));
+  // (applied once the first frame is out, see below: re-baking the sky's environment map during the start-up compile
+  // left a pipeline with an empty fragment output)
+  const meteo = new URLSearchParams(location.search).get('meteo');
   seasonButtons.forEach((btn) => btn.addEventListener('click', () => {
     selectSeason(btn.dataset.season);
     closePopovers();
@@ -776,6 +790,7 @@ async function initApp() {
     );
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
     boats.update(dt, elapsed);
+    weather.update(dt, cameraSystem.camera);
     photomesh.update(cameraSystem.camera.position);
     canton.update(cameraSystem.camera);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
@@ -824,18 +839,20 @@ async function initApp() {
       const device = renderer.backend.device;
       Promise.resolve(device && device.queue.onSubmittedWorkDone()).catch(() => {}).then(() => {
         markInit('gpu');
+        selectWeather(WEATHER_PRESETS[meteo] ? meteo : 'reel');
         console.log(`[init] ${initTimings.join(', ')}`);
         // Spike test hooks (tools/probe.mjs, evidence screenshots)
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },
           camera(id) { selectCamera(id, true); },
           time(id) { selectTime(id); },
           season(id) { selectSeason(id); },
+          weather(id) { return selectWeather(id); },
           day(d) { seasonDay.value = d; },
           clock: simClock,
           setCamera(px, py, pz, tx, ty, tz) {

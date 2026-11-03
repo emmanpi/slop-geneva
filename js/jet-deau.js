@@ -51,5 +51,10 @@ export function buildJetDeau(scene) {
   group.userData.terrain = 'absolute'; // already in world heights (terrain.js placeOnTerrain leaves it alone)
   group.add(spray, nozzle);
   scene.add(group);
-  return { group, position: origin, height: 140 };
+  // js/weather.js: the wind bends the plume (`wind` blowing towards, m/s), and the jet stops in a gale or a frost
+  return {
+    group, position: origin, height: 140, running: true,
+    setWind(x, z, speed) { WIND.set(x, z).multiplyScalar(Math.min(2.2, 0.25 + speed / 7)); },
+    setRunning(on) { this.running = on; spray.visible = on; }
+  };
 }

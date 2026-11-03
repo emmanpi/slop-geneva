@@ -82,7 +82,12 @@ const cityUniforms = {
   uSkySunDir: uniform(new THREE.Vector3(-0.66, 0.34, -0.67).normalize()),
   uInteriorGlow: uniform(0.78),
   uRoadWetness: uniform(0.38),
-  uCanyonBounce: uniform(0.52)
+  uCanyonBounce: uniform(0.52),
+  // The wind (js/weather.js): direction it blows towards (world x, z, unit) and strength (1: a fresh breeze, ~5 m/s;
+  // signed along the trees' sway axis, see TREE_WIND)
+  uWindX: uniform(0.86),
+  uWindZ: uniform(0.51),
+  uWindStrength: uniform(1.0)
 };
 
 // Fast deterministic 2D -> 1D hash in TSL
@@ -1250,6 +1255,8 @@ class TreeNodeMaterial extends THREE.MeshStandardNodeMaterial {
 }
 
 // Prevailing wind (xz, blowing from the west-north-west across Manhattan)
+// The trees sway along the region's wind axis (south-west <-> north-east); js/weather.js signs uWindStrength (negative:
+// the bise, blowing towards the south-west). A direction uniform here broke the trees' depth-only shadow pipelines.
 const TREE_WIND = vec2(0.86, 0.51);
 
 /**
@@ -1315,7 +1322,7 @@ function createTreeMaterial(leafAtlas) {
     const phase = rnd.mul(6.2832);
     // gusts rolling downwind across the city
     const gust = sin(time.mul(0.5).sub(dot(p.xz, TREE_WIND).mul(0.045))).mul(0.5).add(0.5);
-    const strength = gust.mul(gust).mul(0.7).add(0.3);
+    const strength = gust.mul(gust).mul(0.7).add(0.3).mul(cityUniforms.uWindStrength);
     // the whole tree bends with height, leaning downwind and rocking across it
     const h = g.y.div(11.0);
     const bend = h.mul(h);
@@ -3115,6 +3122,7 @@ function createCarFlareMaterial() {
 }
 
 export {
+  _transparentEffectMRT as transparentEffectMRT,
   cityUniforms,
   WALL_KINDS,
   filteredPulse,
