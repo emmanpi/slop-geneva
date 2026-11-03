@@ -18,8 +18,8 @@
   {
    "file": "2499600_1116900.glb",
    "lo": "2499600_1116900.lo.glb",
-   "triangles": 10770,
-   "loTriangles": 1284,
+   "triangles": 10570,
+   "loTriangles": 1254,
    "min": [
     -418.7,
     0.3,
@@ -34,8 +34,8 @@
   {
    "file": "2499600_1117000.glb",
    "lo": "2499600_1117000.lo.glb",
-   "triangles": 26310,
-   "loTriangles": 3110,
+   "triangles": 25170,
+   "loTriangles": 3004,
    "min": [
     -417.5,
     1,
@@ -50,8 +50,8 @@
   {
    "file": "2499600_1117100.glb",
    "lo": "2499600_1117100.lo.glb",
-   "triangles": 25359,
-   "loTriangles": 3030,
+   "triangles": 24487,
+   "loTriangles": 2918,
    "min": [
     -415.7,
     2.1,
@@ -66,8 +66,8 @@
   {
    "file": "2499600_1117200.glb",
    "lo": "2499600_1117200.lo.glb",
-   "triangles": 33562,
-   "loTriangles": 4010,
+   "triangles": 31588,
+   "loTriangles": 3764,
    "min": [
     -412.7,
     1,
@@ -82,8 +82,8 @@
   {
    "file": "2499600_1117300.glb",
    "lo": "2499600_1117300.lo.glb",
-   "triangles": 28824,
-   "loTriangles": 3427,
+   "triangles": 27625,
+   "loTriangles": 3300,
    "min": [
     -411.4,
     0,
@@ -98,8 +98,8 @@
   {
    "file": "2499700_1116900.glb",
    "lo": "2499700_1116900.lo.glb",
-   "triangles": 26030,
-   "loTriangles": 3084,
+   "triangles": 25264,
+   "loTriangles": 3018,
    "min": [
     -318,
     1.4,
@@ -114,8 +114,8 @@
   {
    "file": "2499700_1117000.glb",
    "lo": "2499700_1117000.lo.glb",
-   "triangles": 29007,
-   "loTriangles": 3445,
+   "triangles": 28142,
+   "loTriangles": 3330,
    "min": [
     -316.4,
     1.7,
@@ -130,8 +130,8 @@
   {
    "file": "2499700_1117100.glb",
    "lo": "2499700_1117100.lo.glb",
-   "triangles": 23517,
-   "loTriangles": 2805,
+   "triangles": 21173,
+   "loTriangles": 2527,
    "min": [
     -313.5,
     0.3,
@@ -146,8 +146,8 @@
   {
    "file": "2499700_1117200.glb",
    "lo": "2499700_1117200.lo.glb",
-   "triangles": 3938,
-   "loTriangles": 471,
+   "triangles": 3660,
+   "loTriangles": 454,
    "min": [
     -312.8,
     0.6,
@@ -162,8 +162,8 @@
   {
    "file": "2499700_1117300.glb",
    "lo": "2499700_1117300.lo.glb",
-   "triangles": 8488,
-   "loTriangles": 1016,
+   "triangles": 8218,
+   "loTriangles": 984,
    "min": [
     -311.9,
     1.7,
@@ -178,8 +178,8 @@
   {
    "file": "2499800_1116900.glb",
    "lo": "2499800_1116900.lo.glb",
-   "triangles": 16191,
-   "loTriangles": 1921,
+   "triangles": 15533,
+   "loTriangles": 1863,
    "min": [
     -219.5,
     1.6,
@@ -194,8 +194,8 @@
   {
    "file": "2499800_1117000.glb",
    "lo": "2499800_1117000.lo.glb",
-   "triangles": 6347,
-   "loTriangles": 761,
+   "triangles": 4973,
+   "loTriangles": 595,
    "min": [
     -216.8,
     3.8,
@@ -210,8 +210,8 @@
   {
    "file": "2499800_1117100.glb",
    "lo": "2499800_1117100.lo.glb",
-   "triangles": 5092,
-   "loTriangles": 610,
+   "triangles": 3722,
+   "loTriangles": 468,
    "min": [
     -216.3,
     3.7,
@@ -219,15 +219,15 @@
    ],
    "max": [
     -108.5,
-    5.7,
+    4.9,
     1011.9
    ]
   },
   {
    "file": "2499800_1117200.glb",
    "lo": "2499800_1117200.lo.glb",
-   "triangles": 2648,
-   "loTriangles": 476,
+   "triangles": 2288,
+   "loTriangles": 458,
    "min": [
     -214.3,
     0.6,
@@ -235,15 +235,15 @@
    ],
    "max": [
     -106.7,
-    5.2,
+    4.7,
     912.6
    ]
   },
   {
    "file": "2499800_1117300.glb",
    "lo": "2499800_1117300.lo.glb",
-   "triangles": 4350,
-   "loTriangles": 658,
+   "triangles": 3804,
+   "loTriangles": 626,
    "min": [
     -211.7,
     0.6,
@@ -258,8 +258,8 @@
   {
    "file": "2499900_1116900.glb",
    "lo": "2499900_1116900.lo.glb",
-   "triangles": 21357,
-   "loTriangles": 2529,
+   "triangles": 20528,
+   "loTriangles": 2434,
    "min": [
     -119,
     2.2,
@@ -274,8 +274,8 @@
   {
    "file": "2499900_1117000.glb",
    "lo": "2499900_1117000.lo.glb",
-   "triangles": 23340,
-   "loTriangles": 2779,
+   "triangles": 22768,
+   "loTriangles": 2701,
    "min": [
     -118.6,
     3.2,
@@ -290,8 +290,8 @@
   {
    "file": "2499900_1117100.glb",
    "lo": "2499900_1117100.lo.glb",
-   "triangles": 20296,
-   "loTriangles": 2434,
+   "triangles": 20012,
+   "loTriangles": 2390,
    "min": [
     -114.7,
     3.9,
@@ -306,8 +306,8 @@
   {
    "file": "2499900_1117200.glb",
    "lo": "2499900_1117200.lo.glb",
-   "triangles": 10489,
-   "loTriangles": 1249,
+   "triangles": 9833,
+   "loTriangles": 1175,
    "min": [
     -114,
     0.4,
@@ -322,8 +322,8 @@
   {
    "file": "2499900_1117300.glb",
    "lo": "2499900_1117300.lo.glb",
-   "triangles": 18827,
-   "loTriangles": 2233,
+   "triangles": 18293,
+   "loTriangles": 2195,
    "min": [
     -113.3,
     1.4,

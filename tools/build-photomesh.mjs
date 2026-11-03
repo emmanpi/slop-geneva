@@ -155,11 +155,66 @@ function removeTrees({ pos, uv, idx }, img = null) {
       for (const v of [a, b, c]) candidate.add(keys[v]);
     } else if (building || (above > 1.2 && inBuilding(x, z, 1.5))) for (const v of [a, b, c]) protect.add(keys[v]);
   }
-  const flatKey = (v) => candidate.has(keys[v]) && !protect.has(keys[v]);
-  // the flattened vertices, on the ground and flagged for the orthophoto
+  // Small bumps too low for the triangles' test (café umbrellas, bollards, people, cars: cones on the paving). The
+  // terrain model is no reference for those: it stands up to a metre off the paving here and there. A bump vertex
+  // stands 0.45-2.5 m above the mesh's own lowest point within 2 m, away from the buildings and the water.
+  const lowest = new Map();
+  for (let v = 0; v < pos.length / 3; v++) {
+    const k = `${Math.floor(pos[v * 3])},${Math.floor(pos[v * 3 + 2])}`;
+    if (!(lowest.get(k) <= pos[v * 3 + 1])) lowest.set(k, pos[v * 3 + 1]);
+  }
+  const localGround = (x, z) => {
+    let m = Infinity;
+    for (let i = Math.floor(x) - 2; i <= Math.floor(x) + 2; i++) for (let j = Math.floor(z) - 2; j <= Math.floor(z) + 2; j++) {
+      const y = lowest.get(`${i},${j}`);
+      if (y < m) m = y;
+    }
+    return m;
+  };
+  let bumps = 0;
+  for (let v = 0; v < pos.length / 3; v++) {
+    const x = pos[v * 3], z = pos[v * 3 + 2], above = pos[v * 3 + 1] - localGround(x, z);
+    if (above < 0.45 || above > 2.5 || candidate.has(keys[v])) continue;
+    if (inWater(x, z) || inBuilding(x, z, 0) || inBuilding(x, z, 1.5)) continue;
+    candidate.add(keys[v]);
+    bumps++;
+  }
+  // (a building's triangle protects its vertices near the building only: a long sliver from a facade must not hold up
+  // a point out on the square)
+  const nearBuilding = new Map();
+  const isNear = (v) => {
+    if (!nearBuilding.has(keys[v])) nearBuilding.set(keys[v], inBuilding(pos[v * 3], pos[v * 3 + 2], 0) || inBuilding(pos[v * 3], pos[v * 3 + 2], 1.5));
+    return nearBuilding.get(keys[v]);
+  };
+  const flatKey = (v) => candidate.has(keys[v]) && !(protect.has(keys[v]) && isNear(v));
+  // The flattened vertices go onto the mesh's own ground, not the terrain model's: swissALTI3D (4 m here) stands up to
+  // half a metre above the paving in places, and points left at its height poke out as cones. The ground: the lowest
+  // kept vertex near the ground in each 1 m cell; a flattened vertex takes the mean of the nearest cells found
+  // (rings out to 8 m, the width of a crown), never above the terrain model.
+  const groundCells = new Map();
+  for (let v = 0; v < pos.length / 3; v++) {
+    if (flatKey(v)) continue;
+    const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2];
+    if (y - gridHeight(TERRAIN, x, z) > 0.6) continue;
+    const k = `${Math.floor(x)},${Math.floor(z)}`;
+    if (!(groundCells.get(k) <= y)) groundCells.set(k, y);
+  }
+  const meshGround = (x, z) => {
+    const i0 = Math.floor(x), j0 = Math.floor(z);
+    let sum = 0, n = 0;
+    for (let r = 0; r <= 8 && n < 3; r++) {
+      for (let i = i0 - r; i <= i0 + r; i++) for (let j = j0 - r; j <= j0 + r; j++) {
+        if (Math.max(Math.abs(i - i0), Math.abs(j - j0)) !== r) continue;
+        const y = groundCells.get(`${i},${j}`);
+        if (y !== undefined) { sum += y; n++; }
+      }
+    }
+    return n ? sum / n : Infinity;
+  };
   for (let v = 0; v < pos.length / 3; v++) {
     if (!flatKey(v)) continue;
-    outPos[v * 3 + 1] = gridHeight(TERRAIN, pos[v * 3], pos[v * 3 + 2]) + 0.03;
+    const x = pos[v * 3], z = pos[v * 3 + 2];
+    outPos[v * 3 + 1] = Math.min(meshGround(x, z), gridHeight(TERRAIN, x, z)) + 0.03;
     ortho[v] = 1;
   }
   // wholly flattened triangles share welded vertices (no texture there: the flat ground then simplifies away)
@@ -186,7 +241,7 @@ function removeTrees({ pos, uv, idx }, img = null) {
     if (remap[v] < 0) { remap[v] = O.length; P.push(outPos[v * 3], outPos[v * 3 + 1], outPos[v * 3 + 2]); U.push(outUv[v * 2], outUv[v * 2 + 1]); O.push(ortho[v]); }
     return remap[v];
   });
-  return { pos: new Float32Array(P), uv: new Float32Array(U), ortho: new Float32Array(O), idx: O.length > 65535 ? new Uint32Array(idx2) : new Uint16Array(idx2), flattened, water, cluttered };
+  return { pos: new Float32Array(P), uv: new Float32Array(U), ortho: new Float32Array(O), idx: O.length > 65535 ? new Uint32Array(idx2) : new Uint16Array(idx2), flattened, water, cluttered, bumps };
 }
 
 // Coarse level: meshoptimizer's edge collapses down to ~12% of the triangles (across the texture's seams: Permissive; tile borders locked so the
@@ -323,7 +378,7 @@ for (const url of urls) {
   bytes += fs.statSync(file).size;
   loBytes += fs.statSync(path.join(OUT, `${name}.lo.glb`)).size;
   tiles.push({ file: `${name}.glb`, lo: `${name}.lo.glb`, triangles: geometry.idx.length / 3, loTriangles: coarse.idx.length / 3, min: min.map((v) => Math.round(v * 10) / 10), max: max.map((v) => Math.round(v * 10) / 10) });
-  log(`${name}: ${cut.idx.length / 3} -> ${geometry.idx.length / 3} triangles (coarse ${coarse.idx.length / 3}), ${geometry.flattened} of crowns & clutter flattened onto the ground (${geometry.cluttered} clutter), ${geometry.water} on the water cut`);
+  log(`${name}: ${cut.idx.length / 3} -> ${geometry.idx.length / 3} triangles (coarse ${coarse.idx.length / 3}), ${geometry.flattened} of crowns & clutter flattened onto the ground (${geometry.cluttered} clutter, ${geometry.bumps} bump vertices), ${geometry.water} on the water cut`);
 }
 fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({
   source: 'SITG, État de Genève: Photomaillage 3D 2019 (open data)', area, lv95: [minE, minN, maxE, maxN],
