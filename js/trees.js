@@ -741,7 +741,7 @@ function placeCards(sp, branches, lod, tileMeters, rng, crown) {
     }
   } else {
     // Fibonacci directions over the crown, fewer underneath; cards centred just inside the shell, facing out
-    const n = 18;
+    const n = 24;
     const meanR = (crown.R.x + crown.R.y + crown.R.z) / 3;
     const s = Math.max(meanR * 1.25, 2.4);
     for (let i = 0; i < n; i++) {
@@ -799,9 +799,13 @@ function buildTreeGeometries(speciesIndex, variant, tileMeters) {
     }
     // Close trees add the coarse branch cards and the whole-crown shell on top of the twig cards, so a crown seen
     // from above (helicopter) stays as full as the distant levels
+    // The middle level keeps the shell under its branch cards too: on its own it read as a bare, see-through crown
+    // from 100-400 m (the helicopter's range)
     const cards = lod === 0
       ? [...cards0, ...placeCards(sp, branches, 1, tileMeters, rng, crown), ...placeCards(sp, branches, 2, tileMeters, rng, crown)]
-      : placeCards(sp, branches, lod, tileMeters, rng, crown);
+      : lod === 1
+        ? [...placeCards(sp, branches, 1, tileMeters, rng, crown), ...placeCards(sp, branches, 2, tileMeters, rng, crown)]
+        : placeCards(sp, branches, lod, tileMeters, rng, crown);
     for (const c of cards) addCard(gb, c.at, c.up, c.face, c.size, c.tile, rng() < 0.5, rng(), crown);
     const g = gb.build();
     g.userData = { species: sp.name, variant, lod, cards: cards.length, triangles: gb.idx.length / 3 };
