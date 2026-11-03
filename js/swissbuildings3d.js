@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { mx_noise_float, positionLocal, positionWorld, normalWorld, float, smoothstep, fract, floor, sin, abs, step, vertexColor, attribute, vec3, mix, max } from 'three/tsl';
 import { orthoAt } from './orthophoto.js';
-import { insidePhotomesh, photomeshOn } from './photomesh.js';
+import { insidePhotomesh, photomeshOn, outsideStreetView } from './photomesh.js';
 import { cityUniforms } from './tsl-materials.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -184,13 +184,13 @@ export function bakeTile(gltf, tile, stats) {
   let above = new Float32Array(total);
   // aFacade: style, storey height (m), the building's height above its foot (m); per building from the RegBL
   let facade = new Float32Array(total * 3);
-  // aArchetype: window scale (the archetype's measured share of windows against the usual), shop fronts (0..1)
-  const arch = new Float32Array(total * 2);
+  // aArchetype: window scale (the measured share of windows against the usual), shop fronts (0..1), the wall's texture
+  const arch = new Float32Array(total * 3);
   // "style,storey dm,archetype,RRGGBB" per building (tools/build-geneva-facades.mjs): the wall colour measured in the
   // photomesh (or its archetype's), the archetype's share of windows and shop fronts
   const styleOf = (tile.facades || '').split(';').map((e) => {
-    const [st, f, a, hex] = e.split(',');
-    return [Number(st), Number(f), a === undefined ? -1 : Number(a), hex];
+    const [st, f, a, hex, w, p, t] = e.split(',');
+    return [Number(st), Number(f), a === undefined ? -1 : Number(a), hex, w === undefined ? null : [+w, +p, +t]];
   });
   const archetypes = tile.archetypes || [];
   const wallColour = new THREE.Color();
@@ -204,11 +204,12 @@ export function bakeTile(gltf, tile, stats) {
     above[i] = y - base;
     const seed = (egids[b] || 0) * 31 + b + (tile.seed || 0);
     const roof = normalsY[i] > 0.35;
-    const [style = STYLE.inconnu, storey = 31, a = -1, hex] = styleOf[b] || [];
+    const [style = STYLE.inconnu, storey = 31, a = -1, hex, own] = styleOf[b] || [];
     const c = roof ? roofColor(seed, normalsY[i] < 0.97) : hex ? wallColour.set(`#${hex}`) : facadeColor(seed, kinds[b] || '', style);
-    const at = archetypes[a];
-    arch[i * 2] = at ? Math.min(1.5, Math.max(0.6, 0.65 + at.win * 2.2)) : 1;
-    arch[i * 2 + 1] = at ? at.shop : 0.5;
+    const at = own ? { win: own[0], shop: own[1], rough: own[2] } : archetypes[a];
+    arch[i * 3] = at ? Math.min(1.5, Math.max(0.6, 0.65 + at.win * 2.2)) : 1;
+    arch[i * 3 + 1] = at ? at.shop : 0.5;
+    arch[i * 3 + 2] = at?.rough ?? 0.15;
     facade[i * 3] = style; facade[i * 3 + 1] = storey / 10;
     facade[i * 3 + 2] = maxY.get(b) - positions[foot.get(b) * 3 + 1] + (foot.get(b) <= i ? dy : 0);
     colors[i * 4] = c.r * 255; colors[i * 4 + 1] = c.g * 255; colors[i * 4 + 2] = c.b * 255; colors[i * 4 + 3] = roof ? 255 : 0;
@@ -222,15 +223,20 @@ export function bakeTile(gltf, tile, stats) {
     c[2] = Math.min(c[2], positions[i * 3 + 2]); c[3] = Math.max(c[3], positions[i * 3 + 2]);
   }
   const inMesh = new Set([...centre].filter(([, c]) => insidePhotomesh((c[0] + c[1]) / 2, (c[2] + c[3]) / 2)).map(([b]) => b));
-  const hide = new Float32Array(total);
-  for (let i = 0; i < total; i++) hide[i] = inMesh.has(batchOf[i]) ? 1 : 0;
+  // aHide: x 1 in a photomesh area, yz the building's centre (it comes back as a whole inside the street view's circle)
+  const hide = new Float32Array(total * 3);
+  for (let i = 0; i < total; i++) {
+    const c = centre.get(batchOf[i]);
+    hide[i * 3] = inMesh.has(batchOf[i]) ? 1 : 0;
+    hide[i * 3 + 1] = (c[0] + c[1]) / 2; hide[i * 3 + 2] = (c[2] + c[3]) / 2;
+  }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4, true));
   geometry.setAttribute('aGround', new THREE.BufferAttribute(above, 1));
   geometry.setAttribute('aFacade', new THREE.BufferAttribute(facade, 3));
-  geometry.setAttribute('aHide', new THREE.BufferAttribute(hide, 1));
-  geometry.setAttribute('aArchetype', new THREE.BufferAttribute(arch, 2));
+  geometry.setAttribute('aHide', new THREE.BufferAttribute(hide, 3));
+  geometry.setAttribute('aArchetype', new THREE.BufferAttribute(arch, 3));
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
   geometry.userData = { buildings: maxY.size, inPhotomesh: inMesh.size, calibration: dy, minY };
@@ -246,8 +252,10 @@ export function bakeTile(gltf, tile, stats) {
 // Roofs take the SWISSIMAGE orthophoto (js/orthophoto.js) over their procedural colour. Windows light up after dusk.
 function createMaterial() {
   const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, flatShading: true });
-  // folded to a point (no surface, no shadow) where the photomesh shows the real building
-  m.positionNode = positionLocal.mul(float(1).sub(attribute('aHide', 'float').mul(photomeshOn)));
+  // folded to a point (no surface, no shadow) where the photomesh shows the real building: in its areas, unless the
+  // building stands within the street view's circle around a camera near the ground (js/photomesh.js)
+  const hideAttr = attribute('aHide', 'vec3');
+  m.positionNode = positionLocal.mul(float(1).sub(hideAttr.x.mul(photomeshOn).mul(outsideStreetView(hideAttr.yz))));
   const above = attribute('aGround', 'float');
   const facade = attribute('aFacade', 'vec3');
   const style = facade.x, storey = max(facade.y, 2.4), height = facade.z;
@@ -267,7 +275,7 @@ function createMaterial() {
 
   // Window opening in the bay (u) and the storey (v)
   // the archetype's windows: wider and taller where the photos show more glass (aArchetype.x, 0.6..1.5)
-  const archetype = attribute('aArchetype', 'vec2');
+  const archetype = attribute('aArchetype', 'vec3');
   const winScale = archetype.x;
   const halfW = pick(0.2, 0.22, 0.31, 0.28, 0.46, 0.22).mul(winScale.sqrt()).min(0.47);
   const winMid = pick(0.535, 0.53, 0.55, 0.51, 0.505, 0.55);
@@ -308,7 +316,11 @@ function createMaterial() {
   const shop = step(0.6, above).mul(step(above, 3.0)).mul(wall).mul(smoothstep(0.08, 0.12, u)).mul(smoothstep(0.92, 0.88, u))
     .mul(step(rnd(building, 11.3), archetype.y));
 
-  const grain = mx_noise_float(positionWorld.mul(0.6)).mul(0.08).add(0.96);
+  // the wall's texture as photographed (aArchetype.z: 0.1 smooth render .. 0.25+ stone, brick): a finer, stronger grain
+  // and courses of blocks on the rough ones
+  const roughness = archetype.z.sub(0.08).max(0).mul(3).min(1);
+  const blocks = step(0.06, fract(above.div(0.42))).mul(step(0.04, fract(along.div(0.9).add(floor(above.div(0.42)).mul(0.5))))).oneMinus().mul(roughness).mul(wall).mul(0.12);
+  const grain = mx_noise_float(positionWorld.mul(mix(float(0.6), float(2.4), roughness))).mul(mix(float(0.08), float(0.22), roughness)).add(0.96).sub(blocks);
   const procedural = vertexColor().rgb.mul(grain);
   // Roofs: the orthophoto where there is one
   const ortho = orthoAt(positionWorld);

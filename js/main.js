@@ -17,7 +17,7 @@ import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
 import { buildFireworks } from './fireworks.js';
-import { buildPhotomesh, photomeshOn } from './photomesh.js';
+import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
 import { simClock, PRESET_HOURS } from './sim-clock.js';
@@ -819,6 +819,11 @@ async function initApp() {
     planes.setWind(weather.state.current);
     planes.update();
     fireworks.update(dt);
+    {
+      // street level: the procedural city near the camera, the photomesh beyond (js/photomesh.js)
+      const c = cameraSystem.camera.position;
+      setStreetView(c.x, c.z, c.y - groundHeight(c.x, c.z));
+    }
     photomesh.update(cameraSystem.camera.position);
     canton.update(cameraSystem.camera);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
