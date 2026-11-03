@@ -94,6 +94,7 @@ function fadeToOrtho(mat) {
   return mat;
 }
 
+const railMats = [];
 function buildBerlinCityGrid(scene) {
   const group = new THREE.Group();
   group.name = 'BerlinMitteCityGrid';
@@ -366,6 +367,19 @@ function buildBerlinCityGrid(scene) {
   // wide bridge as side by side ways (the Quaibrücke: footways, cycle lanes, carriageways, tram tracks): their slabs
   // join into one deck, and the parapets (solid for the player) stand only along its outer edges.
   let bridgePiers = 0, bridgeParapets = 0;
+  // The bridges' balustrades: painted iron bars between a handrail and a bottom rail, cut out of a thin panel (its side
+  // faces' uv.y runs up it; along it, the world position across its normal)
+  const railMat = new THREE.MeshStandardNodeMaterial({ color: 0x1f2a24, roughness: 0.45, metalness: 0.6, side: THREE.DoubleSide });
+  {
+    const along = positionWorld.x.mul(normalWorldGeometry.z.abs()).add(positionWorld.z.mul(normalWorldGeometry.x.abs()));
+    const v = uv().y;
+    const bar = step(fract(along.div(0.13)), 0.2);
+    const rails = step(0.9, v).add(step(v, 0.07)).add(step(abs(v.sub(0.5)), 0.025));
+    const post = step(fract(along.div(2.2)), 0.04);
+    railMat.opacityNode = bar.add(rails).add(post).min(1).max(step(0.6, normalWorldGeometry.y.abs()));
+    railMat.alphaTest = 0.5;
+    railMats.push(railMat);
+  }
   const PARAPET = 0.3, PARAPET_STEP = 1.5;
   for (const s of bridgeSlabs) {
     const half = deckHalfWidth(s.road);
@@ -376,10 +390,11 @@ function buildBerlinCityGrid(scene) {
       const t0 = k / pieces, t1 = (k + 1) / pieces;
       const a = { x: s.a.x + (s.b.x - s.a.x) * t0, z: s.a.z + (s.b.z - s.a.z) * t0 }, b = { x: s.a.x + (s.b.x - s.a.x) * t1, z: s.a.z + (s.b.z - s.a.z) * t1 };
       const ya = deckAt(a.x, a.z), yb = deckAt(b.x, b.z);
-      if (Math.min(ya - groundHeight(a.x, a.z), yb - groundHeight(b.x, b.z)) < 0.8) continue;
+      // (the piece over the bank too: the railing then runs on to the quay's corner)
+      if (Math.max(ya - groundHeight(a.x, a.z), yb - groundHeight(b.x, b.z)) < 0.8) continue;
       const len = Math.hypot(b.x - a.x, b.z - a.z);
       // A box along [u0, u1] of the piece (fractions), `w` across at `offset`, from `bottom` to `top` around the deck
-      const box = (w, top, bottom, offset, u0 = 0, u1 = 1) => {
+      const box = (w, top, bottom, offset, u0 = 0, u1 = 1, material = curbMat) => {
         const l = len * (u1 - u0), cx = a.x + (b.x - a.x) * (u0 + u1) / 2 + nx * offset, cz = a.z + (b.z - a.z) * (u0 + u1) / 2 + nz * offset;
         const g = new THREE.BoxGeometry(l + 0.04, 1, w);
         g.rotateY(-Math.atan2(b.z - a.z, b.x - a.x));
@@ -391,7 +406,7 @@ function buildBerlinCityGrid(scene) {
           p.setY(v, deck + (p.getY(v) > 0.5 ? top : bottom));
         }
         g.computeVertexNormals();
-        collect(g, curbMat, { world: true });
+        collect(g, material, { world: true });
         return { cx, cz, l };
       };
       box(half * 2, -0.02, -1.15, 0);
@@ -408,7 +423,9 @@ function buildBerlinCityGrid(scene) {
           if (!edge(i)) { i++; continue; }
           let j = i + 1;
           while (j < steps && edge(j)) j++;
-          const u0 = i / steps, u1 = j / steps, { cx, cz, l } = box(PARAPET, 1.05, -0.02, offset, u0, u1);
+          // Geneva's bridges carry iron balustrades, not walls: a stone kerb beam and the railing on it
+          const u0 = i / steps, u1 = j / steps, { cx, cz, l } = box(PARAPET, 0.25, -0.02, offset, u0, u1);
+          box(0.05, 1.08, 0.25, offset, u0, u1, railMat);
           const y0 = ya + (yb - ya) * u0, y1 = ya + (yb - ya) * u1;
           const hx = l / 2, hz = PARAPET / 2, cs = s.ux, sn = -s.uz;
           const ex = Math.abs(cs) * hx + Math.abs(sn) * hz, ez = Math.abs(sn) * hx + Math.abs(cs) * hz;
@@ -505,7 +522,7 @@ function buildBerlinCityGrid(scene) {
       chunk.forEach(g => g.dispose());
       if (!merged) continue;
       const mesh = new THREE.Mesh(merged, material);
-      mesh.receiveShadow = material !== waterMat; mesh.castShadow = material === curbMat;
+      mesh.receiveShadow = material !== waterMat; mesh.castShadow = material === curbMat || railMats.includes(material);
       if (material === paintMat) mesh.renderOrder = 1;
       if (firstMesh) mesh.userData.sharesPipelineWith = firstMesh;
       else firstMesh = mesh;

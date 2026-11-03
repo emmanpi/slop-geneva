@@ -1,8 +1,8 @@
 import * as THREE from 'three/webgpu';
-import { attribute, float, floor, fract, mix, mx_noise_float, positionWorld, smoothstep, step, time, vec2, vec3 } from 'three/tsl';
+import { attribute, float, floor, fract, mix, mx_noise_float, normalWorld, positionWorld, smoothstep, step, time, uv, vec2, vec3 } from 'three/tsl';
 import { GENEVA_DATA } from './geneva-geodata.js';
 import { WORLD_BOUNDS } from './geneva-frame.js';
-import { groundHeight, inWater, waterSurfaceHeight } from './terrain.js';
+import { deckHeight, groundHeight, inWater, waterSurfaceHeight } from './terrain.js';
 import { hideInPhotomesh } from './photomesh.js';
 
 // Where the city meets the Léman and the Rhône: along every shore of the lake and the rivers (the water polygons'
@@ -12,7 +12,7 @@ import { hideInPhotomesh } from './photomesh.js';
 //    wall (over the terrain model's slope), and a painted iron railing on the high quays;
 //  - everywhere: a line of foam lapping at the foot of the wall or the beach.
 
-const STEP = 3; // m, the shore's segments
+const STEP = 1.5; // m, the shore's segments (short: the railing stops right at a bridge's edge)
 const BAND = 4; // m inland the bank is laid flat at quay height (the terrain model's last cell slopes down)
 const QUAY = 0.7; // m above the water: a quay wall (lower: a beach, a lawn running down to the water)
 const RAILING = 1.4; // m above the water: a railing
@@ -97,7 +97,15 @@ function foamMaterial() {
 }
 
 function railingMaterial() {
-  return hideInPhotomesh(new THREE.MeshStandardNodeMaterial({ color: 0x23302a, roughness: 0.5, metalness: 0.5 }));
+  const m = new THREE.MeshStandardNodeMaterial({ color: 0x1f2a24, roughness: 0.45, metalness: 0.6, side: THREE.DoubleSide });
+  const along = positionWorld.x.mul(normalWorld.z.abs()).add(positionWorld.z.mul(normalWorld.x.abs()));
+  const v = uv().y;
+  const bar = step(fract(along.div(0.13)), 0.2);
+  const rails = step(0.9, v).add(step(v, 0.07)).add(step(v.sub(0.5).abs(), 0.025));
+  const post = step(fract(along.div(2.2)), 0.04);
+  m.opacityNode = bar.add(rails).add(post).min(1);
+  m.alphaTest = 0.5;
+  return hideInPhotomesh(m);
 }
 
 export function buildQuays(scene) {
@@ -137,6 +145,9 @@ export function buildQuays(scene) {
     const o = 1.8, fy = w + 0.07;
     quad(foam, [s.x0, fy, s.z0], [s.x1, fy, s.z1], [s.x1 - s.nx * o, fy, s.z1 - s.nz * o], [s.x0 - s.nx * o, fy, s.z0 - s.nz * o],
       [along, 0], [along + L, 0], [along + L, 1], [along, 1]);
+    // under a bridge's deck (its abutment): the wall runs on beneath, the coping, paving and railing stop at its edge
+    const deck = (x, z) => { const d = deckHeight(x, z); return d === d && d > s.water + 1; };
+    const underDeck = deck((s.x0 + s.x1) / 2 + s.nx * 0.25, (s.z0 + s.z1) / 2 + s.nz * 0.25) || deck(s.x0 + s.nx * 0.25, s.z0 + s.nz * 0.25) || deck(s.x1 + s.nx * 0.25, s.z1 + s.nz * 0.25);
     if (drop > QUAY) {
       walls++;
       // the wall (its face towards the water), from 1.5 m under the surface; a little longer to close the corners
@@ -147,12 +158,14 @@ export function buildQuays(scene) {
       const cy0 = top0 + 0.08, cy1 = top1 + 0.08;
       const p0 = [s.x0 - s.nx * 0.1, cy0, s.z0 - s.nz * 0.1], p1 = [s.x1 - s.nx * 0.1, cy1, s.z1 - s.nz * 0.1];
       const i0 = [s.x0 + s.nx * 0.45, cy0, s.z0 + s.nz * 0.45], i1 = [s.x1 + s.nx * 0.45, cy1, s.z1 + s.nz * 0.45];
-      quad(coping, p0, p1, i1, i0, [along, 0], [along + L, 0], [along + L, 0], [along, 0]);
-      quad(coping, [p1[0], top1 - 0.1, p1[2]], [p0[0], top0 - 0.1, p0[2]], p0, p1, [along + L, 0], [along, 0], [along, 0], [along + L, 0]);
-      // the bank laid flat behind it
-      quad(bank, i0, i1, [s.x1 + s.nx * BAND, top1, s.z1 + s.nz * BAND], [s.x0 + s.nx * BAND, top0, s.z0 + s.nz * BAND]);
+      if (!underDeck) {
+        quad(coping, p0, p1, i1, i0, [along, 0], [along + L, 0], [along + L, 0], [along, 0]);
+        quad(coping, [p1[0], top1 - 0.1, p1[2]], [p0[0], top0 - 0.1, p0[2]], p0, p1, [along + L, 0], [along, 0], [along, 0], [along + L, 0]);
+        // the bank laid flat behind it
+        quad(bank, i0, i1, [s.x1 + s.nx * BAND, top1, s.z1 + s.nz * BAND], [s.x0 + s.nx * BAND, top0, s.z0 + s.nz * BAND]);
+      }
       // a railing on the high quays: posts every ~2.2 m, two rails
-      if (drop > RAILING) rail.push({ x0: s.x0 + s.nx * 0.25, z0: s.z0 + s.nz * 0.25, x1: s.x1 + s.nx * 0.25, z1: s.z1 + s.nz * 0.25, y0: cy0, y1: cy1, L });
+      if (drop > RAILING && !underDeck) rail.push({ x0: s.x0 + s.nx * 0.25, z0: s.z0 + s.nz * 0.25, x1: s.x1 + s.nx * 0.25, z1: s.z1 + s.nz * 0.25, y0: cy0, y1: cy1, L });
     } else beaches++;
     along += L;
   }
@@ -175,37 +188,20 @@ export function buildQuays(scene) {
   const foamMesh = mesh(foam, foamMaterial(), false);
   if (foamMesh) { foamMesh.renderOrder = 1; foamMesh.receiveShadow = false; }
 
-  // Railings
+  // Railings: the same iron balustrade as the bridges' (js/city-grid.js), so the two meet at the corner: a thin panel
+  // cut into bars between a handrail and a bottom rail, with a post every 2.2 m
   if (rail.length) {
-    const posts = [], rails = [];
+    const pos = [], uvs = [];
     for (const r of rail) {
-      const n = Math.max(1, Math.round(r.L / 2.2));
-      for (let k = 0; k < n; k++) {
-        const t = k / n;
-        posts.push([r.x0 + (r.x1 - r.x0) * t, r.y0 + (r.y1 - r.y0) * t, r.z0 + (r.z1 - r.z0) * t]);
-      }
-      for (const h of [0.5, 1.02]) rails.push({ ...r, h });
-    }
-    const postGeo = new THREE.BoxGeometry(0.05, 1.05, 0.05).translate(0, 0.525, 0);
-    const mat = railingMaterial();
-    const inst = new THREE.InstancedMesh(postGeo, mat, posts.length);
-    const m4 = new THREE.Matrix4();
-    posts.forEach((p, i) => inst.setMatrixAt(i, m4.makeTranslation(p[0], p[1], p[2])));
-    inst.castShadow = true;
-    inst.userData.terrain = 'absolute';
-    group.add(inst);
-    // the rails: thin bars along each segment (one merged mesh)
-    const pos = [];
-    for (const r of rails) {
-      const ax = r.x0, az = r.z0, bx = r.x1, bz = r.z1, ay = r.y0 + r.h, by = r.y1 + r.h;
-      const t = r.h > 1 ? 0.045 : 0.025;
-      pos.push(ax, ay, az, bx, by, bz, bx, by + t, bz, ax, ay, az, bx, by + t, bz, ax, ay + t, az);
+      const h = 1.05;
+      pos.push(r.x0, r.y0, r.z0, r.x1, r.y1, r.z1, r.x1, r.y1 + h, r.z1, r.x0, r.y0, r.z0, r.x1, r.y1 + h, r.z1, r.x0, r.y0 + h, r.z0);
+      uvs.push(0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1);
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     g.computeVertexNormals();
-    const railMesh = new THREE.Mesh(g, new THREE.MeshStandardNodeMaterial({ color: 0x23302a, roughness: 0.5, metalness: 0.5, side: THREE.DoubleSide }));
-    hideInPhotomesh(railMesh.material);
+    const railMesh = new THREE.Mesh(g, railingMaterial());
     railMesh.castShadow = true;
     railMesh.userData.terrain = 'absolute';
     group.add(railMesh);
