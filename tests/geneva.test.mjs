@@ -109,12 +109,16 @@ test('every stored building tile has its facade styles from the RegBL', () => {
     const entries = facades.tiles[t.u];
     assert.ok(typeof entries === 'string', t.u);
     for (const e of entries.split(';').filter(Boolean)) {
-      const [style, storey] = e.split(',').map(Number);
-      assert.ok(style >= 0 && style < facades.styles.length && storey >= 24 && storey <= 50, `${t.u}: ${e}`);
-      total++; if (style !== 5) known++;
+      const [style, storey, archetype, hex] = e.split(',');
+      assert.ok(+style >= 0 && +style < facades.styles.length && +storey >= 24 && +storey <= 50, `${t.u}: ${e}`);
+      assert.ok(+archetype >= 0 && +archetype < facades.archetypes.length && /^[0-9a-f]{6}$/.test(hex), `${t.u}: ${e}`);
+      total++; if (+style !== 5) known++;
     }
   }
   assert.ok(known / total > 0.8, `${known}/${total} buildings with a known style`);
+  // the facade archetypes, learnt from the buildings measured in the photomesh
+  assert.equal(facades.archetypes.length, 20);
+  assert.ok(facades.archetypes.reduce((a, t) => a + t.n, 0) > 500, 'buildings measured in the photomesh');
 });
 
 test('the orthophoto covers the frame at 1 m per pixel', () => {

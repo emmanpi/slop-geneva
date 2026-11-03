@@ -184,7 +184,16 @@ export function bakeTile(gltf, tile, stats) {
   let above = new Float32Array(total);
   // aFacade: style, storey height (m), the building's height above its foot (m); per building from the RegBL
   let facade = new Float32Array(total * 3);
-  const styleOf = (tile.facades || '').split(';').map((e) => e.split(',').map(Number));
+  // aArchetype: window scale (the archetype's measured share of windows against the usual), shop fronts (0..1)
+  const arch = new Float32Array(total * 2);
+  // "style,storey dm,archetype,RRGGBB" per building (tools/build-geneva-facades.mjs): the wall colour measured in the
+  // photomesh (or its archetype's), the archetype's share of windows and shop fronts
+  const styleOf = (tile.facades || '').split(';').map((e) => {
+    const [st, f, a, hex] = e.split(',');
+    return [Number(st), Number(f), a === undefined ? -1 : Number(a), hex];
+  });
+  const archetypes = tile.archetypes || [];
+  const wallColour = new THREE.Color();
   let minY = Infinity;
   for (let i = 0; i < total; i++) {
     const b = batchOf[i];
@@ -195,8 +204,11 @@ export function bakeTile(gltf, tile, stats) {
     above[i] = y - base;
     const seed = (egids[b] || 0) * 31 + b + (tile.seed || 0);
     const roof = normalsY[i] > 0.35;
-    const [style = STYLE.inconnu, storey = 31] = styleOf[b] || [];
-    const c = roof ? roofColor(seed, normalsY[i] < 0.97) : facadeColor(seed, kinds[b] || '', style);
+    const [style = STYLE.inconnu, storey = 31, a = -1, hex] = styleOf[b] || [];
+    const c = roof ? roofColor(seed, normalsY[i] < 0.97) : hex ? wallColour.set(`#${hex}`) : facadeColor(seed, kinds[b] || '', style);
+    const at = archetypes[a];
+    arch[i * 2] = at ? Math.min(1.5, Math.max(0.6, 0.65 + at.win * 2.2)) : 1;
+    arch[i * 2 + 1] = at ? at.shop : 0.5;
     facade[i * 3] = style; facade[i * 3 + 1] = storey / 10;
     facade[i * 3 + 2] = maxY.get(b) - positions[foot.get(b) * 3 + 1] + (foot.get(b) <= i ? dy : 0);
     colors[i * 4] = c.r * 255; colors[i * 4 + 1] = c.g * 255; colors[i * 4 + 2] = c.b * 255; colors[i * 4 + 3] = roof ? 255 : 0;
@@ -218,6 +230,7 @@ export function bakeTile(gltf, tile, stats) {
   geometry.setAttribute('aGround', new THREE.BufferAttribute(above, 1));
   geometry.setAttribute('aFacade', new THREE.BufferAttribute(facade, 3));
   geometry.setAttribute('aHide', new THREE.BufferAttribute(hide, 1));
+  geometry.setAttribute('aArchetype', new THREE.BufferAttribute(arch, 2));
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
   geometry.userData = { buildings: maxY.size, inPhotomesh: inMesh.size, calibration: dy, minY };
@@ -253,8 +266,13 @@ function createMaterial() {
   const windowId = rnd(bayIndex.add(building.mul(97)), level);
 
   // Window opening in the bay (u) and the storey (v)
-  const halfW = pick(0.2, 0.22, 0.31, 0.28, 0.46, 0.22);
-  const sill = pick(0.27, 0.2, 0.3, 0.12, 0.05, 0.3), head = pick(0.8, 0.86, 0.8, 0.9, 0.96, 0.8);
+  // the archetype's windows: wider and taller where the photos show more glass (aArchetype.x, 0.6..1.5)
+  const archetype = attribute('aArchetype', 'vec2');
+  const winScale = archetype.x;
+  const halfW = pick(0.2, 0.22, 0.31, 0.28, 0.46, 0.22).mul(winScale.sqrt()).min(0.47);
+  const winMid = pick(0.535, 0.53, 0.55, 0.51, 0.505, 0.55);
+  const winHalfH = pick(0.265, 0.33, 0.25, 0.39, 0.455, 0.25).mul(winScale.sqrt()).min(0.46);
+  const sill = winMid.sub(winHalfH), head = winMid.add(winHalfH);
   const box = (hw, lo, hi) => step(u.sub(0.5).abs(), hw).mul(step(lo, v)).mul(step(v, hi));
   const opening = box(halfW, sill, head);
   // Storeys that carry windows: from the first floor up to below the cornice / roof edge
@@ -286,7 +304,9 @@ function createMaterial() {
   const course = is(1).mul(step(v, 0.04)).mul(upper).mul(wall);
   const plinth = stone.mul(step(above, 0.7)).mul(wall);
   // Shop fronts on the ground floor (not in the residential contemporary blocks)
-  const shop = step(0.6, above).mul(step(above, 3.0)).mul(wall).mul(smoothstep(0.08, 0.12, u)).mul(smoothstep(0.92, 0.88, u)).mul(float(1).sub(is(3)));
+  // (as often as the archetype's buildings show them in the photos: aArchetype.y)
+  const shop = step(0.6, above).mul(step(above, 3.0)).mul(wall).mul(smoothstep(0.08, 0.12, u)).mul(smoothstep(0.92, 0.88, u))
+    .mul(step(rnd(building, 11.3), archetype.y));
 
   const grain = mx_noise_float(positionWorld.mul(0.6)).mul(0.08).add(0.96);
   const procedural = vertexColor().rgb.mul(grain);
@@ -383,7 +403,7 @@ export function streamSwissBuildings(scene, { center = { x: 0, z: 0 }, nearRadiu
         try {
           const tile = parseB3dm(await fetchBuffer(new URL(t.u, base)));
           const gltf = await loaderFor().parseAsync(tile.glb, '');
-          const geometry = bakeTile(gltf, { ...tile, seed: t.seed, facades: facades?.tiles?.[t.u] }, stats);
+          const geometry = bakeTile(gltf, { ...tile, seed: t.seed, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes }, stats);
           if (geometry) {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.name = t.u;

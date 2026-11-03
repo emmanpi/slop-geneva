@@ -17,6 +17,12 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   colours the roofs and every ground surface (the sand of Plainpalais, asphalt, lawns, paving). The crowns and
   shadows of the 39,000 inventoried trees are filled out of the photo from the ground around them, since the engine
   draws its own trees.
+- **Facade archetypes learnt from the photomesh** (`tools/sample-photomesh-facades.mjs`, `tools/build-geneva-facades.mjs`):
+  the walls of ~740 buildings photographed in the SITG photomesh are measured for their colour, share of windows and
+  ground floor, then grouped into 20 archetypes. Every other building in the city takes the archetype of the measured
+  buildings most like it (RegBL period, storeys, neighbourhood). The procedural facades draw that colour, those
+  windows and shop fronts. The toolbar's **Photomesh** button (P) unloads the photos and shows them in the old town
+  too.
 - **Facades by period** from the Federal Register of Buildings (RegBL): each building's year or period of
   construction and storeys pick its style (`data/geneva-facades.json`): the old town's stone with shutters and
   cornices, the 19th-century molasse with tall windows, string courses and wrought-iron balconies, post-war balcony
@@ -104,6 +110,7 @@ npm run update:buildings
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
 | `data:canton` | `tools/build-geneva-canton.mjs` | swisstopo SWISSIMAGE (WMTS) and swissBUILDINGS3D 3.0 (tile index) |
 | `data:transit` | `tools/build-geneva-transit.mjs` | Horaire officiel suisse (GTFS, opentransportdata.swiss), saved to `tools/data/cache/gtfs/gtfs.zip` |
+| `data:facade-samples` | `tools/sample-photomesh-facades.mjs` | the cached SITG photomesh tiles (run `data:photomesh` first) |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
 | `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais, Vieille-Ville) |
 | `update:buildings` | `tools/update-swissbuildings3d.mjs` | swisstopo swissBUILDINGS3D 3.0 (3D Tiles) |
