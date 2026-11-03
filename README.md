@@ -33,6 +33,10 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **Inventaire cantonal des arbres isolés** (SITG): ~39,000 trees with their surveyed height and crown.
 - The **quartiers** of the Ville de Genève (Cité, Pâquis, Eaux-Vives, Plainpalais, Jonction…) and the neighbouring
   communes for place names, plus teleports and viewpoints.
+- **The real city in 3D, over a test area**: the SITG's textured photomesh (Photomaillage 3D 2019, 100 m tiles of
+  OBJ + JPEG) converted to glTF in the world frame (`tools/build-photomesh.mjs`, `data/photomesh/<area>/`). The first
+  area is the Plaine de Plainpalais (400 × 500 m); there it replaces the engine's buildings, ground and trees
+  (`js/photomesh.js`, `PHOTOMESH_AREAS`).
 - **LV95 world frame** (`js/geneva-frame.js`): 1 unit = 1 m, `x = E − 2500000`, `z = 1118000 − N`,
   `y = height − 372 m` (lake level). The mapped area is LV95 E 2498300–2502300, N 1116500–1121300 (4.0 × 4.8 km).
 
@@ -66,6 +70,7 @@ npm run update:buildings
 | `data:surroundings` | `tools/build-geneva-surroundings.mjs` | swisstopo swissALTIRegio |
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
+| `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais) |
 | `update:buildings` | `tools/update-swissbuildings3d.mjs` | swisstopo swissBUILDINGS3D 3.0 (3D Tiles) |
 
 ## Ideas
@@ -81,4 +86,4 @@ The code is available under the [MIT License](LICENSE).
 Data: © [swisstopo](https://www.swisstopo.admin.ch/) (swissBUILDINGS3D 3.0, swissALTI3D, swissSURFACE3D,
 swissALTIRegio, open government data), © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL),
 [SITG / État de Genève](https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles) (Inventaire
-cantonal des arbres isolés), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements).
+cantonal des arbres isolés, Photomaillage 3D 2019), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements).

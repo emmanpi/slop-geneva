@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { insidePhotomesh } from './photomesh.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createFireEscapes } from './fire-escapes.js';
 import {
@@ -2062,7 +2063,8 @@ function buildCityBlocks(scene, { bag = false } = {}) {
             detail.cornices.push({ x, z, y: eave, w: length + 0.2, h: 0.44, d: 0.85, ry });
             if (height > 13) detail.cornices.push({ x, z, y: 4.4, w: length + 0.12, h: 0.22, d: 0.62, ry });
           }
-          if (shop && length > 9 && rand() < 0.48) {
+          // (none in the photomesh test areas: the real shop fronts are in the mesh)
+          if (shop && length > 9 && rand() < 0.48 && !insidePhotomesh(x, z)) {
             const count = Math.min(3, Math.floor(length / 8));
             for (let j = 0; j < count; j++) {
               const t = (j + 0.5) / count;
@@ -2433,11 +2435,11 @@ function buildCityBlocks(scene, { bag = false } = {}) {
   group.add(awningInst);
 
   const signThemes = [
-    { bg: '#161210', border: '#c89d54', text: 'KAFI · CONDITOREI', color: '#ffe4a8' },
-    { bg: '#0b5a32', border: '#7fe0a8', text: 'APOTHEKE · DROGERIE', color: '#ffffff' },
-    { bg: '#142b20', border: '#d4af37', text: 'BUCHHANDLUNG · ANTIQUARIAT', color: '#fff2cc' },
-    { bg: '#280a10', border: '#ff5252', text: 'KIOSK · ZEITUNGEN', color: '#ffd180' },
-    { bg: '#101318', border: '#e0e6ed', text: 'BECK · BÄCKEREI', color: '#f5f9ff' }
+    { bg: '#161210', border: '#c89d54', text: 'CAFÉ · PÂTISSERIE', color: '#ffe4a8' },
+    { bg: '#0b5a32', border: '#7fe0a8', text: 'PHARMACIE · DROGUERIE', color: '#ffffff' },
+    { bg: '#142b20', border: '#d4af37', text: 'LIBRAIRIE · BOUQUINISTE', color: '#fff2cc' },
+    { bg: '#280a10', border: '#ff5252', text: 'KIOSQUE · JOURNAUX', color: '#ffd180' },
+    { bg: '#101318', border: '#e0e6ed', text: 'BOULANGERIE · CONFISERIE', color: '#f5f9ff' }
   ];
   const MAX_SIGNS_PER_THEME = Math.ceil(MAX_AWNINGS / signThemes.length) + 32;
   const signInsts = signThemes.map((st) => {

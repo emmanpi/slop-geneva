@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { mx_noise_float, positionWorld, normalWorld, float, smoothstep, fract, floor, sin, abs, step, vertexColor, attribute, vec3, mix, max } from 'three/tsl';
 import { orthoAt } from './orthophoto.js';
+import { insidePhotomesh } from './photomesh.js';
 import { cityUniforms } from './tsl-materials.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -130,7 +131,7 @@ export function bakeTile(gltf, tile, stats) {
 
   let total = 0;
   for (const m of meshes) total += m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count;
-  const positions = new Float32Array(total * 3);
+  let positions = new Float32Array(total * 3);
   const batchOf = new Uint32Array(total);
   const normalsY = new Float32Array(total);
   const v = new THREE.Vector3();
@@ -179,10 +180,10 @@ export function bakeTile(gltf, tile, stats) {
   const ground = batchTable.GELAENDEPUNKT || [];
   const kinds = batchTable.OBJEKTART || [];
   const egids = batchTable.EGID || [];
-  const colors = new Uint8Array(total * 4);
-  const above = new Float32Array(total);
+  let colors = new Uint8Array(total * 4);
+  let above = new Float32Array(total);
   // aFacade: style, storey height (m), the building's height above its foot (m); per building from the RegBL
-  const facade = new Float32Array(total * 3);
+  let facade = new Float32Array(total * 3);
   const styleOf = (tile.facades || '').split(';').map((e) => e.split(',').map(Number));
   let minY = Infinity;
   for (let i = 0; i < total; i++) {
@@ -200,6 +201,26 @@ export function bakeTile(gltf, tile, stats) {
     facade[i * 3 + 2] = maxY.get(b) - positions[foot.get(b) * 3 + 1] + (foot.get(b) <= i ? dy : 0);
     colors[i * 4] = c.r * 255; colors[i * 4 + 1] = c.g * 255; colors[i * 4 + 2] = c.b * 255; colors[i * 4 + 3] = roof ? 255 : 0;
   }
+  // Buildings standing in a photomesh test area (js/photomesh.js) are left out: the real ones are in the mesh
+  const centre = new Map();
+  for (let i = 0; i < total; i++) {
+    const c = centre.get(batchOf[i]) || centre.set(batchOf[i], [Infinity, -Infinity, Infinity, -Infinity]).get(batchOf[i]);
+    c[0] = Math.min(c[0], positions[i * 3]); c[1] = Math.max(c[1], positions[i * 3]);
+    c[2] = Math.min(c[2], positions[i * 3 + 2]); c[3] = Math.max(c[3], positions[i * 3 + 2]);
+  }
+  const drop = new Set([...centre].filter(([, c]) => insidePhotomesh((c[0] + c[1]) / 2, (c[2] + c[3]) / 2)).map(([b]) => b));
+  if (drop.size) {
+    let n = 0;
+    for (let t = 0; t + 2 < total; t += 3) {
+      if (drop.has(batchOf[t])) continue;
+      for (let j = t; j < t + 3; j++, n++) {
+        positions.copyWithin(n * 3, j * 3, j * 3 + 3); colors.copyWithin(n * 4, j * 4, j * 4 + 4);
+        above[n] = above[j]; facade.copyWithin(n * 3, j * 3, j * 3 + 3);
+      }
+    }
+    if (!n) return null;
+    positions = positions.subarray(0, n * 3); colors = colors.subarray(0, n * 4); above = above.subarray(0, n); facade = facade.subarray(0, n * 3);
+  }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4, true));
@@ -207,7 +228,7 @@ export function bakeTile(gltf, tile, stats) {
   geometry.setAttribute('aFacade', new THREE.BufferAttribute(facade, 3));
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
-  geometry.userData = { buildings: maxY.size, calibration: dy, minY };
+  geometry.userData = { buildings: maxY.size - drop.size, calibration: dy, minY };
   return geometry;
 }
 
@@ -227,7 +248,7 @@ function createMaterial() {
   const is = (k) => step(abs(style.sub(k)), 0.5);
   // One value per style: ancien, xixe, moderne, contemporain, bureaux, inconnu
   const pick = (...v) => v.reduce((acc, value, k) => acc.add(is(k).mul(value)), float(0));
-  const rnd = (a, b) => fract(sin(a.mul(12.9898).add(b.mul(78.233))).mul(43758.5453));
+  const rnd = (a, b) => fract(sin(float(a).mul(12.9898).add(float(b).mul(78.233))).mul(43758.5453));
 
   const wall = step(normalWorld.y.abs(), 0.35).mul(float(1).sub(roof));
   const along = positionWorld.x.mul(normalWorld.z.abs()).add(positionWorld.z.mul(normalWorld.x.abs()));

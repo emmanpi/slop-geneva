@@ -27,6 +27,7 @@ import {
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { orthoAt } from './orthophoto.js';
+import { hideInPhotomesh } from './photomesh.js';
 import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
@@ -104,6 +105,8 @@ function buildBerlinCityGrid(scene) {
   const paintMat = createRoadPaintMaterial();
   // Every ground layer takes the SWISSIMAGE orthophoto's colour (fadeToOrtho)
   for (const mat of [roadMat, sidewalkMat, lawnMat, pavingMat, paintMat]) fadeToOrtho(mat);
+  // Inside the photomesh test areas (js/photomesh.js) the real city's mesh is the ground
+  for (const mat of [roadMat, sidewalkMat, lawnMat, pavingMat, paintMat, curbMat]) hideInPhotomesh(mat);
   const collections = new Map();
   // Everything is built flat (small y offsets above y = 0) and laid on the terrain before merging: ground layers are
   // draped, solids displaced; geometry of a bridge follows its deck; `absolute` geometry is already in world heights.
@@ -472,7 +475,7 @@ function buildBerlinCityGrid(scene) {
   }
   const depths = carveDepths(carveStrips);
   // The bare ground between the mapped surfaces (courtyards, track fields, verges): the orthophoto too
-  const groundMat = fadeToOrtho(createSidewalkMaterial());
+  const groundMat = hideInPhotomesh(fadeToOrtho(createSidewalkMaterial()));
   for (const mesh of buildTerrainMeshes(groundMat, { depths, carve: (x, z) => (waterAt(x, z) ? 2.5 : 0) })) {
     group.add(mesh);
   }

@@ -12,6 +12,7 @@ import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
+import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
 import { buildStreetDetails } from './street-details.js';
@@ -101,6 +102,8 @@ async function initApp() {
   markInit('trams');
   buildJetDeau(scene);
   markInit('jetDeau');
+  // The SITG photomesh over its test areas streams in while the city loads
+  buildPhotomesh(scene);
   const boroughs = buildBoroughs(scene, { sidewalks: cityGrid.sidewalks });
   markInit('boroughs');
   const { colliders: landmarkColliders } = buildLandmarks(scene);

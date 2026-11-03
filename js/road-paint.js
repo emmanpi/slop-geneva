@@ -1,6 +1,9 @@
 import * as THREE from 'three/webgpu';
 import { CROSSWALK } from './road-network.js';
 import { createRoadPaintMaterial } from './tsl-materials.js';
+import { float, positionWorld } from 'three/tsl';
+import { orthoAt } from './orthophoto.js';
+import { hideInPhotomesh } from './photomesh.js';
 
 // js/road-paint.js
 // Road markings generated from the drivable road network (js/road-network.js), so the paint matches where traffic
@@ -195,7 +198,10 @@ function buildRoadPaint(scene, network) {
   geometry.setAttribute('paint', new THREE.Float32BufferAttribute(paint, 3));
   geometry.setIndex(index);
 
-  const mesh = new THREE.Mesh(geometry, createRoadPaintMaterial());
+  // The painted markings give way to the real ones: the orthophoto's on the ground, the photomesh's in its test areas
+  const material = createRoadPaintMaterial();
+  material.opacityNode = material.opacityNode.mul(float(1).sub(orthoAt(positionWorld).weight));
+  const mesh = new THREE.Mesh(geometry, hideInPhotomesh(material));
   mesh.name = 'RoadMarkings';
   mesh.receiveShadow = true;
   mesh.renderOrder = -1; // under the other see-through ground effects (contact shadows, headlight beams)

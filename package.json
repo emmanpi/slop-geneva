@@ -18,7 +18,8 @@
     "data": "npm run data:osm && npm run data:areas && npm run data:trees && npm run data:terrain && npm run data:decks && npm run data:geo && npm run data:surroundings && npm run data:ortho && npm run data:gwr && npm run data:facades",
     "update:buildings": "node tools/update-swissbuildings3d.mjs",
     "serve": "python3 -m http.server 8766 --bind 127.0.0.1",
-    "test": "node --test tests/*.cjs tests/*.mjs"
+    "test": "node --test tests/*.cjs tests/*.mjs",
+    "data:photomesh": "node tools/build-photomesh.mjs plainpalais 2499600 1116800 2500000 1117300"
   },
   "devDependencies": {
     "geotiff": "^2.1.3",

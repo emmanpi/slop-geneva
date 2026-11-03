@@ -124,3 +124,21 @@ test('the orthophoto covers the frame at 1 m per pixel', () => {
   const jpg = fs.readFileSync(new URL('../data/geneva-ortho.jpg', import.meta.url));
   assert.equal(jpg.readUInt16BE(0), 0xffd8, 'a JPEG');
 });
+
+test('every photomesh area in js/photomesh.js has its converted tiles, with the same bounds', () => {
+  const source = fs.readFileSync(new URL('../js/photomesh.js', import.meta.url), 'utf8');
+  const areas = [...source.matchAll(/\['([a-z-]+)', (-?\d+), (-?\d+), (-?\d+), (-?\d+)\]/g)].map((m) => [m[1], ...m.slice(2).map(Number)]);
+  assert.ok(areas.length > 0);
+  for (const [name, ...bounds] of areas) {
+    const dir = new URL(`../data/photomesh/${name}/`, import.meta.url);
+    const index = JSON.parse(fs.readFileSync(new URL('index.json', dir), 'utf8'));
+    assert.deepEqual(index.bounds, bounds, name);
+    assert.ok(index.tiles.length > 0, name);
+    for (const t of index.tiles) {
+      const glb = fs.readFileSync(new URL(t.file, dir));
+      assert.equal(glb.toString('ascii', 0, 4), 'glTF', t.file);
+      // the mesh sits at the city's heights (a few metres around the lake level here, never hundreds)
+      assert.ok(t.min[1] > -20 && t.max[1] < 150, `${t.file} heights ${t.min[1]}..${t.max[1]}`);
+    }
+  }
+});
