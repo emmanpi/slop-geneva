@@ -16,7 +16,7 @@ import { buildJetDeau } from './jet-deau.js';
 import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
-import { buildPhotomesh } from './photomesh.js';
+import { buildPhotomesh, photomeshOn } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
 import { simClock, PRESET_HOURS } from './sim-clock.js';
@@ -113,7 +113,25 @@ async function initApp() {
   const planes = buildPlanes(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
+  // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,
+  // or ?photomesh=0)
+  {
+    let on = true;
+    try { if (localStorage.getItem('slopgeneva.photomesh') === '0') on = false; } catch { /* private window */ }
+    const q = new URLSearchParams(location.search).get('photomesh');
+    if (q === '0' || q === '1') on = q === '1';
+    photomeshOn.value = on ? 1 : 0;
+  }
   const photomesh = buildPhotomesh(scene);
+  const photomeshBtn = document.getElementById('btn-photomesh');
+  function setPhotomesh(on) {
+    photomesh.setEnabled(on);
+    photomeshBtn?.setAttribute('aria-pressed', String(on));
+    photomeshBtn?.classList.toggle('active', on);
+    try { localStorage.setItem('slopgeneva.photomesh', on ? '1' : '0'); } catch { /* private window */ }
+  }
+  photomeshBtn?.addEventListener('click', () => setPhotomesh(!photomesh.enabled));
+  setPhotomesh(photomeshOn.value > 0.5);
   const boroughs = buildBoroughs(scene, { sidewalks: cityGrid.sidewalks });
   markInit('boroughs');
   const { colliders: landmarkColliders } = buildLandmarks(scene);
@@ -645,6 +663,9 @@ async function initApp() {
       case 'KeyH':
         if (hudToggleBtn) hudToggleBtn.click();
         break;
+      case 'KeyP':
+        if (!e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) photomeshBtn?.click();
+        break;
       case 'KeyN':
         if (!e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) audioSystem.setEnabled(!audioSystem.enabled);
         break;
@@ -849,7 +870,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, planes,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },

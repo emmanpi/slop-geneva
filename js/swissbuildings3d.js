@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
-import { mx_noise_float, positionWorld, normalWorld, float, smoothstep, fract, floor, sin, abs, step, vertexColor, attribute, vec3, mix, max } from 'three/tsl';
+import { mx_noise_float, positionLocal, positionWorld, normalWorld, float, smoothstep, fract, floor, sin, abs, step, vertexColor, attribute, vec3, mix, max } from 'three/tsl';
 import { orthoAt } from './orthophoto.js';
-import { insidePhotomesh } from './photomesh.js';
+import { insidePhotomesh, photomeshOn } from './photomesh.js';
 import { cityUniforms } from './tsl-materials.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -201,34 +201,26 @@ export function bakeTile(gltf, tile, stats) {
     facade[i * 3 + 2] = maxY.get(b) - positions[foot.get(b) * 3 + 1] + (foot.get(b) <= i ? dy : 0);
     colors[i * 4] = c.r * 255; colors[i * 4 + 1] = c.g * 255; colors[i * 4 + 2] = c.b * 255; colors[i * 4 + 3] = roof ? 255 : 0;
   }
-  // Buildings standing in a photomesh test area (js/photomesh.js) are left out: the real ones are in the mesh
+  // Buildings standing in a photomesh area (js/photomesh.js) fold away while the photomesh shows (aHide: the
+  // material's positionNode), and come back when the Photomesh button turns it off
   const centre = new Map();
   for (let i = 0; i < total; i++) {
     const c = centre.get(batchOf[i]) || centre.set(batchOf[i], [Infinity, -Infinity, Infinity, -Infinity]).get(batchOf[i]);
     c[0] = Math.min(c[0], positions[i * 3]); c[1] = Math.max(c[1], positions[i * 3]);
     c[2] = Math.min(c[2], positions[i * 3 + 2]); c[3] = Math.max(c[3], positions[i * 3 + 2]);
   }
-  const drop = new Set([...centre].filter(([, c]) => insidePhotomesh((c[0] + c[1]) / 2, (c[2] + c[3]) / 2)).map(([b]) => b));
-  if (drop.size) {
-    let n = 0;
-    for (let t = 0; t + 2 < total; t += 3) {
-      if (drop.has(batchOf[t])) continue;
-      for (let j = t; j < t + 3; j++, n++) {
-        positions.copyWithin(n * 3, j * 3, j * 3 + 3); colors.copyWithin(n * 4, j * 4, j * 4 + 4);
-        above[n] = above[j]; facade.copyWithin(n * 3, j * 3, j * 3 + 3);
-      }
-    }
-    if (!n) return null;
-    positions = positions.subarray(0, n * 3); colors = colors.subarray(0, n * 4); above = above.subarray(0, n); facade = facade.subarray(0, n * 3);
-  }
+  const inMesh = new Set([...centre].filter(([, c]) => insidePhotomesh((c[0] + c[1]) / 2, (c[2] + c[3]) / 2)).map(([b]) => b));
+  const hide = new Float32Array(total);
+  for (let i = 0; i < total; i++) hide[i] = inMesh.has(batchOf[i]) ? 1 : 0;
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4, true));
   geometry.setAttribute('aGround', new THREE.BufferAttribute(above, 1));
   geometry.setAttribute('aFacade', new THREE.BufferAttribute(facade, 3));
+  geometry.setAttribute('aHide', new THREE.BufferAttribute(hide, 1));
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
-  geometry.userData = { buildings: maxY.size - drop.size, calibration: dy, minY };
+  geometry.userData = { buildings: maxY.size, inPhotomesh: inMesh.size, calibration: dy, minY };
   return geometry;
 }
 
@@ -241,6 +233,8 @@ export function bakeTile(gltf, tile, stats) {
 // Roofs take the SWISSIMAGE orthophoto (js/orthophoto.js) over their procedural colour. Windows light up after dusk.
 function createMaterial() {
   const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, flatShading: true });
+  // folded to a point (no surface, no shadow) where the photomesh shows the real building
+  m.positionNode = positionLocal.mul(float(1).sub(attribute('aHide', 'float').mul(photomeshOn)));
   const above = attribute('aGround', 'float');
   const facade = attribute('aFacade', 'vec3');
   const style = facade.x, storey = max(facade.y, 2.4), height = facade.z;

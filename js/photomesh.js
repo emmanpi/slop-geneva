@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { attribute, cross, dFdx, dFdy, dot, float, mix, normalize, positionWorld, pow, smoothstep, step, texture, uv, vec3 } from 'three/tsl';
+import { attribute, cross, dFdx, dFdy, dot, float, mix, normalize, positionWorld, pow, smoothstep, step, texture, uniform, uv, vec3 } from 'three/tsl';
 import { orthoAt } from './orthophoto.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -16,15 +16,19 @@ export const PHOTOMESH_AREAS = [
   ['vieilleville', 0, 100, 800, 900]
 ];
 
+// The Photomesh button (js/main.js): 1 while the real city is shown in its areas; 0 unloads it, and the engine's own
+// buildings, ground and markings come back there (they are only folded away while it shows: see photomeshMask)
+export const photomeshOn = uniform(1);
+
 export function insidePhotomesh(x, z, margin = 0) {
   return PHOTOMESH_AREAS.some(([, x0, z0, x1, z1]) => x > x0 - margin && x < x1 + margin && z > z0 - margin && z < z1 + margin);
 }
 
-/** TSL: 1 inside a photomesh area at a world position node, else 0 */
+/** TSL: 1 inside a photomesh area at a world position node while the photomesh shows, else 0 */
 export function photomeshMask(position = positionWorld) {
   return PHOTOMESH_AREAS.reduce((acc, [, x0, z0, x1, z1]) => acc.max(
     step(x0, position.x).mul(step(position.x, x1)).mul(step(z0, position.z)).mul(step(position.z, z1))
-  ), float(0));
+  ), float(0)).mul(photomeshOn);
 }
 
 /** Hides a material's surface inside the photomesh areas (cut-out; transparent decals just fade) */
@@ -117,29 +121,54 @@ export function buildPhotomesh(scene) {
     });
   }
 
+  let enabled = photomeshOn.value > 0.5;
+  let generation = 0; // bumped by every switch, so loads finishing after one are dropped
+  async function loadCoarse(tile) {
+    const gen = generation;
+    try {
+      const lo = await load(new URL(tile.loFile, tile.base).href);
+      if (gen !== generation || !enabled) { release(lo); return; }
+      tile.lo = lo;
+      if (!tile.hi) group.add(lo);
+    } catch (error) {
+      console.warn('[photomesh]', tile.loFile, error);
+    }
+  }
   const done = Promise.all(PHOTOMESH_AREAS.map(async ([name]) => {
     const base = new URL(`../data/photomesh/${name}/`, import.meta.url);
     const index = await (await fetch(new URL('index.json', base))).json();
-    await Promise.all(index.tiles.map(async (t) => {
-      const tile = { name: t.file, base, file: t.file, min: t.min, max: t.max, lo: null, hi: null, wantHi: false, busy: false };
-      tiles.push(tile);
-      try {
-        tile.lo = await load(new URL(t.lo || t.file, base).href);
-        if (!tile.hi) group.add(tile.lo);
-      } catch (error) {
-        console.warn('[photomesh]', name, t.lo, error);
-      }
-    }));
+    const mine = index.tiles.map((t) => ({ name: t.file, base, file: t.file, loFile: t.lo || t.file, min: t.min, max: t.max, lo: null, hi: null, wantHi: false, busy: false }));
+    tiles.push(...mine);
+    if (enabled) await Promise.all(mine.map(loadCoarse));
     stats.tiles = tiles.length;
     console.info(`[photomesh] ${name}: ${index.tiles.length} tiles`);
   }));
 
+  /** Shows (loading the coarse tiles again) or unloads the photomesh; the engine's city fills its areas when off */
+  function setEnabled(on) {
+    on = !!on;
+    if (on === enabled) return;
+    enabled = on;
+    generation++;
+    photomeshOn.value = on ? 1 : 0;
+    group.visible = on;
+    if (!on) {
+      for (const t of tiles) {
+        t.wantHi = false;
+        if (t.hi) { release(t.hi); t.hi = null; }
+        if (t.lo) { release(t.lo); t.lo = null; }
+      }
+      stats.full = 0;
+    } else for (const t of tiles) loadCoarse(t);
+  }
+
   async function loadFull(tile) {
     tile.busy = true;
     loading++;
+    const gen = generation;
     try {
       const hi = await load(new URL(tile.file, tile.base).href);
-      if (tile.wantHi) {
+      if (tile.wantHi && enabled && gen === generation) {
         tile.hi = hi;
         group.add(hi);
         if (tile.lo) group.remove(tile.lo);
@@ -157,7 +186,7 @@ export function buildPhotomesh(scene) {
     Math.max(tile.min[0] - p.x, 0, p.x - tile.max[0]), Math.max(tile.min[1] - p.y, 0, p.y - tile.max[1]), Math.max(tile.min[2] - p.z, 0, p.z - tile.max[2]));
   let next = 0;
   function update(cameraPosition, now = performance.now()) {
-    if (now < next || !tiles.length) return;
+    if (now < next || !tiles.length || !enabled) return;
     next = now + 250;
     const order = tiles.map((t) => ({ t, d: distance(t, cameraPosition) })).sort((a, b) => a.d - b.d);
     let full = 0;
@@ -178,5 +207,5 @@ export function buildPhotomesh(scene) {
     stats.loading = loading;
   }
 
-  return { group, done, update };
+  return { group, done, update, setEnabled, get enabled() { return enabled; } };
 }
