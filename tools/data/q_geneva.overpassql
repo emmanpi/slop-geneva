@@ -1,0 +1,21 @@
+[out:json][timeout:300][maxsize:1073741824];
+(
+  way["building"](46.19226,6.12021,46.23603,6.17306);
+  relation["building"](46.19226,6.12021,46.23603,6.17306);
+  way["highway"](46.19226,6.12021,46.23603,6.17306);
+  way["railway"~"^(rail|light_rail|tram|subway|funicular|narrow_gauge)$"](46.19226,6.12021,46.23603,6.17306);
+  way["natural"="water"](46.19226,6.12021,46.23603,6.17306);
+  relation["natural"="water"](46.19226,6.12021,46.23603,6.17306);
+  way["waterway"~"^(river|canal|riverbank|dock)$"](46.19226,6.12021,46.23603,6.17306);
+  way["leisure"~"^(park|garden|playground|pitch)$"](46.19226,6.12021,46.23603,6.17306);
+  relation["leisure"~"^(park|garden)$"](46.19226,6.12021,46.23603,6.17306);
+  way["landuse"~"^(grass|recreation_ground|cemetery|village_green|forest|meadow)$"](46.19226,6.12021,46.23603,6.17306);
+  relation["landuse"~"^(forest|cemetery)$"](46.19226,6.12021,46.23603,6.17306);
+  way["natural"~"^(wood|scrub|grassland)$"](46.19226,6.12021,46.23603,6.17306);
+  relation["natural"="wood"](46.19226,6.12021,46.23603,6.17306);
+  node["natural"="tree"](46.19226,6.12021,46.23603,6.17306);
+  node["highway"="traffic_signals"](46.19226,6.12021,46.23603,6.17306);
+  node["amenity"="fountain"](46.19226,6.12021,46.23603,6.17306);
+  node["railway"="tram_stop"](46.19226,6.12021,46.23603,6.17306);
+);
+out geom;

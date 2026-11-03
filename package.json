@@ -1,0 +1,23 @@
+{
+  "name": "slop-geneva",
+  "private": true,
+  "type": "module",
+  "description": "A Geneva city simulation built with three.js, WebGPURenderer and TSL, from swisstopo and OpenStreetMap data.",
+  "license": "MIT",
+  "scripts": {
+    "data:osm": "bash tools/overpass.sh tools/data/cache/osm_geneva.json tools/data/q_geneva.overpassql",
+    "data:trees": "node tools/fetch-geneva-trees.mjs",
+    "data:areas": "bash tools/overpass.sh tools/data/cache/osm_geneva_areas.json tools/data/q_geneva_areas.overpassql",
+    "data:terrain": "node tools/build-geneva-terrain.mjs",
+    "data:decks": "node tools/fetch-bridge-decks.mjs",
+    "data:geo": "node tools/build-geneva-geodata.mjs",
+    "data:surroundings": "node tools/build-geneva-surroundings.mjs",
+    "data": "npm run data:osm && npm run data:areas && npm run data:trees && npm run data:terrain && npm run data:decks && npm run data:geo && npm run data:surroundings",
+    "update:buildings": "node tools/update-swissbuildings3d.mjs",
+    "serve": "python3 -m http.server 8766 --bind 127.0.0.1",
+    "test": "node --test tests/*.cjs tests/*.mjs"
+  },
+  "devDependencies": {
+    "geotiff": "^2.1.3"
+  }
+}
