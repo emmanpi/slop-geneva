@@ -17,6 +17,7 @@ import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
 import { buildFireworks } from './fireworks.js';
+import { buildQuays } from './quays.js';
 import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -113,6 +114,7 @@ async function initApp() {
   const boats = buildBoats(scene);
   const planes = buildPlanes(scene);
   const fireworks = buildFireworks(scene);
+  buildQuays(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,

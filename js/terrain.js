@@ -218,6 +218,20 @@ const WATER_LEVEL = (() => {
 })();
 export const waterSurfaceHeight = (x, z) => gridHeight(WATER_LEVEL, x, z);
 
+// Under the water (lake and rivers, not the ponds) the ground drops 1.5 m below the surface: the banks then meet the
+// water steeply, where js/quays.js stands its quay walls, instead of a sloping band of terrain sticking out of it
+{
+  const { cols, rows, cell, minX, minZ, heights } = TERRAIN;
+  const deep = WATER.filter((w, i) => !/^(pond|basin|reservoir|fountain)$/.test(GENEVA_DATA.water[i].kind || ''));
+  const inDeep = (x, z) => deep.some((w) => x >= w.minX && x <= w.maxX && z >= w.minZ && z <= w.maxZ && pip(w.ring, x, z) && !w.holes.some((h) => pip(h, x, z)));
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const x = minX + i * cell, z = minZ + j * cell;
+    if (!inDeep(x, z)) continue;
+    const k = j * cols + i;
+    heights[k] = Math.min(heights[k], WATER_LEVEL.heights[k] - 1.5);
+  }
+}
+
 /**
  * Per-node depths by which the drawn terrain sinks under the ground layers laid on it: the survey has kerb- and
  * rail-sized bumps that a road surface following it vertex by vertex every few metres would let poke through.
