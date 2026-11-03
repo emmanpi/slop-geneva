@@ -64,10 +64,12 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   lines (dashed where advisory), bicycle pictograms and the two-way tracks' dashed centre line. About 70 cyclists ride
   the network around the camera, keeping right on the tracks and riding the lanes' way. The traffic's bicycles keep
   off the streets that have a cycle lane or track.
-- **The landmarks as photographed** (`tools/build-landmarks.mjs`, `js/landmark-meshes.js`): 18 landmarks (the
-  cathedral, the Basilique Notre-Dame, Cornavin, the Grand Théâtre, the Palais des Nations…) are cut out of the SITG
-  photomesh along their OSM footprint, with their texture cropped to them (up to 2,048 px). They replace their
-  procedural buildings, at street level too, and are floodlit at night.
+- **The landmarks** (`tools/build-landmarks.mjs`, `tools/blender-simplify.py`, `js/landmark-meshes.js`): 18 landmarks
+  (the cathedral, the Basilique Notre-Dame, Cornavin, the Grand Théâtre, the Palais des Nations…) are rebuilt as
+  clean massing. Their photographed surfaces in the SITG photomesh become a denoised heightfield solid over the OSM
+  footprint, which Blender dissolves into large flat faces. The walls are coloured in the landmark's stone and the
+  roofs in the photo's colours. They are drawn lit, in dressed stone, in place of their procedural buildings, and
+  floodlit at night. Building them needs Blender (`BLENDER=…`).
 - **The quays** (`js/quays.js`): along every shore of the Léman and the Rhône, where the bank stands high, a
   dressed-stone quay wall rises from below the water, wet and darker at the waterline with a line of algae. It has a
   coping stone, the quay's paving laid flat up to the wall and a painted iron railing on the high quays. A line of foam
