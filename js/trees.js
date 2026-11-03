@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { createTreeMaterial } from './tsl-materials.js';
+import { PHENO } from './phenology.js';
 import { groundHeight } from './terrain.js';
 
 // js/trees.js
@@ -806,7 +807,8 @@ function buildTreeGeometries(speciesIndex, variant, tileMeters) {
       : lod === 1
         ? [...placeCards(sp, branches, 1, tileMeters, rng, crown), ...placeCards(sp, branches, 2, tileMeters, rng, crown)]
         : placeCards(sp, branches, lod, tileMeters, rng, crown);
-    for (const c of cards) addCard(gb, c.at, c.up, c.face, c.size, c.tile, rng() < 0.5, rng(), crown);
+    // (the card random carries the level in its integer part: the winter material keeps a twiggy haze on the coarse levels)
+    for (const c of cards) addCard(gb, c.at, c.up, c.face, c.size, c.tile, rng() < 0.5, lod + rng() * 0.999, crown);
     const g = gb.build();
     g.userData = { species: sp.name, variant, lod, cards: cards.length, triangles: gb.idx.length / 3 };
     geos[lod] = g;
@@ -852,6 +854,7 @@ function createTreeField(scene, sites) {
   const N = sites.length;
   const mats = new Float32Array(N * 16);
   const data = new Float32Array(N * 4);
+  const pheno = new Float32Array(N * 4); // seasons: leaf-out, turn & fall mid-days, packed autumn colour (-1 evergreen)
   const px = new Float32Array(N);
   const py = new Float32Array(N);
   const pz = new Float32Array(N);
@@ -898,6 +901,13 @@ function createTreeField(scene, sites) {
     dummy.matrix.toArray(mats, i * 16);
     tint.setHex(SPECIES[sp].tints[Math.floor(r3 * 2.999)]).multiplyScalar(0.82 + r1 * 0.36);
     data.set([tint.r, tint.g, tint.b, sp + r2 * 0.999], i * 4);
+    const ph = PHENO[t.pheno ?? 0] || PHENO[0];
+    if (ph.evergreen) pheno.set([0, 0, 0, -1], i * 4);
+    else {
+      // A few days' spread per tree (sun, soil, street heat)
+      const j = (hashPos(t.z, 2.7, t.x) - 0.5) * 12;
+      pheno.set([(ph.out[0] + ph.out[1]) / 2 + j, (ph.turn[0] + ph.turn[1]) / 2 + j, (ph.fall[0] + ph.fall[1]) / 2 + j, ph.autumn], i * 4);
+    }
     px[i] = t.x;
     py[i] = y + 6 * s;
     pz[i] = t.z;
@@ -941,6 +951,7 @@ function createTreeField(scene, sites) {
     // when the levels change.
     const treeData = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4);
     geo.setAttribute('aTreeData', treeData);
+    geo.setAttribute('aTreePheno', new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4));
     const mesh = new THREE.InstancedMesh(geo, material, cap);
     mesh.name = m.name;
     mesh.count = 0;
@@ -966,6 +977,7 @@ function createTreeField(scene, sites) {
         const c = counts[mi]++;
         mesh.instanceMatrix.array.set(mats.subarray(i * 16, i * 16 + 16), c * 16);
         mesh.geometry.attributes.aTreeData.array.set(data.subarray(i * 4, i * 4 + 4), c * 4);
+        mesh.geometry.attributes.aTreePheno.array.set(pheno.subarray(i * 4, i * 4 + 4), c * 4);
       }
       let visible = false;
       for (const mi of cell.meshes.values()) {
@@ -976,7 +988,7 @@ function createTreeField(scene, sites) {
         if (n > 0) {
           visible = true;
           // main.js swaps instanceMatrix for a storage attribute: look it up here on every changed cell.
-          for (const attr of [mesh.instanceMatrix, mesh.geometry.attributes.aTreeData]) {
+          for (const attr of [mesh.instanceMatrix, mesh.geometry.attributes.aTreeData, mesh.geometry.attributes.aTreePheno]) {
             attr.clearUpdateRanges();
             attr.addUpdateRange(0, n * attr.itemSize);
             attr.needsUpdate = true;

@@ -62,6 +62,7 @@ import {
   BERLIN_DATA,
   waterAt
 } from './city-config.js';
+import { seasonDay } from './seasons.js';
 
 // js/tsl-materials.js
 // Photorealistic TSL (Three.js Shading Language) procedural shaders for Three.js r186 WebGPURenderer
@@ -1288,6 +1289,25 @@ function createTreeMaterial(leafAtlas) {
   const species = floor(aData.w);
   const leaf = texture(leafAtlas, uv());
 
+  // Seasons (js/seasons.js): aTreePheno = leaf-out, turning & leaf-fall mid-days of this tree, its autumn colour packed
+  // as 0xRRGGBB (-1: evergreen). Each card turns and drops on its own day around the tree's (its random), the coarse
+  // levels keep a sparse grey-brown twig haze for the bare crowns of winter (their cards carry the level: aTree.w).
+  const aPheno = attribute('aTreePheno', 'vec4');
+  const evergreen = step(aPheno.w, -0.5);
+  const cardRnd = fract(aTree.w);
+  const coarse = step(0.5, floor(aTree.w));
+  const dayCard = seasonDay.add(cardRnd.sub(0.5).mul(8.0));
+  const leaves = mix(smoothstep(aPheno.x.sub(11.0), aPheno.x.add(11.0), dayCard)
+    .mul(float(1.0).sub(smoothstep(aPheno.z.sub(14.0), aPheno.z.add(14.0), dayCard))), float(1.0), evergreen);
+  const turned = smoothstep(aPheno.y.sub(13.0), aPheno.y.add(13.0), dayCard.add(cardRnd.mul(10.0))).mul(float(1.0).sub(evergreen));
+  const fresh = float(1.0).sub(smoothstep(aPheno.x, aPheno.x.add(30.0), seasonDay)).mul(float(1.0).sub(evergreen));
+  const hasLeaf = step(cardRnd, leaves.mul(1.001));
+  // (lod 1 still draws its branches: a thinner haze there)
+  const haze = float(1.0).sub(hasLeaf).mul(coarse).mul(step(cardRnd, mix(float(0.14), float(0.3), step(1.5, floor(aTree.w)))));
+  const packed = aPheno.w.max(0.0);
+  const autumnSRGB = vec3(floor(packed.div(65536.0)), mod(floor(packed.div(256.0)), 256.0), mod(packed, 256.0)).div(255.0);
+  const autumn = pow(autumnSRGB, vec3(2.2));
+
   // Wind. positionLocal is already instanced (world space); positionGeometry is the tree's own frame (metres)
   mat.positionNode = Fn(() => {
     const p = positionLocal;
@@ -1310,7 +1330,7 @@ function createTreeMaterial(leafAtlas) {
   })();
 
   // Coverage: leaf cards from the atlas; bark is opaque from outside (its back faces are dropped)
-  const alpha = mix(float(frontFacing), leaf.a, isLeaf);
+  const alpha = mix(float(frontFacing), leaf.a.mul(max(hasLeaf, haze.mul(0.82))), isLeaf);
   mat.alphaTestNode = float(0.5);
   mat.maskShadowNode = alpha.greaterThan(0.5);
 
@@ -1321,8 +1341,13 @@ function createTreeMaterial(leafAtlas) {
     const base = tint.mul(leaf.r.mul(1.4));
     const warm = smoothstep(0.62, 1.0, leaf.g).mul(0.55);
     const cool = smoothstep(0.38, 0.0, leaf.g).mul(0.45);
-    const leafCol = mix(mix(base, base.mul(vec3(1.25, 1.08, 0.5)), warm), base.mul(vec3(0.8, 0.92, 1.05)), cool);
-    const foliage = mix(leafCol, color(0x4a3b2c), leaf.b).mul(crownAO.mul(0.45).add(0.55));
+    const summer = mix(mix(base, base.mul(vec3(1.25, 1.08, 0.5)), warm), base.mul(vec3(0.8, 0.92, 1.05)), cool);
+    // spring: young leaves light and yellow-green; autumn: the genus colour, some leaves darker, some brighter
+    const spring = mix(summer, summer.mul(vec3(1.2, 1.28, 0.62)), fresh.mul(0.75));
+    const fall = autumn.mul(leaf.r.mul(1.25)).mul(mix(float(0.7), float(1.18), leaf.g));
+    const leafCol = mix(spring, fall, turned);
+    const twigs = color(0x7a6e66).mul(leaf.r.mul(0.4).add(0.7));
+    const foliage = mix(mix(leafCol, color(0x4a3b2c), leaf.b), twigs, float(1.0).sub(hasLeaf)).mul(crownAO.mul(0.45).add(0.55));
 
     // Bark (uv in metres): furrowed grey-brown ridges, or the London plane's olive bark flaking to cream & tan
     const bu = uv();
@@ -1345,7 +1370,7 @@ function createTreeMaterial(leafAtlas) {
   mat.aoNode = canyonSkyAONode().mul(crownAO.mul(0.75).add(0.25));
 
   // Light through the leaves: yellow-green, strongest out on the thin shell
-  mat.translucencyNode = aData.xyz.mul(vec3(1.0, 1.2, 0.45)).mul(leaf.r.mul(1.5)).mul(crownAO.mul(0.8).add(0.2)).mul(isLeaf);
+  mat.translucencyNode = mix(aData.xyz.mul(vec3(1.0, 1.2, 0.45)), autumn.mul(0.6), turned).mul(leaf.r.mul(1.5)).mul(crownAO.mul(0.8).add(0.2)).mul(isLeaf).mul(hasLeaf);
 
   return mat;
 }

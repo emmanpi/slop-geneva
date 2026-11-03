@@ -63,6 +63,8 @@
   <link rel="modulepreload" href="./js/jet-deau.js" />
   <link rel="modulepreload" href="./js/orthophoto.js" />
   <link rel="modulepreload" href="./js/photomesh.js" />
+  <link rel="modulepreload" href="./js/phenology.js" />
+  <link rel="modulepreload" href="./js/seasons.js" />
   <link rel="modulepreload" href="./js/main.js" />
   <script type="module" src="./js/main.js"></script>
   <!-- Inter (UI) & Overpass (street-name signs: modelled on Highway Gothic, the US road sign typeface) -->
@@ -83,6 +85,7 @@
       <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5 7 7M17 17l1.5 1.5M5.5 18.5 7 17M17 7l1.5-1.5"/></symbol>
       <symbol id="i-twilight" viewBox="0 0 24 24"><path d="M3 15.5h18M7.5 19h9M8 15.5a4 4 0 0 1 8 0M17.5 4v3.2M15.9 5.6h3.2M7 7.4v1.8M6.1 8.3h1.8"/></symbol>
       <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></symbol>
+      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-13.5 15-14-0.5 10-6 15-14 15M5 19l8-8"/></symbol>
       <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.2s-6.6-5.7-6.6-11.2a6.6 6.6 0 0 1 13.2 0c0 5.5-6.6 11.2-6.6 11.2z"/><circle cx="12" cy="10" r="2.4"/></symbol>
       <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4.5 3.5 6.6v13l5.5-2.1 6 2.1 5.5-2.1v-13L15 6.6 9 4.5zM9 4.5v13M15 6.6v13"/></symbol>
       <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
@@ -147,6 +150,9 @@
         </button>
       </div>
       <span class="toolbar-divider" aria-hidden="true"></span>
+      <button id="btn-season" class="tool-btn" type="button" popovertarget="season-popover" title="Saison des arbres">
+        <svg class="icon" aria-hidden="true"><use href="#i-leaf"/></svg><span class="tool-label" id="season-label">Saison</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </button>
       <button id="btn-teleport" class="tool-btn" type="button" popovertarget="teleport-popover" title="Teleport the active player">
         <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span class="tool-label">Teleport</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
@@ -161,6 +167,16 @@
         <svg class="icon icon-hide" aria-hidden="true"><use href="#i-eye"/></svg><svg class="icon icon-show" aria-hidden="true"><use href="#i-eye-off"/></svg>
       </button>
     </div>
+  </div>
+
+  <!-- Seasons (js/seasons.js) -->
+  <div id="season-popover" class="popover" popover data-side="below" data-anchor="hud-toolbar" aria-label="Saison des arbres">
+    <div class="pop-title">Saison</div>
+    <button class="pop-item active" data-season="aujourdhui" type="button"><span class="pop-name">Aujourd’hui</span><span class="pop-sub">date réelle</span></button>
+    <button class="pop-item" data-season="printemps" type="button"><span class="pop-name">Printemps</span><span class="pop-sub">fin avril · feuilles nouvelles</span></button>
+    <button class="pop-item" data-season="ete" type="button"><span class="pop-name">Été</span><span class="pop-sub">mi-juillet</span></button>
+    <button class="pop-item" data-season="automne" type="button"><span class="pop-name">Automne</span><span class="pop-sub">fin octobre · couleurs</span></button>
+    <button class="pop-item" data-season="hiver" type="button"><span class="pop-name">Hiver</span><span class="pop-sub">mi-janvier · arbres nus</span></button>
   </div>
 
   <!-- Teleport Destinations (native popover: light-dismiss & Esc) -->

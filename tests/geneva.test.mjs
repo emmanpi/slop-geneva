@@ -6,6 +6,7 @@ import { wgs84ToLv95, lv95ToWgs84 } from '../js/swiss-projection.js';
 import { FRAME, WORLD_BOUNDS, lv95ToWorld } from '../js/geneva-frame.js';
 import { parseTerrain, gridHeight } from '../js/terrain-grid.js';
 import { GENEVA_DATA } from '../js/geneva-geodata.js';
+import { PHENO, phenoClass, phenoState } from '../js/phenology.js';
 
 const terrainFile = fs.readFileSync(new URL('../data/geneva-terrain.bin', import.meta.url));
 const TERRAIN = parseTerrain(terrainFile.buffer.slice(terrainFile.byteOffset, terrainFile.byteOffset + terrainFile.byteLength));
@@ -141,4 +142,22 @@ test('every photomesh area in js/photomesh.js has its converted tiles, with the 
       assert.ok(t.min[1] > -20 && t.max[1] < 150, `${t.file} heights ${t.min[1]}..${t.max[1]}`);
     }
   }
+});
+
+test('trees follow their genus through the seasons', () => {
+  const trees = GENEVA_DATA.trees;
+  assert.ok(trees.every((t) => Number.isInteger(t.g) && PHENO[t.g]), 'every inventory tree has a phenology class');
+  assert.ok(trees.filter((t) => PHENO[t.g].evergreen).length > 3000, 'pines, yews, cedars stay green');
+  assert.equal(phenoClass('Acer'), 2);
+  assert.equal(phenoClass('Platanus'), 3);
+  assert.ok(PHENO[phenoClass('Pinus')].evergreen);
+  // Maple: bare in January, in leaf in July, turned by early November, still bare at Christmas; pines always green
+  const maple = phenoClass('Acer');
+  assert.ok(phenoState(maple, 15).leaves < 0.01);
+  assert.ok(phenoState(maple, 195).leaves > 0.99 && phenoState(maple, 195).turned < 0.01);
+  assert.ok(phenoState(maple, 300).turned > 0.4);
+  assert.ok(phenoState(maple, 358).leaves < 0.01);
+  // Horse chestnuts brown before the planes
+  assert.ok(phenoState(phenoClass('Aesculus'), 280).turned > phenoState(phenoClass('Platanus'), 280).turned);
+  assert.deepEqual(phenoState(phenoClass('Pinus'), 15), { leaves: 1, turned: 0 });
 });

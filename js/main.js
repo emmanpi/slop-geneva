@@ -15,6 +15,7 @@ import { buildJetDeau } from './jet-deau.js';
 import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
+import { SEASON_PRESETS, setSeason, initSeasonFromURL, seasonDay } from './seasons.js';
 import { buildStreetDetails } from './street-details.js';
 import { createTrafficSystem, createHighwayTraffic } from './traffic.js';
 import { buildRoadPaint } from './road-paint.js';
@@ -436,6 +437,20 @@ async function initApp() {
     });
   });
 
+  // Season (js/seasons.js): today's date unless the URL or the Season menu says otherwise
+  const seasonButtons = document.querySelectorAll('[data-season]');
+  function selectSeason(id) {
+    setSeason(id);
+    seasonButtons.forEach((b) => b.classList.toggle('active', b.dataset.season === id));
+    const label = document.getElementById('season-label');
+    if (label) label.textContent = SEASON_PRESETS[id]?.label || 'Saison';
+  }
+  initSeasonFromURL();
+  seasonButtons.forEach((btn) => btn.addEventListener('click', () => {
+    selectSeason(btn.dataset.season);
+    closePopovers();
+  }));
+
   modeButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       selectMode(btn.getAttribute('data-mode'));
@@ -809,6 +824,8 @@ async function initApp() {
           mode(m) { selectMode(m); },
           camera(id) { selectCamera(id, true); },
           time(id) { selectTime(id); },
+          season(id) { selectSeason(id); },
+          day(d) { seasonDay.value = d; },
           setCamera(px, py, pz, tx, ty, tz) {
             cameraSystem.fixedPos = new THREE.Vector3(px, py, pz); cameraSystem.fixedLook = new THREE.Vector3(tx, ty, tz);
             selectCamera('fixed', true);

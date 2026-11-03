@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FRAME, WORLD_BOUNDS, lonLatToWorld, lv95ToWorld } from '../js/geneva-frame.js';
 import { parseTerrain, gridHeight } from '../js/terrain-grid.js';
+import { phenoClass } from '../js/phenology.js';
 import { toWorld, flat, geomPts, inFrame, ringArea, bbox, bboxInFrame, rdp, cleanRing, polygons, clipToFrame } from './osm-geometry.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -418,7 +419,7 @@ if (fs.existsSync(TREES)) {
   trees = city.map((g) => {
     const { x, z } = lv95ToWorld(g.E, g.N);
     const h = g.height ? Math.min(40, Math.max(3, g.height)) : g.crown ? Math.min(30, 3 + g.crown * 1.3) : g.planted ? Math.min(24, 4 + (year - g.planted) * 0.4) : 10;
-    return { x: r1(x), z: r1(z), h: r1(h), crown: g.crown ?? null, street: STREET.test(g.situation || '') };
+    return { x: r1(x), z: r1(z), h: r1(h), crown: g.crown ?? null, street: STREET.test(g.situation || ''), g: phenoClass(g.genus) };
   }).filter((t) => inFrame(t.x, t.z));
   log(`using ${trees.length} trees from the cantonal inventory`);
 }

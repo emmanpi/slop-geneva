@@ -1,3 +1,4 @@
+import { PHENO } from './phenology.js';
 import * as THREE from 'three/webgpu';
 import {
   float,
@@ -430,8 +431,10 @@ function buildBerlinCityGrid(scene) {
   }
   for (const tree of BERLIN_DATA.trees || []) {
     const h = Math.abs(Math.sin(tree.x * 1.9 + tree.z * 8.1));
+    // Inventory trees: their genus picks the crown shape and the seasonal calendar (js/phenology.js)
+    const pheno = tree.g ?? 0;
     parkTreeSites.push({ x: tree.x, z: tree.z, y: 0.09, scale: tree.h ? Math.max(0.45, Math.min(1.8, tree.h / 13)) : 0.66 + h * 0.62,
-      species: h < 0.42 ? 0 : h < 0.65 ? 1 : 2, yaw: h * Math.PI * 2 });
+      species: tree.g != null ? (PHENO[pheno].shape === 2 && h < 0.3 ? 0 : PHENO[pheno].shape) : h < 0.42 ? 0 : h < 0.65 ? 1 : 2, yaw: h * Math.PI * 2, pheno });
   }
   // OSM often maps a wooded area without mapping each individual tree. Fill
   // those patches procedurally, preserving mapped trees and clear paths.
