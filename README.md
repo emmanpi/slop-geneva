@@ -64,10 +64,6 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   lines (dashed where advisory), bicycle pictograms and the two-way tracks' dashed centre line. About 70 cyclists ride
   the network around the camera, keeping right on the tracks and riding the lanes' way. The traffic's bicycles keep
   off the streets that have a cycle lane or track.
-- **The landmarks as photographed** (`tools/build-landmarks.mjs`, `js/landmark-meshes.js`): 18 landmarks (the
-  cathedral, the Basilique Notre-Dame, Cornavin, the Grand Théâtre, the Palais des Nations…) are cut out of the SITG
-  photomesh along their OSM footprint, with their texture cropped to them (up to 2,048 px). They replace their
-  procedural buildings, at street level too, and are floodlit at night.
 - **The quays** (`js/quays.js`): along every shore of the Léman and the Rhône, where the bank stands high, a
   dressed-stone quay wall rises from below the water, wet and darker at the waterline with a line of algae. It has a
   coping stone, the quay's paving laid flat up to the wall and a painted iron railing on the high quays. A line of foam
@@ -132,7 +128,6 @@ npm run update:buildings
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
 | `data:canton` | `tools/build-geneva-canton.mjs` | swisstopo SWISSIMAGE (WMTS) and swissBUILDINGS3D 3.0 (tile index) |
 | `data:transit` | `tools/build-geneva-transit.mjs` | Horaire officiel suisse (GTFS, opentransportdata.swiss), saved to `tools/data/cache/gtfs/gtfs.zip` |
-| `data:landmarks` | `tools/build-landmarks.mjs` | SITG Photomaillage 3D 2019 (the landmarks) |
 | `data:facade-samples` | `tools/sample-photomesh-facades.mjs` | the cached SITG photomesh tiles (run `data:photomesh` first) |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
 | `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais, Vieille-Ville) |

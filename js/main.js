@@ -18,7 +18,6 @@ import { buildBoats } from './boats.js';
 import { buildPlanes } from './planes.js';
 import { buildFireworks } from './fireworks.js';
 import { buildQuays } from './quays.js';
-import { buildLandmarkMeshes } from './landmark-meshes.js';
 import { buildCycling } from './cycling.js';
 import { createDataPanel } from './data-panel.js';
 import { applyI18n, setLang, lang, tr } from './i18n.js';
@@ -119,7 +118,6 @@ async function initApp() {
   const planes = buildPlanes(scene);
   const fireworks = buildFireworks(scene);
   const quays = buildQuays(scene);
-  const landmarkMeshes = buildLandmarkMeshes(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,
@@ -183,7 +181,7 @@ async function initApp() {
   // The cycle tracks and lanes, and their cyclists (the traffic's bicycles)
   const cycling = buildCycling(scene, trafficSystem.bikeParts);
   // The Data panel: every layer added, its source and numbers (some live)
-  const dataPanel = createDataPanel({ swissStream, canton, photomesh, cycling, trams, trafficSystem, boats, planes, weather, landmarkMeshes });
+  const dataPanel = createDataPanel({ swissStream, canton, photomesh, cycling, trams, trafficSystem, boats, planes, weather });
   document.getElementById('btn-data')?.addEventListener('click', () => dataPanel.open());
   // English by default; the EN / FR button switches live (js/i18n.js)
   applyI18n();
@@ -917,7 +915,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes, fireworksSystem: fireworks, cycling, landmarkMeshes,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, setPhotomesh, planes, fireworksSystem: fireworks, cycling,
           fireworks(on = true) { fireworks.set(on); },
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
