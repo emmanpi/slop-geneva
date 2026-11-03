@@ -240,6 +240,28 @@ export const waterSurfaceHeight = (x, z) => gridHeight(WATER_LEVEL, x, z);
     if (heights[k] > WATER_LEVEL.heights[k] + 0.3) continue;
     heights[k] = Math.min(heights[k], WATER_LEVEL.heights[k] - 1.5);
   }
+  // Jetties and moles: the paths OSM maps out over the water (the Jetée du Jet-d'eau, the Pâquis' jetty) are a few
+  // metres wide, under the terrain model's 4 m grid: the ground rises to 0.8 m above the water along them, as wide as
+  // the path and a metre more
+  for (const r of GENEVA_DATA.roads) {
+    if (r.bridge || r.tunnel || !/^(footway|path|pedestrian|cycleway|service|steps)$/.test(r.kind)) continue;
+    const half = (r.width || 3) / 2 + 1;
+    for (let p = 2; p < r.pts.length; p += 2) {
+      const ax = r.pts[p - 2], az = r.pts[p - 1], bx = r.pts[p], bz = r.pts[p + 1];
+      if (!inDeep((ax + bx) / 2, (az + bz) / 2)) continue;
+      const L = Math.hypot(bx - ax, bz - az) || 1e-6, ux = (bx - ax) / L, uz = (bz - az) / L;
+      const i0 = Math.max(0, Math.floor((Math.min(ax, bx) - half - minX) / cell)), i1 = Math.min(cols - 1, Math.ceil((Math.max(ax, bx) + half - minX) / cell));
+      const j0 = Math.max(0, Math.floor((Math.min(az, bz) - half - minZ) / cell)), j1 = Math.min(rows - 1, Math.ceil((Math.max(az, bz) + half - minZ) / cell));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const x = minX + i * cell, z = minZ + j * cell;
+        const t = Math.max(0, Math.min(L, (x - ax) * ux + (z - az) * uz));
+        // (the nodes within reach, and the next ones out so the grid's triangles carry the full width)
+        if (Math.hypot(ax + ux * t - x, az + uz * t - z) > half + cell * 0.75) continue;
+        const k = j * cols + i;
+        heights[k] = Math.max(heights[k], WATER_LEVEL.heights[k] + 0.8);
+      }
+    }
+  }
 }
 
 /**
