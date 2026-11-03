@@ -15,6 +15,7 @@ import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
 import { createWeather, WEATHER_PRESETS } from './weather.js';
 import { buildBoats } from './boats.js';
+import { buildPlanes } from './planes.js';
 import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
@@ -109,6 +110,7 @@ async function initApp() {
   const jet = buildJetDeau(scene);
   const weather = createWeather({ scene, lighting: lightingSystem, jet });
   const boats = buildBoats(scene);
+  const planes = buildPlanes(scene);
   markInit('jetDeau');
   // The SITG photomesh over its test areas streams in while the city loads
   const photomesh = buildPhotomesh(scene);
@@ -791,6 +793,8 @@ async function initApp() {
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
     boats.update(dt, elapsed);
     weather.update(dt, cameraSystem.camera);
+    planes.setWind(weather.state.current);
+    planes.update();
     photomesh.update(cameraSystem.camera.position);
     canton.update(cameraSystem.camera);
     trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
@@ -845,7 +849,7 @@ async function initApp() {
         window.__slopgeneva = {
           ready: true, firstFrameAt: performance.now(), init: initTimings.join(', '),
           backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL fallback',
-          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather,
+          scene, renderer, cameraSystem, controllerManager, TELEPORT_LOCATIONS, trafficSystem, swissBuildings: swissStream, trams, boats, photomesh, canton, weatherSystem: weather, planes,
           teleport(key) { const l = TELEPORT_LOCATIONS[key]; return teleportTo(l.x, l.z, l.heading); },
           teleportXZ(x, z, heading = 0) { return teleportTo(x, z, heading); },
           mode(m) { selectMode(m); },

@@ -41,6 +41,9 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **TPG buses on their lines** (`js/tpg-buses.js`): a bus the traffic puts on the road near the player takes a trip
   running at the city's clock and follows its line over the road graph from stop to stop. It stops at each stop for
   12 to 22 s and shows its line and destination on its signs. Buses wear the TPG's white and orange.
+- **Genève Aéroport** (`js/planes.js`): airliners land and take off on Cointrin's 3,900 m runway, one movement every
+  2 to 3 minutes from 6:00 to 23:00, arrivals on a 3° glide path. The runway in use follows the wind: into the bise
+  they land towards the north-east, otherwise towards the south-west.
 - **The Mouettes genevoises** (`js/boats.js`): lines M1 to M4 cross the Rade on their timetable. A boat sails its
   line's next trip from the pier it reached and waits at the pier in between. It crosses on a smooth course over the
   water, rocking with a wake.
