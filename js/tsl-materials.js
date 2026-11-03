@@ -2976,6 +2976,7 @@ function createJetSprayMaterial({ origin, speed = 52.4, wind }) {
   const uOrigin = uniform(origin);
   const uWind = uniform(wind);
   const uSpeed = uniform(speed);
+  const uSwiss = uniform(0);
   // One flight lasts until the drop is back in the lake: 2 v / g (≈ 10.7 s at full speed)
   const v0 = uSpeed.mul(aParams.y);
   const flight = v0.mul(2 / JET_GRAVITY);
@@ -3014,9 +3015,14 @@ function createJetSprayMaterial({ origin, speed = 52.4, wind }) {
     const day = mix(shadow, lit, smoothstep(0.2, 0.9, shade));
     // Floodlit from below at night: bright at the foot, fading up the plume
     const height = clamp(positionWorld.y.sub(uOrigin.y).div(140.0), 0.0, 1.0);
-    const flood = mix(color(0xf2f6ff).mul(2.2), color(0xc8d8ff).mul(0.9), height);
+    const white = mix(color(0xf2f6ff).mul(2.2), color(0xc8d8ff).mul(0.9), height);
+    // the 1st of August: lit red with white drops, the Swiss flag's colours (uSwiss, js/jet-deau.js)
+    const red = mix(color(0xff1a1a).mul(2.4), color(0xc80f14).mul(1.1), height);
+    const flagWhite = step(0.83, fract(aParams.z.mul(7.31)));
+    const flood = mix(white, mix(red, white, flagWhite), uSwiss);
     return mix(day, flood, night.mul(0.85));
   })();
+  mat.userData.uSwiss = uSwiss;
 
   mat.opacityNode = Fn(() => {
     const fadeIn = smoothstep(0.0, 0.015, life);

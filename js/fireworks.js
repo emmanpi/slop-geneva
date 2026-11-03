@@ -23,6 +23,7 @@ const SHOWS = [
 export function buildFireworks(scene) {
   const uShow = uniform(0); // the show's own clock (s), advancing while it runs
   const uOn = uniform(0);
+  const uSwiss = uniform(0);
   const m = new THREE.SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   m.mrtNode = transparentEffectMRT;
   const id = float(instanceIndex);
@@ -64,6 +65,8 @@ export function buildFireworks(scene) {
   let col = colours[0];
   for (let i = 1; i < colours.length; i++) col = mix(col, colours[i], step(i, ci));
   col = mix(col, vec3(1, 0.7, 0.3), willow); // willows burn gold
+  // the 1st of August: the Swiss flag's red and white only
+  col = mix(col, mix(vec3(1, 0.08, 0.06), vec3(1, 0.97, 0.94), step(0.55, hash(seed.add(57.9)))), uSwiss);
   const rising = float(1).sub(step(RISE, age)).mul(step(spark, 0.5));
   const bursting = step(RISE, age).mul(fade).mul(twinkle);
   m.colorNode = mix(col, vec3(1, 0.85, 0.6), rising).mul(6);
@@ -90,6 +93,7 @@ export function buildFireworks(scene) {
   }
   function update(dt) {
     const show = forced ? { name: 'Feu d’artifice' } : showNow();
+    uSwiss.value = Math.floor(seasonDay.value) === 212 ? 1 : 0;
     state.show = show && show.name;
     const on = !!show;
     if (on && !mesh.visible) uShow.value = 0;

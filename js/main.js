@@ -854,6 +854,7 @@ async function initApp() {
     planes.setWind(weather.state.current);
     planes.update();
     fireworks.update(dt);
+    jet.setSwiss(Math.floor(seasonDay.value) === 212); // the 1st of August
     cycling.update(dt, cameraSystem.camera);
     {
       // street level: the procedural city near the camera, the photomesh beyond (js/photomesh.js)
