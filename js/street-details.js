@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { Fn, float, color, positionWorld, uniform, mod, fract, step, smoothstep, mix } from 'three/tsl';
+import { Fn, float, color, positionWorld, positionGeometry, uniform, mod, fract, step, smoothstep, mix, texture, uv, vec2 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   AVENUES,
@@ -107,6 +107,66 @@ function createWalkSignalMaterial(clock) {
   return mat;
 }
 
+// Swiss signals (SSV / VSS): a three-aspect head where red and amber show together for a moment before green, and
+// a two-aspect pedestrian head (red standing figure above, green walking figure below, no flashing). The lens is
+// picked from its height in the head (positionGeometry: +0.27 red, 0 amber, -0.27 green), not in the world, so the
+// heads work on Geneva's slopes.
+const RED_AMBER = 1.2; // s of red + amber before green
+function createSwissSignalLensMaterial(isAvenueHead, clock) {
+  const { cycle, avenueAmber, avenueRed, streetAmber } = SIGNAL_TIMING;
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.colorNode = Fn(() => {
+    const t = mod(clock, cycle);
+    const ly = positionGeometry.y;
+    const isRed = step(0.14, ly), isGreen = float(1).sub(step(-0.14, ly)), isAmber = float(1).sub(isRed).sub(isGreen);
+    const green = isAvenueHead ? float(1).sub(step(avenueAmber, t)) : step(avenueRed, t).mul(float(1).sub(step(streetAmber, t)));
+    const red = isAvenueHead ? step(avenueRed, t) : float(1).sub(step(avenueRed, t));
+    // amber: after green, and with the red just before green comes back
+    const amberAfter = isAvenueHead ? step(avenueAmber, t).mul(float(1).sub(step(avenueRed, t))) : step(streetAmber, t);
+    const redAmber = isAvenueHead ? step(cycle - RED_AMBER, t) : step(avenueRed - RED_AMBER, t).mul(float(1).sub(step(avenueRed, t)));
+    const lit = isRed.mul(red).add(isAmber.mul(amberAfter.add(redAmber).min(1))).add(isGreen.mul(green));
+    const hue = mix(mix(color(0x20ff80), color(0xffa000), isAmber), color(0xff2010), isRed);
+    return mix(color(0x0b0c0e), hue.mul(1.5), lit.min(1));
+  })();
+  return mat;
+}
+
+// The pedestrian figures, drawn once: red standing figure in the top half, green walking figure in the bottom half
+function createSwissFiguresTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, 64, 128);
+  g.fillStyle = '#fff';
+  // standing (top)
+  g.beginPath(); g.arc(32, 14, 6, 0, Math.PI * 2); g.fill();
+  g.fillRect(24, 22, 16, 20); g.fillRect(25, 42, 6, 18); g.fillRect(33, 42, 6, 18); g.fillRect(18, 23, 5, 16); g.fillRect(41, 23, 5, 16);
+  // walking (bottom)
+  g.save(); g.translate(0, 64);
+  g.beginPath(); g.arc(34, 12, 6, 0, Math.PI * 2); g.fill();
+  g.lineCap = 'round'; g.strokeStyle = '#fff'; g.lineWidth = 7;
+  const line = (a, b, c2, d) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.stroke(); };
+  line(32, 22, 29, 38); line(29, 38, 20, 58); line(29, 38, 40, 57); line(31, 25, 21, 34); line(31, 25, 42, 33);
+  g.restore();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+function createSwissWalkMaterial(clock, isAvenue, figures) {
+  const { cycle, avenueRed, walk } = SIGNAL_TIMING;
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.colorNode = Fn(() => {
+    const t = mod(clock.sub(isAvenue ? 0 : avenueRed), cycle);
+    const isWalk = float(1).sub(step(walk, t));
+    const top = step(0.5, uv().y);
+    const shape = texture(figures, uv()).r;
+    const lit = mix(float(1).sub(isWalk), isWalk, float(1).sub(top));
+    const hue = mix(color(0x20ff80), color(0xff2010), top);
+    return mix(color(0x0b0c0e), hue.mul(1.6), shape.mul(lit));
+  })();
+  return mat;
+}
+
 function buildStreetDetails(scene) {
   const group = new THREE.Group();
   group.name = BERLIN_DATA ? 'BerlinStreetDetails' : 'ManhattanStreetDetails';
@@ -168,6 +228,24 @@ function buildStreetDetails(scene) {
   // Pedestrian signal: housing with the WALK / hand face lit on both sides (+-z, toward the crosswalk's far end)
   const walkHousingGeo = new THREE.BoxGeometry(0.34, 0.4, 0.24);
   const walkPanelGeo = mergeGeometries(bothFaces(new THREE.PlaneGeometry(0.27, 0.31).translate(0, 0, 0.125)));
+  // Swiss heads (Geneva): a black three-aspect head (200 mm lenses) on a black contrast board with a white rim, short
+  // visors; a black two-aspect pedestrian head; the yellow push-button box. Lenses on both faces (+-z)
+  const SW_LENS_Y = [0.27, 0, -0.27], SW_LENS_R = 0.1, SW_D = 0.2;
+  const swissHeadGeo = mergeGeometries([
+    new THREE.BoxGeometry(0.28, 0.86, SW_D),
+    new THREE.BoxGeometry(0.48, 1.04, 0.03),
+    ...SW_LENS_Y.flatMap((ly) => bothFaces(
+      new THREE.CylinderGeometry(SW_LENS_R + 0.025, SW_LENS_R + 0.025, 0.14, 14, 1, true, Math.PI / 2, Math.PI)
+        .rotateX(Math.PI / 2).translate(0, ly, SW_D / 2 + 0.07)
+    ))
+  ].map((g) => g.toNonIndexed()));
+  const swissRimGeo = mergeGeometries(bothFaces(new THREE.PlaneGeometry(0.52, 1.08).translate(0, 0, -0.018)).map((g) => g.toNonIndexed()));
+  const swissLensGeo = mergeGeometries(SW_LENS_Y.flatMap((ly) => bothFaces(new THREE.CircleGeometry(SW_LENS_R, 18).translate(0, ly, SW_D / 2 + 0.004))));
+  const swissWalkHeadGeo = new THREE.BoxGeometry(0.26, 0.56, 0.18);
+  const swissWalkPanelGeo = mergeGeometries(bothFaces(new THREE.PlaneGeometry(0.2, 0.46).translate(0, 0, 0.092)));
+  const swissButtonGeo = new THREE.BoxGeometry(0.13, 0.24, 0.1).translate(0, 0, 0.08);
+  const swissPoleMatrices = [], swissHeadMatrices = [], swissAveLensMatrices = [], swissStreetLensMatrices = [];
+  const swissWalkHeadMatrices = [], swissWalkAveMatrices = [], swissWalkStreetMatrices = [], swissButtonMatrices = [];
   // Cobra-head luminaire on the end of the arm: flattened grey housing, flat lens underneath
   const lampHousingGeo = new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.7, 0.2, 0.3);
   const lampLensGeo = new THREE.CircleGeometry(1, 16).rotateX(Math.PI / 2).scale(0.6, 1, 0.24).translate(0, -0.005, 0);
@@ -531,11 +609,15 @@ function buildStreetDetails(scene) {
       if (signalKeys.has(key)) continue;
       signalKeys.add(key);
       const yaw = Math.atan2(road.ux, road.uz), isAvenue = Math.abs(road.uz) >= Math.abs(road.ux);
-      setMatrix(poleMatrices, x, 3.0, z, 0.09, 6, 0.09);
-      setMatrix(yellowBoxMatrices, x, 5.42, z, 1, 1, 1, yaw);
-      setMatrix(isAvenue ? aveLensMatrices : streetLensMatrices, x, 5.42, z, 1, 1, 1, yaw);
-      setMatrix(walkBoxMatrices, x, 2.7, z, 1, 1, 1, yaw + Math.PI / 2);
-      audioSignals.push({ x, y: 2.7, z, isAvenue });
+      // Swiss roadside signal: an anthracite pole, the vehicle head at ~2.7 m facing the traffic, the pedestrian head
+      // and the yellow push-button box facing along the crossing
+      setMatrix(swissPoleMatrices, x, 1.9, z, 0.06, 3.8, 0.06);
+      setMatrix(swissHeadMatrices, x, 2.75, z, 1, 1, 1, yaw);
+      setMatrix(isAvenue ? swissAveLensMatrices : swissStreetLensMatrices, x, 2.75, z, 1, 1, 1, yaw);
+      setMatrix(isAvenue ? swissWalkAveMatrices : swissWalkStreetMatrices, x, 2.0, z, 1, 1, 1, yaw + Math.PI / 2);
+      setMatrix(swissWalkHeadMatrices, x, 2.0, z, 1, 1, 1, yaw + Math.PI / 2);
+      setMatrix(swissButtonMatrices, x, 1.1, z, 1, 1, 1, yaw + Math.PI / 2);
+      audioSignals.push({ x, y: 2.0, z, isAvenue });
     }
   }
 
@@ -561,6 +643,21 @@ function buildStreetDetails(scene) {
   addMatrixArrayInstanced(unitBox, streetBladeMat, streetBladeMatrices);
   addMatrixArrayInstanced(walkHousingGeo, signalHousingMat, walkBoxMatrices);
   addMatrixArrayInstanced(walkPanelGeo, walkSignalGlow, walkBoxMatrices, false);
+  // Swiss signals
+  const swissPoleMat = new THREE.MeshStandardNodeMaterial({ color: 0x3a3d41, roughness: 0.55, metalness: 0.6 });
+  const swissHeadMat = new THREE.MeshStandardNodeMaterial({ color: 0x111214, roughness: 0.5, metalness: 0.2, side: THREE.DoubleSide });
+  const swissRimMat = new THREE.MeshStandardNodeMaterial({ color: 0xf2f2ee, roughness: 0.6 });
+  const swissButtonMat = new THREE.MeshStandardNodeMaterial({ color: 0xf2c200, roughness: 0.45 });
+  const figures = createSwissFiguresTexture();
+  addMatrixArrayInstanced(unitCyl, swissPoleMat, swissPoleMatrices);
+  addMatrixArrayInstanced(swissHeadGeo, swissHeadMat, swissHeadMatrices);
+  addMatrixArrayInstanced(swissRimGeo, swissRimMat, swissHeadMatrices);
+  addMatrixArrayInstanced(swissLensGeo, createSwissSignalLensMaterial(true, signalClock), swissAveLensMatrices, false);
+  addMatrixArrayInstanced(swissLensGeo, createSwissSignalLensMaterial(false, signalClock), swissStreetLensMatrices, false);
+  addMatrixArrayInstanced(swissWalkHeadGeo, swissHeadMat, swissWalkHeadMatrices);
+  addMatrixArrayInstanced(swissWalkPanelGeo, createSwissWalkMaterial(signalClock, true, figures), swissWalkAveMatrices, false);
+  addMatrixArrayInstanced(swissWalkPanelGeo, createSwissWalkMaterial(signalClock, false, figures), swissWalkStreetMatrices, false);
+  addMatrixArrayInstanced(swissButtonGeo, swissButtonMat, swissButtonMatrices);
   addMatrixArrayInstanced(lampHousingGeo, poleMetalMat, lampHeadMatrices);
   addMatrixArrayInstanced(lampLensGeo, lampBulbGlow, lampHeadMatrices, false);
   addMatrixArrayInstanced(pedLampPostGeo, poleMetalMat, pedPostMatrices);
