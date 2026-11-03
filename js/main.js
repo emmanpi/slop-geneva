@@ -15,6 +15,7 @@ import { buildJetDeau } from './jet-deau.js';
 import { buildPhotomesh } from './photomesh.js';
 import { placeOnTerrain, liftColliders, groundHeight } from './terrain.js';
 import { FRAME } from './geneva-frame.js';
+import { simClock, PRESET_HOURS } from './sim-clock.js';
 import { SEASON_PRESETS, setSeason, initSeasonFromURL, seasonDay } from './seasons.js';
 import { buildStreetDetails } from './street-details.js';
 import { createTrafficSystem, createHighwayTraffic } from './traffic.js';
@@ -290,6 +291,7 @@ async function initApp() {
   touchControls.onAvailabilityChange = placeModeIndicator;
 
   const elFps = document.getElementById('hud-fps');
+  const elClock = document.getElementById('hud-clock');
   const elMode = document.getElementById('hud-active-mode');
   const elCamera = document.getElementById('hud-active-camera');
   const elSpeed = document.getElementById('hud-speed');
@@ -384,6 +386,7 @@ async function initApp() {
   function selectTime(timeId) {
     lightingSystem.applyPreset(timeId);
     colorGrade.applyPreset(lightingSystem.activePresetId);
+    if (PRESET_HOURS[timeId] != null) simClock.setHour(PRESET_HOURS[timeId]);
     timeButtons.forEach((btn) => {
       btn.classList.toggle('active', btn.getAttribute('data-time') === timeId);
     });
@@ -751,6 +754,7 @@ async function initApp() {
     const rawDt = (now - lastTime) * 0.001;
     lastTime = now;
     const dt = Math.min(Math.max(rawDt, 0.001), 0.05);
+    simClock.tick(dt);
     elapsed += dt;
 
     // Update 3rd-person controllers, camera, signals, traffic & vehicle collisions, building LODs, and dynamic shadow focus
@@ -826,6 +830,7 @@ async function initApp() {
           time(id) { selectTime(id); },
           season(id) { selectSeason(id); },
           day(d) { seasonDay.value = d; },
+          clock: simClock,
           setCamera(px, py, pz, tx, ty, tz) {
             cameraSystem.fixedPos = new THREE.Vector3(px, py, pz); cameraSystem.fixedLook = new THREE.Vector3(tx, ty, tz);
             selectCamera('fixed', true);
@@ -857,6 +862,7 @@ async function initApp() {
         elFps.textContent = String(currentFps);
         elFps.className = currentFps >= 50 ? 'fps-ok' : currentFps >= 30 ? 'fps-warn' : 'fps-bad';
       }
+      if (elClock) elClock.textContent = simClock.label();
       if (elSpeed) elSpeed.textContent = String(kmh);
       if (elSpeedMeter) elSpeedMeter.style.transform = `scaleX(${Math.min(1, kmh / (topSpeedKmh[mode] || 80))})`;
       document.body.classList.toggle('is-boosting', controllerManager.keys.boost && kmh > 0);

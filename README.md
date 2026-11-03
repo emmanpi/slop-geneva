@@ -29,7 +29,14 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
   and the Mont-Blanc massif.
 - **The Jet d'eau** (`js/jet-deau.js`): a GPU particle plume at OSM's fountain node, each drop on its own ballistic
   arc (~52 m/s, up to 140 m), bent by the bise and falling back as spray; floodlit after dusk.
-- **TPG trams** in their orange and white livery on the OSM tram network, with their stops.
+- **TPG trams on the real timetable** (`js/trams.js`, `data/geneva-transit.json`): one weekday of the Swiss GTFS feed
+  (opentransportdata.swiss) for lines 12, 14, 15, 17 and 18. Each trip drives in from the edge of the network along
+  the OSM tracks, waits at its stops for its departure time and shows its line's colour on the displays. The city's
+  clock (`js/sim-clock.js`, top left) runs from the hour of the chosen light, or `?heure=HH:MM`.
+- **Seasons** (`js/seasons.js`, `js/phenology.js`): each inventoried tree follows its genus through the year. Maples
+  go orange and red, limes and birches yellow, planes tan and chestnuts brown early. Oaks stay bronze late, deciduous
+  trees stand bare in winter and conifers stay green. The Season menu picks the day (default: today), as do `?saison=`
+  and `?jour=AAAA-MM-JJ`.
 - **Inventaire cantonal des arbres isolés** (SITG): ~39,000 trees with their surveyed height and crown.
 - The **quartiers** of the Ville de Genève (Cité, Pâquis, Eaux-Vives, Plainpalais, Jonction…) and the neighbouring
   communes for place names, plus teleports and viewpoints.
@@ -69,6 +76,7 @@ npm run update:buildings
 | `data:geo` | `tools/build-geneva-geodata.mjs` | all of the above → `js/geneva-geodata.js` |
 | `data:surroundings` | `tools/build-geneva-surroundings.mjs` | swisstopo swissALTIRegio |
 | `data:ortho` | `tools/build-geneva-ortho.mjs` | swisstopo SWISSIMAGE 10 cm (COG overviews) |
+| `data:transit` | `tools/build-geneva-transit.mjs` | Horaire officiel suisse (GTFS, opentransportdata.swiss), saved to `tools/data/cache/gtfs/gtfs.zip` |
 | `data:gwr`, `data:facades` | `tools/build-geneva-facades.mjs` | OFS RegBL, canton de Genève |
 | `data:photomesh` | `tools/build-photomesh.mjs` | SITG Photomaillage 3D 2019 (Plainpalais) |
 | `update:buildings` | `tools/update-swissbuildings3d.mjs` | swisstopo swissBUILDINGS3D 3.0 (3D Tiles) |
@@ -76,7 +84,6 @@ npm run update:buildings
 ## Ideas
 
 - The Mouettes genevoises crossing the Rade, the CGN paddle steamers.
-- The TPG lines and timetables (GTFS) for the trams.
 - A French interface.
 
 ## License and data
@@ -86,4 +93,5 @@ The code is available under the [MIT License](LICENSE).
 Data: © [swisstopo](https://www.swisstopo.admin.ch/) (swissBUILDINGS3D 3.0, swissALTI3D, swissSURFACE3D,
 swissALTIRegio, open government data), © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL),
 [SITG / État de Genève](https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles) (Inventaire
-cantonal des arbres isolés, Photomaillage 3D 2019), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements).
+cantonal des arbres isolés, Photomaillage 3D 2019), [OFS](https://www.housing-stat.ch/) (Registre fédéral des bâtiments et des logements),
+[opentransportdata.swiss](https://opentransportdata.swiss/) (horaire officiel, GTFS).

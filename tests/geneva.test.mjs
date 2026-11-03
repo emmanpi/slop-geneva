@@ -161,3 +161,21 @@ test('trees follow their genus through the seasons', () => {
   assert.ok(phenoState(phenoClass('Aesculus'), 280).turned > phenoState(phenoClass('Platanus'), 280).turned);
   assert.deepEqual(phenoState(phenoClass('Pinus'), 15), { leaves: 1, turned: 0 });
 });
+
+test('the TPG timetable: trams of lines 12-18 and the Mouettes, at stops in the frame', () => {
+  const transit = JSON.parse(fs.readFileSync(new URL('../data/geneva-transit.json', import.meta.url), 'utf8'));
+  for (const ref of ['12', '14', '15', '17', '18']) {
+    const trips = transit.trips.filter((t) => t[0] === `tram:${ref}`);
+    assert.ok(trips.length > 100, `tram ${ref}: ${trips.length} trips`);
+  }
+  assert.ok(transit.trips.some((t) => t[0].startsWith('boat:M')), 'Mouettes genevoises');
+  const [minX, minZ, maxX, maxZ] = WORLD_BOUNDS;
+  const inside = ([, x, z]) => x > minX && x < maxX && z > minZ && z < maxZ;
+  for (const [, , , flat] of transit.trips) assert.ok(flat.some((v, i) => i % 3 === 0 && inside(transit.stops[v])), 'every trip stops in the frame');
+  for (const [, , , flat] of transit.trips) {
+    for (let i = 3; i < flat.length; i += 3) assert.ok(flat[i + 1] >= flat[i - 2], 'times run forward');
+  }
+  // A tram every few minutes in the afternoon on line 12
+  const at5pm = transit.trips.filter((t) => t[0] === 'tram:12' && t[3][1] > 16.5 * 3600 && t[3][1] < 17.5 * 3600);
+  assert.ok(at5pm.length >= 12, `line 12 at 5 pm: ${at5pm.length} trips/h`);
+});

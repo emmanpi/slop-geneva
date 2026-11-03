@@ -65,6 +65,8 @@
   <link rel="modulepreload" href="./js/photomesh.js" />
   <link rel="modulepreload" href="./js/phenology.js" />
   <link rel="modulepreload" href="./js/seasons.js" />
+  <link rel="modulepreload" href="./js/sim-clock.js" />
+  <link rel="modulepreload" href="./js/transit-data.js" />
   <link rel="modulepreload" href="./js/main.js" />
   <script type="module" src="./js/main.js"></script>
   <!-- Inter (UI) & Overpass (street-name signs: modelled on Highway Gothic, the US road sign typeface) -->
@@ -127,7 +129,7 @@
           <h1>Slop Genève</h1>
           <a class="repo-link" href="https://github.com/colorfield/slop-zurich" target="_blank" rel="noopener noreferrer" aria-label="Slop Zürich, the base of Slop Genève, on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps</div>
+        <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps · <span id="hud-clock" title="Heure de la ville (horaires TPG)">16:45</span></div>
       </div>
     </div>
   </header>
@@ -237,6 +239,7 @@
       </li>
       <li>
         <b>RegBL</b>: the building periods and storeys behind the facades.<br>
+        <b>opentransportdata.swiss</b>: the official timetable (GTFS) the TPG trams run on.<br>
         <span class="credits-source">Federal Statistical Office (FSO), Federal Register of Buildings and Dwellings, <a href="https://www.housing-stat.ch/" target="_blank" rel="noopener noreferrer">housing-stat.ch</a> (open data)</span>
       </li>
     </ul>
