@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { parseTerrain, gridHeight, gridNormal, subdivideTriangles, fillCuts } from './terrain-grid.js';
 import { GENEVA_DATA } from './geneva-geodata.js';
+import { WORLD_BOUNDS } from './geneva-frame.js';
 
 // Geneva's relief for the engine (which was written for a flat Manhattan at y = 0).
 //  - groundHeight(x, z): the bare-earth surface (swissALTI3D, data/geneva-terrain.bin, with the bridgeheads raised and
@@ -62,7 +63,14 @@ export const inWater = (x, z) => WATER.some((w) => x >= w.minX && x <= w.maxX &&
     }
   }
 }
-export const groundHeight = (x, z) => gridHeight(TERRAIN, x, z);
+// (on the quays' levelled banks, the quay's height: see SHORE below; set once the shores are known)
+let quayCells = null;
+export const groundHeight = (x, z) => {
+  const g = gridHeight(TERRAIN, x, z);
+  if (!quayCells) return g;
+  const q = quayHeight(x, z);
+  return q > g ? q : g;
+};
 export const groundNormal = (x, z, out) => gridNormal(TERRAIN, x, z, out);
 
 // --- Bridge decks -------------------------------------------------------------------------------------------------------
@@ -435,3 +443,88 @@ export function liftColliders(colliders) {
   }
   return colliders;
 }
+
+// --- Shores & quays -------------------------------------------------------------------------------------------------------
+// Every shore of the lake and the rivers (the water polygons' edges with land on exactly one side, not the frame's cut),
+// in 1.5 m segments: where the bank stands more than WALL above the water, a quay (js/quays.js draws its wall, coping,
+// paving and railing); its bank is level at the quay's height (smoothed along the shore) for BAND metres inland, over the
+// terrain model's last sloping cell, and groundHeight follows it there (the player, the people and the trees stand on it).
+export const QUAY = { STEP: 1.5, BAND: 4, WALL: 0.7, RAILING: 1.4 };
+const QCELL = 8;
+function quayHeight(x, z) {
+  const list = quayCells.get(Math.floor(x / QCELL) * 100003 + Math.floor(z / QCELL));
+  if (!list) return -Infinity;
+  let best = -Infinity;
+  for (const s of list) {
+    const t = ((x - s.x0) * s.ux + (z - s.z0) * s.uz) / s.L;
+    if (t < 0 || t > 1) continue;
+    const d = (x - s.x0) * s.nx + (z - s.z0) * s.nz;
+    if (d < -0.12 || d > QUAY.BAND) continue;
+    const h = s.top0 + (s.top1 - s.top0) * t + (d < 0.45 ? 0.08 : 0); // the coping stone stands 8 cm proud
+    if (h > best) best = h;
+  }
+  return best;
+}
+export const SHORE = (() => {
+  const [minX, minZ, maxX, maxZ] = WORLD_BOUNDS;
+  const inFrame = (x, z) => x > minX + 6 && x < maxX - 6 && z > minZ + 6 && z < maxZ - 6;
+  const segs = [];
+  for (const w of GENEVA_DATA.water) {
+    if (/^(pond|basin|reservoir|fountain)$/.test(w.kind || '')) continue;
+    for (const ring of [w.ring, ...(w.holes || [])]) {
+      if (ring.length < 8) continue;
+      for (let i = 0; i < ring.length; i += 2) {
+        const ax = ring[i], az = ring[i + 1], bx = ring[(i + 2) % ring.length], bz = ring[(i + 3) % ring.length];
+        const L = Math.hypot(bx - ax, bz - az);
+        if (L < 0.2) continue;
+        const n = Math.max(1, Math.ceil(L / QUAY.STEP));
+        const ux = (bx - ax) / L, uz = (bz - az) / L;
+        for (let k = 0; k < n; k++) {
+          const x0 = ax + ((bx - ax) * k) / n, z0 = az + ((bz - az) * k) / n;
+          const x1 = ax + ((bx - ax) * (k + 1)) / n, z1 = az + ((bz - az) * (k + 1)) / n;
+          const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+          const left = inWater(mx - uz * 2.5, mz + ux * 2.5), right = inWater(mx + uz * 2.5, mz - ux * 2.5);
+          if (left === right) continue;
+          const nx = left ? uz : -uz, nz = left ? -ux : ux; // towards the land
+          if (!inFrame(mx + nx * QUAY.BAND, mz + nz * QUAY.BAND)) continue;
+          segs.push({ x0, z0, x1, z1, nx, nz, ux, uz, L: L / n, water: waterSurfaceHeight(mx - nx * 3, mz - nz * 3) });
+        }
+      }
+    }
+  }
+  // the quay's height: the bank behind each segment, smoothed along the shore (±7 m)
+  const raw = segs.map((s) => gridHeight(TERRAIN, (s.x0 + s.x1) / 2 + s.nx * QUAY.BAND, (s.z0 + s.z1) / 2 + s.nz * QUAY.BAND) + 0.05);
+  const joined = segs.map((s, i) => i > 0 && Math.hypot(s.x0 - segs[i - 1].x1, s.z0 - segs[i - 1].z1) < 0.5);
+  const smooth = raw.map((_, i) => {
+    let sum = raw[i], n = 1;
+    for (let k = i - 1; k >= Math.max(0, i - 5) && joined[k + 1]; k--) { sum += raw[k]; n++; }
+    for (let k = i + 1; k <= Math.min(raw.length - 1, i + 5) && joined[k]; k++) { sum += raw[k]; n++; }
+    return sum / n;
+  });
+  const deck = (x, z, water) => { const d = deckHeight(x, z); return d === d && d > water + 1; };
+  segs.forEach((s, i) => {
+    const prev = i > 0 && joined[i], next = i + 1 < segs.length && joined[i + 1];
+    s.top0 = prev ? (smooth[i] + smooth[i - 1]) / 2 : smooth[i];
+    s.top1 = next ? (smooth[i] + smooth[i + 1]) / 2 : smooth[i];
+    s.drop = (s.top0 + s.top1) / 2 - s.water;
+    s.wall = s.drop > QUAY.WALL;
+    // under a bridge's deck (its abutment): the wall runs on beneath, the bank and railing stop at its edge
+    s.underDeck = deck((s.x0 + s.x1) / 2 + s.nx * 0.25, (s.z0 + s.z1) / 2 + s.nz * 0.25, s.water) ||
+      deck(s.x0 + s.nx * 0.25, s.z0 + s.nz * 0.25, s.water) || deck(s.x1 + s.nx * 0.25, s.z1 + s.nz * 0.25, s.water);
+  });
+  // the levelled banks, indexed for groundHeight
+  const cells = new Map();
+  for (const s of segs) {
+    if (!s.wall || s.underDeck) continue;
+    const xs = [s.x0, s.x1, s.x0 + s.nx * QUAY.BAND, s.x1 + s.nx * QUAY.BAND], zs = [s.z0, s.z1, s.z0 + s.nz * QUAY.BAND, s.z1 + s.nz * QUAY.BAND];
+    for (let i = Math.floor((Math.min(...xs) - 0.2) / QCELL); i <= Math.floor((Math.max(...xs) + 0.2) / QCELL); i++) {
+      for (let j = Math.floor((Math.min(...zs) - 0.2) / QCELL); j <= Math.floor((Math.max(...zs) + 0.2) / QCELL); j++) {
+        const k = i * 100003 + j;
+        if (!cells.has(k)) cells.set(k, []);
+        cells.get(k).push(s);
+      }
+    }
+  }
+  quayCells = cells;
+  return segs;
+})();
