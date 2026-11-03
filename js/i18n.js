@@ -14,6 +14,7 @@ export const tr = (en, fr) => (current === 'fr' && fr != null ? fr : en);
 
 export function applyI18n(root = document) {
   document.documentElement.lang = current;
+  document.title = current === 'fr' ? 'Slop Genève' : 'Slop Geneva';
   for (const el of root.querySelectorAll('[data-fr]')) {
     if (el.dataset.en === undefined) el.dataset.en = el.textContent;
     el.textContent = current === 'fr' ? el.dataset.fr : el.dataset.en;
@@ -34,3 +35,6 @@ export function setLang(l) {
   applyI18n();
   window.dispatchEvent(new CustomEvent('langchange', { detail: current }));
 }
+
+// (at once: the loading screen too speaks the chosen language)
+if (typeof document !== 'undefined') applyI18n();

@@ -1,4 +1,4 @@
-# Slop Genève
+# Slop Geneva
 
 A simulation of Geneva's city centre built with [three.js](https://threejs.org/), WebGPURenderer and TSL. Explore the
 Rade, the Jet d'eau, the Vieille-Ville and the Cathédrale Saint-Pierre, Cornavin, the Pâquis, Plainpalais, the

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Slop Genève</title>
+  <title>Slop Geneva</title>
   <link rel="icon" href="data:," />
-  <meta name="description" content="Slop Genève: the centre of Geneva at 1:1 on its real relief, built with Three.js WebGPURenderer and TSL from swisstopo (swissBUILDINGS3D, swissALTI3D) and OpenStreetMap data, with a full street map, third-person navigation (Person, Car, Cyclist, Cargo bike, Helicopter), and 11 cinematic cameras at 60 FPS." />
+  <meta name="description" content="Slop Geneva: the centre of Geneva at 1:1 on its real relief, built with Three.js WebGPURenderer and TSL from swisstopo (swissBUILDINGS3D, swissALTI3D) and OpenStreetMap data, with a full street map, third-person navigation (Person, Car, Cyclist, Cargo bike, Helicopter), and 11 cinematic cameras at 60 FPS." />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <!-- three.js dev branch pinned to a commit (builds committed to mrdoob/three.js@dev, served by jsDelivr) -->
   <script type="importmap">
@@ -124,14 +124,14 @@
   <div id="loading-overlay" role="status" aria-live="polite">
     <div class="loader">
       <img class="loader-logo loader-arms" src="./assets/geneva-coat-of-arms.svg" alt="Coat of arms of Geneva" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mta-bullet loader-bullet',textContent:'G'}))" />
-      <div class="loader-title">Slop Genève</div>
+      <div class="loader-title" data-fr="Slop Genève">Slop Geneva</div>
       <div class="loader-track is-indeterminate" aria-hidden="true"><span id="loading-progress" class="loader-fill"></span></div>
       <div id="loading-status">Initializing WebGPURenderer &amp; TSL Shaders...</div>
     </div>
   </div>
 
   <!-- 3D WebGPU Viewport Container -->
-  <main id="canvas-container" aria-label="3D Interactive Slop Genève Viewport"></main>
+  <main id="canvas-container" aria-label="3D Interactive Slop Geneva Viewport"></main>
 
   <!-- Top-Left: Brand & Renderer Telemetry -->
   <header class="hud hud-top-left">
@@ -139,8 +139,8 @@
       <img class="brand-logo" src="./assets/geneva-flag.svg" alt="Geneva flag" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mta-bullet',textContent:'G'}))" />
       <div class="brand-titles">
         <div class="brand-heading">
-          <h1>Slop Genève</h1>
-          <a class="repo-link" href="https://github.com/colorfield/slop-zurich" target="_blank" rel="noopener noreferrer" aria-label="Slop Zürich, the base of Slop Genève, on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
+          <h1 data-fr="Slop Genève">Slop Geneva</h1>
+          <a class="repo-link" href="https://github.com/colorfield/slop-zurich" target="_blank" rel="noopener noreferrer" aria-label="Slop Zürich, the base of Slop Geneva, on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
         </div>
         <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps · <span id="hud-clock" title="The city's clock (TPG timetables)" data-fr-title="Heure de la ville (horaires TPG)">16:45</span></div>
       </div>
@@ -247,7 +247,7 @@
 
   <dialog id="data-dialog" class="credits-dialog data-dialog" aria-labelledby="data-title">
     <div class="credits-head">
-      <h2 id="data-title" data-fr="Ce que Slop Genève ajoute">What Slop Genève adds</h2>
+      <h2 id="data-title" data-fr="Ce que Slop Genève ajoute">What Slop Geneva adds</h2>
       <form method="dialog"><button class="credits-close" type="submit" aria-label="Close" data-fr-aria="Fermer">×</button></form>
     </div>
     <div id="data-body"></div>
@@ -257,7 +257,7 @@
       <h2 id="credits-title">Data &amp; credits</h2>
       <form method="dialog"><button class="credits-close" type="submit" aria-label="Close">×</button></form>
     </div>
-    <p>Slop Genève is built from open government data and OpenStreetMap. It is an unofficial project, not affiliated with swisstopo, the State of Geneva or the City of Geneva.</p>
+    <p>Slop Geneva is built from open government data and OpenStreetMap. It is an unofficial project, not affiliated with swisstopo, the State of Geneva or the City of Geneva.</p>
     <ul class="credits-list">
       <li>
         <b>swissBUILDINGS3D 3.0</b>: buildings and roofs.<br>
