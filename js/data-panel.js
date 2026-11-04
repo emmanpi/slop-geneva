@@ -110,7 +110,7 @@ export function createDataPanel(ctx) {
       ]],
       [L('Set pieces', 'Le décor'), [
         [L('Jet d’eau', 'Jet d’eau'), 'OpenStreetMap', L('2,600 drops; off out of hours, in a gale or a frost', '2 600 gouttes, coupé hors horaires, par grand vent ou par gel')],
-        [L('Fireworks', 'Feux d’artifice'), L('the calendar', 'calendrier'), L('1st of August, Fêtes de Genève, New Year (Season menu)', '1er Août, Fêtes de Genève, Nouvel An (menu Saison)')],
+        [L('Fireworks', 'Feux d’artifice'), L('the calendar', 'calendrier'), L('1st of August (Season menu)', '1er Août (menu Saison)')],
         [L('Fountains', 'Fontaines'), 'OpenStreetMap', `${n(S.fountains)}`]
       ]]
     ];

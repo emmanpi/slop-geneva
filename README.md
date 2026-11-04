@@ -50,10 +50,9 @@ A fork of [Slop Zürich](https://github.com/colorfield/slop-zurich) by colorfiel
 - **Genève Aéroport** (`js/planes.js`): airliners land and take off on Cointrin's 3,900 m runway, one movement every
   2 to 3 minutes from 6:00 to 23:00, arrivals on a 3° glide path. The runway in use follows the wind: into the bise
   they land towards the north-east, otherwise towards the south-west.
-- **Fireworks over the Rade** (`js/fireworks.js`) on the 1st of August, at the Fêtes de Genève (mid-August) and at
-  New Year's midnight, from barges off the Pâquis. The Season menu's Events (1st of August, Fêtes de Genève, New
-  Year) set the date, the night and the hour, or use `?evenement=feux` at any time. They are drawn as a GPU
-  particle system of peonies, gold willows and rings.
+- **Fireworks over the Rade** (`js/fireworks.js`) on the 1st of August, from barges off the Pâquis, in every colour
+  while the Jet d'eau is floodlit red. The Season menu's Event (1st of August) sets the date, the night and the hour,
+  or use `?evenement=feux` at any time. They are drawn as a GPU particle system of peonies, gold willows and rings.
 - **English or French**: the interface is in English by default. The toolbar's **FR / EN** button switches it live
   (remembered; `?lang=fr`).
 - **The Data panel** (toolbar, `js/data-panel.js`): every layer this project adds to an engine that knows nothing of

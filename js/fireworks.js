@@ -4,26 +4,20 @@ import { transparentEffectMRT } from './tsl-materials.js';
 import { simClock } from './sim-clock.js';
 import { seasonDay } from './seasons.js';
 
-// Fireworks over the Rade: the 1st of August (Fête nationale), the Fêtes de Genève's grand display (mid-August) and
-// New Year's midnight, from barges between the Jetée des Pâquis and the Jet d'eau; ?evenement=feux in the URL, or
+// Fireworks over the Rade on the 1st of August (Fête nationale), from barges between the Jetée des Pâquis and the Jet
+// d'eau, in every colour while the Jet d'eau is floodlit red (js/jet-deau.js); ?evenement=feux in the URL, or
 // __slopgeneva.fireworks(true), sets them off at any time. A GPU particle system: SLOTS shells always in the air, each
 // rising from its barge, bursting into SPARKS stars (peonies, willows, rings) that spread, sag and fade.
 
 const SLOTS = 10, SPARKS = 420, PERIOD = 5.5; // a shell every PERIOD / SLOTS seconds
 const RISE = 1.6; // s from the barge to the burst
 const BARGES = [new THREE.Vector3(780, 1, -330), new THREE.Vector3(900, 1, -250), new THREE.Vector3(660, 1, -250)];
-// The shows (day of the year, start and end on the city's clock in hours)
-const SHOWS = [
-  { name: '1er Août', day: 212, from: 22, to: 22.5 },
-  { name: 'Fêtes de Genève', day: 226, from: 22, to: 23 },
-  { name: 'Nouvel An', day: 0, from: 0, to: 0.33 },
-  { name: 'Nouvel An', day: 365, from: 23.98, to: 24 }
-];
+// The show (day of the year, start and end on the city's clock in hours)
+const SHOWS = [{ name: '1er Août', day: 212, from: 22, to: 22.5 }];
 
 export function buildFireworks(scene) {
   const uShow = uniform(0); // the show's own clock (s), advancing while it runs
   const uOn = uniform(0);
-  const uSwiss = uniform(0);
   const m = new THREE.SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   m.mrtNode = transparentEffectMRT;
   const id = float(instanceIndex);
@@ -65,8 +59,6 @@ export function buildFireworks(scene) {
   let col = colours[0];
   for (let i = 1; i < colours.length; i++) col = mix(col, colours[i], step(i, ci));
   col = mix(col, vec3(1, 0.7, 0.3), willow); // willows burn gold
-  // the 1st of August: the Swiss flag's red and white only
-  col = mix(col, mix(vec3(1, 0.08, 0.06), vec3(1, 0.97, 0.94), step(0.55, hash(seed.add(57.9)))), uSwiss);
   const rising = float(1).sub(step(RISE, age)).mul(step(spark, 0.5));
   const bursting = step(RISE, age).mul(fade).mul(twinkle);
   m.colorNode = mix(col, vec3(1, 0.85, 0.6), rising).mul(6);
@@ -93,7 +85,6 @@ export function buildFireworks(scene) {
   }
   function update(dt) {
     const show = forced ? { name: 'Feu d’artifice' } : showNow();
-    uSwiss.value = Math.floor(seasonDay.value) === 212 ? 1 : 0;
     state.show = show && show.name;
     const on = !!show;
     if (on && !mesh.visible) uShow.value = 0;

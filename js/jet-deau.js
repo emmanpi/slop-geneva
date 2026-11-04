@@ -56,7 +56,7 @@ export function buildJetDeau(scene) {
     group, position: origin, height: 140, running: true,
     setWind(x, z, speed) { WIND.set(x, z).multiplyScalar(Math.min(2.2, 0.25 + speed / 7)); },
     setRunning(on) { this.running = on; spray.visible = on; },
-    // the 1st of August: floodlit in the Swiss flag's red and white
+    // the 1st of August: floodlit red
     setSwiss(on) { spray.material.userData.uSwiss.value = on ? 1 : 0; }
   };
 }
