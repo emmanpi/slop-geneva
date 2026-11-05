@@ -20,6 +20,7 @@ import { buildFireworks } from './fireworks.js';
 import { buildQuays } from './quays.js';
 import { buildCycling } from './cycling.js';
 import { buildRadeFlags } from './rade-flags.js';
+import { buildMooredBoats } from './moored-boats.js';
 import { createDataPanel } from './data-panel.js';
 import { applyI18n, setLang, lang, tr } from './i18n.js';
 import { buildPhotomesh, photomeshOn, setStreetView } from './photomesh.js';
@@ -185,6 +186,7 @@ async function initApp() {
   // The cycle tracks and lanes, and their cyclists (the traffic's bicycles)
   const cycling = buildCycling(scene, trafficSystem.bikeParts);
   buildRadeFlags(scene); // the flags along the Pont du Mont-Blanc
+  const mooredBoats = buildMooredBoats(scene); // the boats at their moorings, the steamers at the quays
   // The Data panel: every layer added, its source and numbers (some live)
   const dataPanel = createDataPanel({ swissStream, canton, photomesh, cycling, trams, trafficSystem, boats, planes, weather });
   document.getElementById('btn-data')?.addEventListener('click', () => dataPanel.open());
@@ -857,6 +859,7 @@ async function initApp() {
     );
     highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
     boats.update(dt, elapsed);
+    mooredBoats.update(elapsed, cameraSystem.camera);
     weather.update(dt, cameraSystem.camera);
     planes.setWind(weather.state.current);
     planes.update();

@@ -8,6 +8,7 @@
 //   OTC_MARQUAGE_SURFACE         the coloured surfacing (red, green, ochre)
 //   CAD_DOMROUTIER_OBJETS_NIV0   the road domain by object: carriageways, footways, islands (build-geneva-roadway.mjs)
 //   TPG_MATS, TPG_HAUBANS, TPG_SUSPENSIONS, TPG_LIGNES_CONTACT  the tram & trolleybus overhead lines
+//   LCE_PLACES_AMARRAGE          the mooring places on the lake (build-geneva-moorings.mjs)
 // Features keep their attributes and their LV95 geometry (points: E, N; lines: paths [[E, N], ...]).
 // The ArcGIS services refuse large envelopes, so the frame is read in 500 m tiles, each paged.
 // usage: node tools/fetch-sitg-roadway.mjs [LAYER ...]
@@ -20,7 +21,7 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const CACHE = path.join(DIR, 'data', 'cache');
 const SERVICES = 'https://vector.sitg.ge.ch/arcgis/rest/services';
 const LAYERS = ['OTC_SL_EQUIPEMENT_BOITEFEUX', 'OTC_SL_RESEAU_MAT', 'OTC_SL_EQUIPEMENT_CARREFOUR', 'OTC_MARQUAGE_LIGNE', 'OTC_MARQUAGE_SURFACE', 'CAD_DOMROUTIER_OBJETS_NIV0',
-  'TPG_MATS', 'TPG_HAUBANS', 'TPG_SUSPENSIONS', 'TPG_LIGNES_CONTACT'];
+  'TPG_MATS', 'TPG_HAUBANS', 'TPG_SUSPENSIONS', 'TPG_LIGNES_CONTACT', 'LCE_PLACES_AMARRAGE'];
 const TILE = 500, PAGE = 1000;
 const [minE, minN, maxE, maxN] = FRAME.lv95;
 const log = (...a) => console.log('[sitg-roadway]', ...a);
