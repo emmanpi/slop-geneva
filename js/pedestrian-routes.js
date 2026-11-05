@@ -5,8 +5,10 @@
 // Walkways: OSM footways, pedestrian streets, paths, steps and living streets (the quays, the old town, the parks) form
 // their own network of tracks, joined where their vertices meet.
 const WALK_KINDS = new Set(['pedestrian', 'footway', 'path', 'steps', 'living_street']);
-const WAY_WEIGHT = { pedestrian: 4, living_street: 2 }; // how much busier than a footway, per metre
+const WAY_WEIGHT = { pedestrian: 4, living_street: 2 }; // how much busier than a footway, per metre (and per 6 m of width)
 const WAY_CELL = 64;
+const LINE_GAP = 1.5; // m between walking lines across a wide pedestrian street
+const TRAM_CLEAR = 1.9; // m kept clear either side of a tram track (half the car's width and a step)
 
 function createPedestrianRoutes({ walkable, onSidewalk }, blockAt, roads = []) {
   const sidewalks = new Map(), crossings = new Map(), junctions = new Map(), connections = new WeakMap();
@@ -89,7 +91,7 @@ function createPedestrianRoutes({ walkable, onSidewalk }, blockAt, roads = []) {
       const a = wayNode(r.pts[i - 1]), b = wayNode(r.pts[i]);
       const len = Math.hypot(b.x - a.x, b.z - a.z);
       if (a === b || len < 1) continue;
-      const seg = { road: r, a, b, len, weight: len * (WAY_WEIGHT[r.kind] || 1), tracks: null };
+      const seg = { road: r, a, b, len, weight: len * (WAY_WEIGHT[r.kind] || 1) * Math.max(1, (r.w || 2) / 6), tracks: null };
       a.segs.push(seg);
       b.segs.push(seg);
       const cells = new Set();
@@ -128,13 +130,25 @@ function createPedestrianRoutes({ walkable, onSidewalk }, blockAt, roads = []) {
 
   // Walking lines along a walkway segment: two on a footway, four across a pedestrian street, along the edges of a
   // living street (its middle is the shared carriageway); none where it crosses a roadway (a mapped crossing)
+  // A wide pedestrian street (the Rues-Basses): lines every LINE_GAP m across it, none over the tram's tracks
+  function wideLines(half, rails) {
+    const out = [];
+    for (let edge = half - 0.8; edge >= 0; edge -= LINE_GAP) {
+      for (const off of edge > 0.01 ? [-edge, edge] : [0]) {
+        if (rails && off > rails[0] - TRAM_CLEAR && off < rails[1] + TRAM_CLEAR) continue;
+        out.push(Math.round(off * 100) / 100);
+      }
+    }
+    return out.sort((a, b) => a - b);
+  }
+
   function wayTracks(seg) {
     if (seg.tracks) return seg.tracks;
     const result = seg.tracks = [];
     const r = seg.road, half = (r.w || 2) / 2;
     const ux = (seg.b.x - seg.a.x) / seg.len, uz = (seg.b.z - seg.a.z) / seg.len;
     const offsets = r.kind === 'living_street' ? [-(half - 0.2), half - 0.2]
-      : half >= 2.5 ? [-1.8, -0.6, 0.6, 1.8] : half >= 1 ? [-0.5, 0.5] : [0];
+      : half >= 4 ? wideLines(half, r.rails) : half >= 2.5 ? [-1.8, -0.6, 0.6, 1.8] : half >= 1 ? [-0.5, 0.5] : [0];
     const tryLine = (off) => {
       const a = { x: seg.a.x - uz * off, z: seg.a.z + ux * off };
       const b = { x: seg.b.x - uz * off, z: seg.b.z + ux * off };

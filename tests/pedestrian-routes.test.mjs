@@ -37,3 +37,12 @@ test('a footway mapped over a roadway has no walking line', () => {
   const crossing = routes.waysNear(100, 0, 5).segs[0];
   assert.deepEqual(routes.wayTracks(crossing), []);
 });
+
+test('a wide pedestrian street is walked across its width, clear of the tram tracks', () => {
+  const zone = [{ kind: 'pedestrian', w: 18, rails: [-1.8, 1.8], pts: [{ x: 0, z: 300 }, { x: 60, z: 300 }] }];
+  const wide = createPedestrianRoutes({ walkable: () => true, onSidewalk: () => true }, () => ground, zone);
+  const seg = wide.waysNear(30, 300, 5).segs[0];
+  const offs = wide.wayTracks(seg).map((line) => line.line);
+  assert.deepEqual(offs, [-8.2, -6.7, -5.2, 5.2, 6.7, 8.2]);
+  assert.equal(seg.weight, 60 * 4 * 3, 'four times a footway per metre, three times for its width');
+});

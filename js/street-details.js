@@ -131,6 +131,18 @@ function createSwissSignalLensMaterial(isAvenueHead, clock) {
   return mat;
 }
 
+// A flashing amber head (clignoteur): the middle lens, on for half of each second
+function createSwissFlashLensMaterial(clock) {
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.colorNode = Fn(() => {
+    const ly = positionGeometry.y;
+    const isAmber = step(-0.14, ly).mul(float(1).sub(step(0.14, ly)));
+    const lit = isAmber.mul(step(0.5, fract(clock)));
+    return mix(color(0x0b0c0e), color(0xffa000).mul(1.5), lit);
+  })();
+  return mat;
+}
+
 // The pedestrian figures, drawn once: red standing figure in the top half, green walking figure in the bottom half
 function createSwissFiguresTexture() {
   const c = document.createElement('canvas');
@@ -244,6 +256,19 @@ function buildStreetDetails(scene) {
   const swissWalkHeadGeo = new THREE.BoxGeometry(0.26, 0.56, 0.18);
   const swissWalkPanelGeo = mergeGeometries(bothFaces(new THREE.PlaneGeometry(0.2, 0.46).translate(0, 0, 0.092)));
   const swissButtonGeo = new THREE.BoxGeometry(0.13, 0.24, 0.1).translate(0, 0, 0.08);
+  // The surveyed heads (SITG) face one way only: the traffic they control
+  const swissHeadFrontGeo = mergeGeometries([
+    new THREE.BoxGeometry(0.28, 0.86, SW_D),
+    new THREE.BoxGeometry(0.48, 1.04, 0.03),
+    ...SW_LENS_Y.map((ly) => new THREE.CylinderGeometry(SW_LENS_R + 0.025, SW_LENS_R + 0.025, 0.14, 14, 1, true, Math.PI / 2, Math.PI)
+      .rotateX(Math.PI / 2).translate(0, ly, SW_D / 2 + 0.07))
+  ].map((g) => g.toNonIndexed()));
+  const swissRimFrontGeo = new THREE.PlaneGeometry(0.52, 1.08).translate(0, 0, -0.018);
+  const swissLensFrontGeo = mergeGeometries(SW_LENS_Y.map((ly) => new THREE.CircleGeometry(SW_LENS_R, 18).translate(0, ly, SW_D / 2 + 0.004)));
+  const swissWalkPanelFrontGeo = new THREE.PlaneGeometry(0.2, 0.46).translate(0, 0, 0.092);
+  const sitgHeadMatrices = [], sitgAveLensMatrices = [], sitgStreetLensMatrices = [], sitgFlashHeadMatrices = [];
+  const sitgWalkHeadMatrices = [], sitgWalkMatrices = [], sitgArmMatrices = [];
+  const sitgPhased = []; // vehicle & cyclist heads, each in both lens meshes until bindSignals picks its phase
   const swissPoleMatrices = [], swissHeadMatrices = [], swissAveLensMatrices = [], swissStreetLensMatrices = [];
   const swissWalkHeadMatrices = [], swissWalkAveMatrices = [], swissWalkStreetMatrices = [], swissButtonMatrices = [];
   // Cobra-head luminaire on the end of the arm: flattened grey housing, flat lens underneath
@@ -598,8 +623,61 @@ function buildStreetDetails(scene) {
         setMatrix(berlinSignMatrices.get(s.name), s.x, 3.25, s.z, 1.8, 0.33, 0.055, -Math.atan2(s.uz, s.ux));
       }
     }
+    const sitgPoles = BERLIN_DATA.signalPoles || [], sitgHeads = BERLIN_DATA.signalHeads || [];
+    // Signals as surveyed by the canton (tools/build-geneva-geodata.mjs): each pole where it stands, a cantilever's arm
+    // over the carriageway, and its heads around it facing the traffic (or the crossing) they control. Heads facing
+    // the same way stand side by side; a cantilever repeats its first vehicle head at the end of its arm.
+    const byPole = new Map();
+    for (let j = 0; j < sitgHeads.length; j += 3) {
+      if (!byPole.has(sitgHeads[j])) byPole.set(sitgHeads[j], []);
+      byPole.get(sitgHeads[j]).push({ yaw: sitgHeads[j + 1], kind: sitgHeads[j + 2] });
+    }
+    for (const [i, heads] of byPole) {
+      const px = sitgPoles[i * 4], pz = sitgPoles[i * 4 + 1], armX = sitgPoles[i * 4 + 2], armZ = sitgPoles[i * 4 + 3];
+      const arm = Math.hypot(armX, armZ), top = arm ? 6.2 : 3.5;
+      setMatrix(swissPoleMatrices, px, top / 2, pz, arm ? 0.09 : 0.06, top, arm ? 0.09 : 0.06);
+      if (arm) setMatrix(sitgArmMatrices, px + armX / 2, top - 0.12, pz + armZ / 2, arm, 0.08, 0.08, Math.atan2(-armZ, armX));
+      addPole(px, pz, arm ? 0.18 : 0.12);
+      const placed = [];
+      let walkYaw = null, armUsed = false;
+      for (const { yaw, kind } of heads) {
+        const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+        const group = kind === 1 ? 1 : 0;
+        const n = placed.filter((q) => q.group === group && Math.abs(Math.atan2(Math.sin(q.yaw - yaw), Math.cos(q.yaw - yaw))) < 0.4).length;
+        placed.push({ yaw, group });
+        const lateral = (n % 2 ? -1 : 1) * Math.ceil(n / 2) * (kind === 1 ? 0.34 : 0.56);
+        const x = px + fx * 0.2 + rx * lateral, z = pz + fz * 0.2 + rz * lateral;
+        if (kind === 1) {
+          setMatrix(sitgWalkHeadMatrices, x, 2.15, z, 1, 1, 1, yaw);
+          setMatrix(sitgWalkMatrices, x, 2.15, z, 1, 1, 1, yaw);
+          if (walkYaw === null) walkYaw = yaw;
+          continue;
+        }
+        const scale = kind === 2 ? 0.6 : 1, y = kind === 2 ? 2.2 : 2.75;
+        if (kind === 3) {
+          setMatrix(sitgHeadMatrices, x, y, z, 1, 1, 1, yaw);
+          setMatrix(sitgFlashHeadMatrices, x, y, z, 1, 1, 1, yaw);
+          continue;
+        }
+        const mount = (hx, hy, hz) => {
+          setMatrix(sitgHeadMatrices, hx, hy, hz, scale, scale, scale, yaw);
+          sitgPhased.push({ x: hx, z: hz, fx: -fx, fz: -fz, index: sitgAveLensMatrices.length });
+          setMatrix(sitgAveLensMatrices, hx, hy, hz, scale, scale, scale, yaw);
+          setMatrix(sitgStreetLensMatrices, hx, hy, hz, scale, scale, scale, yaw);
+        };
+        mount(x, y, z);
+        if (arm && kind === 0 && !armUsed) {
+          armUsed = true;
+          mount(px + armX * 0.92 + fx * 0.2, top - 0.75, pz + armZ * 0.92 + fz * 0.2);
+        }
+      }
+      if (walkYaw !== null) {
+        setMatrix(swissButtonMatrices, px + Math.sin(walkYaw) * 0.08, 1.1, pz + Math.cos(walkYaw) * 0.08, 1, 1, 1, walkYaw);
+        audioSignals.push({ x: px, y: 2.0, z: pz, isAvenue: false });
+      }
+    }
     const signalKeys = new Set();
-    for (const signal of BERLIN_DATA.signals || []) {
+    for (const signal of sitgPoles.length ? [] : BERLIN_DATA.signals || []) {
       const road = nearestBerlinRoad(signal.x, signal.z, 28);
       if (!road) continue;
       const nx = -road.uz, nz = road.ux;
@@ -633,6 +711,7 @@ function buildStreetDetails(scene) {
     }
     inst.instanceMatrix.needsUpdate = true;
     group.add(inst);
+    return inst;
   }
 
   addMatrixArrayInstanced(unitCyl, poleMetalMat, poleMatrices);
@@ -658,6 +737,15 @@ function buildStreetDetails(scene) {
   addMatrixArrayInstanced(swissWalkPanelGeo, createSwissWalkMaterial(signalClock, true, figures), swissWalkAveMatrices, false);
   addMatrixArrayInstanced(swissWalkPanelGeo, createSwissWalkMaterial(signalClock, false, figures), swissWalkStreetMatrices, false);
   addMatrixArrayInstanced(swissButtonGeo, swissButtonMat, swissButtonMatrices);
+  addMatrixArrayInstanced(unitBox, swissPoleMat, sitgArmMatrices);
+  addMatrixArrayInstanced(swissHeadFrontGeo, swissHeadMat, sitgHeadMatrices);
+  addMatrixArrayInstanced(swissRimFrontGeo, swissRimMat, sitgHeadMatrices);
+  addMatrixArrayInstanced(swissLensFrontGeo, createSwissFlashLensMaterial(signalClock), sitgFlashHeadMatrices, false);
+  const sitgAveLenses = addMatrixArrayInstanced(swissLensFrontGeo, createSwissSignalLensMaterial(true, signalClock), sitgAveLensMatrices, false);
+  const sitgStreetLenses = addMatrixArrayInstanced(swissLensFrontGeo, createSwissSignalLensMaterial(false, signalClock), sitgStreetLensMatrices, false);
+  addMatrixArrayInstanced(swissWalkHeadGeo, swissHeadMat, sitgWalkHeadMatrices);
+  // (pedestrians cross at the traffic's 'street' walk phase at Geneva's junctions: traffic.js walkOn)
+  addMatrixArrayInstanced(swissWalkPanelFrontGeo, createSwissWalkMaterial(signalClock, false, figures), sitgWalkMatrices, false);
   addMatrixArrayInstanced(lampHousingGeo, poleMetalMat, lampHeadMatrices);
   addMatrixArrayInstanced(lampLensGeo, lampBulbGlow, lampHeadMatrices, false);
   addMatrixArrayInstanced(pedLampPostGeo, poleMetalMat, pedPostMatrices);
@@ -1377,8 +1465,45 @@ function buildStreetDetails(scene) {
     }
   }
 
+  // Each surveyed vehicle head shows the phase of the approach it faces: the network edge whose traffic flows the way
+  // the head looks back from, ending near it (traffic.js: right-of-way group 0 runs on the 'avenue' phase, the others
+  // on the 'street' one). Its lenses stay in that phase's mesh only, and the junction becomes signalised. Called once
+  // the road network exists (after placeOnTerrain: the instances keep their lifted positions).
+  function bindSignals(network) {
+    if (!sitgPhased.length || !sitgAveLenses || !sitgStreetLenses) return { heads: 0, matched: 0 };
+    const CELL = 40, cells = new Map();
+    for (const e of network.edges) {
+      const ex = e.sx + e.dx * e.len, ez = e.sz + e.dz * e.len;
+      const k = `${Math.floor(ex / CELL)}/${Math.floor(ez / CELL)}`;
+      if (!cells.has(k)) cells.set(k, []);
+      cells.get(k).push(e);
+    }
+    const m = new THREE.Matrix4();
+    const hide = (mesh, i) => { mesh.getMatrixAt(i, m); for (const j of [0, 1, 2, 4, 5, 6, 8, 9, 10]) m.elements[j] = 0; mesh.setMatrixAt(i, m); };
+    let matched = 0;
+    for (const h of sitgPhased) {
+      let best = null, score = Infinity;
+      const cx = Math.floor(h.x / CELL), cz = Math.floor(h.z / CELL);
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        for (const e of cells.get(`${cx + i}/${cz + j}`) || []) {
+          if (e.dx * h.fx + e.dz * h.fz < 0.8) continue;
+          const ex = e.sx + e.dx * e.len, ez = e.sz + e.dz * e.len;
+          const along = (h.x - ex) * e.dx + (h.z - ez) * e.dz; // past the stop line (+) or before it (-)
+          const lateral = Math.abs((h.x - ex) * e.dz - (h.z - ez) * e.dx);
+          if (along < -30 || along > 30 || lateral > 16) continue;
+          const sc = lateral + Math.abs(along) * 0.5;
+          if (sc < score) { score = sc; best = e; }
+        }
+      }
+      if (best) { matched++; best.to.signal = true; }
+      hide(best && best.axisIndex !== 0 ? sitgAveLenses : sitgStreetLenses, h.index);
+    }
+    sitgAveLenses.instanceMatrix.needsUpdate = sitgStreetLenses.instanceMatrix.needsUpdate = true;
+    return { heads: sitgPhased.length, matched };
+  }
+
   scene.add(group);
-  return { group, footprints, signalClock, signalIntersections, audioSignals, update };
+  return { group, footprints, signalClock, signalIntersections, audioSignals, update, bindSignals };
 }
 
 export { buildStreetDetails };

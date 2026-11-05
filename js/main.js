@@ -29,6 +29,7 @@ import { SEASON_PRESETS, setSeason, initSeasonFromURL, seasonDay } from './seaso
 import { buildStreetDetails } from './street-details.js';
 import { createTrafficSystem, createHighwayTraffic } from './traffic.js';
 import { buildRoadPaint } from './road-paint.js';
+import { buildRoadMarks } from './road-marks.js';
 import { ThirdPersonControllerManager } from './controllers.js';
 import { TouchControls } from './touch-controls.js';
 import { GamepadControls } from './gamepad-controls.js';
@@ -177,6 +178,8 @@ async function initApp() {
     ...allColliders.filter((c) => !c.obb && (c.minY ?? 0) - (c.baseY ?? 0) < 3.5)
   ], streetDetails.signalIntersections);
   markInit('traffic');
+  const signalBinding = streetDetails.bindSignals(trafficSystem.network);
+  if (signalBinding.heads) console.log(`[signals] ${signalBinding.matched}/${signalBinding.heads} surveyed vehicle heads on a signalised approach`);
   trafficSystem.setTramBodies(trams.bodies);
   // The cycle tracks and lanes, and their cyclists (the traffic's bicycles)
   const cycling = buildCycling(scene, trafficSystem.bikeParts);
@@ -203,6 +206,8 @@ async function initApp() {
   buildRoadPaint(scene, trafficSystem.network);
   for (const root of scene.children.filter((o) => !beforePaint.has(o))) placeOnTerrain(root, terrainStats);
   console.info('[terrain] laid on the relief:', JSON.stringify(terrainStats));
+  // The markings as surveyed (SITG) over the orthophoto's, which hides the generated paint (loaded in the background)
+  const roadMarks = buildRoadMarks(scene, { replaces: [cycling.markings] });
   markInit('roadPaint');
 
   // 4. Initialize Third-Person Controllers (Person, Car, Cyclist, Cargo Bike, Helicopter) & Multi-Camera System
@@ -873,6 +878,7 @@ async function initApp() {
     cityBlocks.update(cameraSystem.currentPos.x, cameraSystem.currentPos.z);
     if (cityBlocks.updateLights) cityBlocks.updateLights(cameraSystem.camera);
     if (streetDetails.update) streetDetails.update(cameraSystem.camera);
+    roadMarks.update(cameraSystem.camera);
     lightingSystem.update(cameraSystem.currentPos);
     mapSystem.update();
     audioSystem.update(dt, elapsed, cameraSystem.camera, lightingSystem.activePresetId === 'midnight');

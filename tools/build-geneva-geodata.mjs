@@ -108,6 +108,8 @@ for (const e of osm.elements) {
 const WIDTH = { motorway: 14, trunk: 12, primary: 10, secondary: 8, tertiary: 7, residential: 6, unclassified: 6, living_street: 5, service: 3.5, pedestrian: 6, cycleway: 2.5, footway: 2, path: 1.5, steps: 2.5, track: 3 };
 const LANES = { motorway: 4, trunk: 4, primary: 2, secondary: 2, tertiary: 2, residential: 2, unclassified: 2, living_street: 1, service: 1 };
 const DRIVABLE = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'residential', 'unclassified', 'living_street']);
+const RUES_BASSES_WIDTH = 18; // m, facade to facade (the footprints stand 8 to 12 m either side of the axis)
+const zoneWays = [];
 const RAIL = /^(rail|light_rail|tram|subway|funicular|narrow_gauge)$/;
 function noteLevel(e, pts, kept, record, bridge, tunnel) {
   if (!e.nodes || e.nodes.length !== pts.length) return;
@@ -163,10 +165,13 @@ for (const e of osm.elements) {
   // OSM maps crosswalks as footways across the carriageway: the engine paints its own (and would take them
   // for sidewalks in the middle of the street)
   if (t.footway === 'crossing' || t.cycleway === 'crossing' || t.path === 'crossing') continue;
-  const kind = t.highway.replace(/_link$/, '') in WIDTH ? t.highway : 'service';
+  // The Rues-Basses (Marché, Croix-d'Or, Rive, Confédération) are a pedestrian zone the trams cross, mapped as a
+  // residential street open to public transport (psv): walked from facade to facade, with no cars
+  const zone = /\(Rues-Basses\)/.test(t.name || '');
+  const kind = zone ? 'pedestrian' : t.highway.replace(/_link$/, '') in WIDTH ? t.highway : 'service';
   const base = kind.replace(/_link$/, '');
   const lanes = num(t.lanes) ?? LANES[base] ?? 1;
-  const width = num(t.width) ?? Math.max(WIDTH[base] ?? 3, lanes * 3);
+  const width = zone ? RUES_BASSES_WIDTH : num(t.width) ?? Math.max(WIDTH[base] ?? 3, lanes * 3);
   const oneway = t.oneway === 'yes' || t.oneway === '-1' || t.oneway === '1' || t.junction === 'roundabout';
   // Geneva's tram streets: the tracks share the carriageway (OSM railway=tram ways run along them)
   const kept = rdp(pts, 0.5);
@@ -187,11 +192,38 @@ for (const e of osm.elements) {
     if (oneway && t.cycleway === 'opposite_lane' && !left) left = 'l';
     if (kind !== 'cycleway' && (left || right)) record.cyc = `${left || '-'}${right || '-'}`;
   }
+  if (zone) zoneWays.push(record);
   roads.push(record);
   noteLevel(e, pts, kept, record, bridge, tunnel);
   if (DRIVABLE.has(kind) && !tunnel && t.access !== 'no' && t.motor_vehicle !== 'no' && e.nodes && e.nodes.length === e.geometry.length) {
     drivable.push({ name: t.name || '', width: r1(width), lanes, dir: !oneway ? 0 : t.oneway === '-1' ? -1 : 1, nodes: e.nodes, pts, bridge });
   }
+}
+
+// Where the tram runs across a pedestrian zone: rails = [lo, hi], the signed offsets of its tracks from the way's axis
+// (positive to the left of its drawing direction), so walkers keep out of the tram's path
+{
+  const tracks = [];
+  for (const r of railways) if (r.kind === 'tram' && !r.tunnel) for (let i = 0; i + 3 < r.pts.length; i += 2) tracks.push(r.pts.slice(i, i + 4));
+  for (const r of zoneWays) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i + 3 < r.pts.length; i += 2) {
+      const [ax, az, bx, bz] = r.pts.slice(i, i + 4), len = Math.hypot(bx - ax, bz - az);
+      if (len < 1) continue;
+      const ux = (bx - ax) / len, uz = (bz - az) / len;
+      for (const [px, pz, qx, qz] of tracks) {
+        for (const [x, z] of [[px, pz], [qx, qz], [(px + qx) / 2, (pz + qz) / 2]]) {
+          const s = (x - ax) * ux + (z - az) * uz;
+          if (s < 0 || s > len) continue;
+          const off = -(x - ax) * uz + (z - az) * ux;
+          if (Math.abs(off) > r.width / 2) continue;
+          lo = Math.min(lo, off); hi = Math.max(hi, off);
+        }
+      }
+    }
+    if (lo <= hi) r.rails = [r1(lo), r1(hi)];
+  }
+  log(`pedestrian zones: ${zoneWays.length} ways of the Rues-Basses, ${zoneWays.filter((r) => r.rails).length} with tram tracks`);
 }
 
 // --- Street centreline graph: ways cut at every node shared by two ways (and at their ends) ----------------------------
@@ -440,6 +472,82 @@ if (fs.existsSync(TREES)) {
   log(`using ${trees.length} trees from the cantonal inventory`);
 }
 
+// --- Traffic signals as surveyed (SITG, Office cantonal des transports: tools/fetch-sitg-roadway.mjs) -------------------
+// The survey draws each signal head as a plan symbol a few metres off the pole that carries it (1.4 m to 10 m, half
+// within 3.6 m), turned by its bearing (degrees clockwise from grid north) in the direction of the traffic it controls.
+// Each head goes on the nearest surveyed pole within POLE_REACH (or a pole of its own), facing back up that traffic.
+// signalPoles: [x, z, arm x, arm z] per pole (the arm of a cantilever pole reaching over the carriageway, else 0, 0);
+// signalHeads: [pole index, facing (radians, the yaw of a +z face), kind] with kind 0 vehicle, 1 pedestrian,
+// 2 cyclist, 3 flashing amber.
+const signalPoles = [], signalHeads = [];
+{
+  const read = (name) => { const f = path.join(CACHE, `sitg_${name}.json`); return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')).features : null; };
+  const boxes = read('otc_sl_equipement_boitefeux'), masts = read('otc_sl_reseau_mat');
+  if (boxes && masts) {
+    const POLE_REACH = 6;
+    const kindOf = (t) => (/^3x(100|200|300)/.test(t) ? 0 : /^piéton/.test(t) ? 1 : /^vélo/.test(t) ? 2 : /^clign(-droite|-gauche|-supplémentaire)?$/.test(t) ? 3 : -1);
+    const poles = masts.map((m) => ({ ...lv95ToWorld(m.E, m.N), cantilever: /Porte a faux/.test(m.TYPE_DE_MAT || ''), heads: [] }));
+    const cell = (x, z) => `${Math.floor(x / 8)}/${Math.floor(z / 8)}`;
+    const grid = new Map();
+    const index = (p) => { const k = cell(p.x, p.z); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(p); };
+    poles.forEach(index);
+    const nearestPole = (x, z, reach) => {
+      let best = null, bd = reach;
+      for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+        for (const p of grid.get(`${Math.floor(x / 8) + i}/${Math.floor(z / 8) + j}`) || []) {
+          const d = Math.hypot(p.x - x, p.z - z);
+          if (d < bd) { bd = d; best = p; }
+        }
+      }
+      return best;
+    };
+    for (const b of boxes) {
+      const kind = kindOf(b.TYPE_FEUX || '');
+      if (kind < 0 || b.ANGLE == null) continue;
+      const { x, z } = lv95ToWorld(b.E, b.N);
+      if (!inFrame(x, z)) continue;
+      let pole = nearestPole(x, z, POLE_REACH);
+      if (!pole) { pole = nearestPole(x, z, 0.8) || { x, z, cantilever: false, heads: [] }; if (!pole.heads.length) { poles.push(pole); index(pole); } }
+      // bearing a clockwise from north: the traffic flows along (sin a, cos a) east-north, i.e. (sin a, -cos a) in x-z;
+      // the head faces the other way, -flow, which a yaw of -a turns +z onto
+      const a = (b.ANGLE * Math.PI) / 180;
+      pole.heads.push([r2(Math.atan2(-Math.sin(a), Math.cos(a))), kind]);
+    }
+    // Cantilever arms reach from the pole across the traffic its vehicle heads face, toward the carriageway's axis
+    const streets = [];
+    for (const r of roads) if (DRIVABLE.has(r.kind) && !r.tunnel) for (let i = 0; i + 3 < r.pts.length; i += 2) streets.push(r.pts.slice(i, i + 4));
+    const axisNear = (x, z) => {
+      let best = null, bd = 25;
+      for (const [ax, az, bx, bz] of streets) {
+        if (Math.min(ax, bx) > x + bd || Math.max(ax, bx) < x - bd || Math.min(az, bz) > z + bd || Math.max(az, bz) < z - bd) continue;
+        const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
+        if (l2 < 0.01) continue;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2));
+        const px = ax + dx * t, pz = az + dz * t, d = Math.hypot(px - x, pz - z);
+        if (d < bd) { bd = d; best = { x: px, z: pz, d }; }
+      }
+      return best;
+    };
+    for (const p of poles) {
+      if (!p.heads.length) continue;
+      let arm = [0, 0];
+      const vehicle = p.heads.find(([, kind]) => kind === 0);
+      const axis = p.cantilever && vehicle && axisNear(p.x, p.z);
+      if (axis && axis.d > 2) {
+        // across the face direction, on the side of the axis, as far as the axis less a lane's half
+        const cx = Math.cos(vehicle[0]), cz = -Math.sin(vehicle[0]);
+        const side = Math.sign((axis.x - p.x) * cx + (axis.z - p.z) * cz) || 1;
+        const reach = Math.min(6, Math.max(2.5, Math.abs((axis.x - p.x) * cx + (axis.z - p.z) * cz) - 1.5));
+        arm = [r2(cx * side * reach), r2(cz * side * reach)];
+      }
+      const i = signalPoles.length / 4;
+      signalPoles.push(r2(p.x), r2(p.z), arm[0], arm[1]);
+      for (const [yaw, kind] of p.heads) signalHeads.push(i, yaw, kind);
+    }
+    log(`signals (SITG): ${signalPoles.length / 4} poles, ${signalHeads.length / 3} heads (${['vehicle', 'pedestrian', 'cyclist', 'flashing'].map((label, k) => `${signalHeads.filter((v, j) => j % 3 === 2 && v === k).length} ${label}`).join(', ')}), ${poles.filter((p) => p.heads.length && p.cantilever).length} cantilevers`);
+  }
+}
+
 const data = {
   meta: {
     name: FRAME.name, city: 'Genève',
@@ -451,13 +559,14 @@ const data = {
     sources: [
       { name: 'OpenStreetMap contributors', license: 'ODbL 1.0', attribution: '© OpenStreetMap contributors' },
       { name: 'État de Genève, OCAN: Inventaire cantonal des arbres isolés (SITG)', license: 'Open data SITG', url: 'https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles' },
+      { name: 'État de Genève, OCT: signalisation lumineuse, boîtes à feux & mâts (SITG)', license: 'Open data SITG', url: 'https://ckan.opendata.swiss/dataset/signalisation-lumineuse-boites-a-feux1' },
       { name: 'swisstopo swissALTI3D (terrain, data/geneva-terrain.bin)', license: 'OGD swisstopo', attribution: '© swisstopo' },
       { name: 'swisstopo swissBUILDINGS3D 3.0 (buildings, streamed)', license: 'OGD swisstopo', attribution: '© swisstopo' }
     ],
     areas,
     counts: { buildings: buildings.length, roads: roads.length, water: water.length, parks: parks.length, railways: railways.length, trees: trees.length, signals: signals.length, fountains: fountains.length, tramStops: tramStops.length }
   },
-  buildings, roads, water, parks, railways, trees, signals, fountains, tramStops, landmarks, roadGraph, terrainPatches
+  buildings, roads, water, parks, railways, trees, signals, fountains, tramStops, landmarks, roadGraph, terrainPatches, signalPoles, signalHeads
 };
 fs.writeFileSync(OUT, `// js/geneva-geodata.js — GENERATED by tools/build-geneva-geodata.mjs, do not edit by hand.\n// Geneva city centre in the LV95 world frame of js/geneva-frame.js. © OpenStreetMap contributors (ODbL), SITG (État de Genève), swisstopo.\nexport const GENEVA_DATA = ${JSON.stringify(data)};\n`);
 log(`wrote ${OUT} (${(fs.statSync(OUT).size / 1048576).toFixed(1)} MB)`, JSON.stringify(data.meta.counts));
