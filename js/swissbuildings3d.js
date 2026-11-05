@@ -3,6 +3,7 @@ import { mx_noise_float, positionLocal, positionWorld, normalWorld, float, smoot
 import { orthoAt } from './orthophoto.js';
 import { insidePhotomesh, photomeshOn, outsideStreetView } from './photomesh.js';
 import { cityUniforms } from './tsl-materials.js';
+import { createStorefront } from './storefronts.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { FRAME } from './geneva-frame.js';
@@ -392,10 +393,11 @@ function createMaterial() {
   const corniceShadow = stone.mul(step(0.85, fromTop)).mul(step(fromTop, 1.0)).mul(wall);
   const course = is(1).mul(step(v, 0.04)).mul(upper).mul(wall);
   const plinth = stone.mul(step(above, 0.7)).mul(wall);
-  // Shop fronts on the ground floor (not in the residential contemporary blocks)
-  // (as often as the archetype's buildings show them in the photos: aArchetype.y)
-  const shop = step(0.6, above).mul(step(above, 3.0)).mul(wall).mul(smoothstep(0.08, 0.12, u)).mul(smoothstep(0.92, 0.88, u))
-    .mul(step(rnd(building, 11.3), archetype.y)).mul(secular);
+  // Shop fronts on the ground floor (js/storefronts.js: painted front, glazed door, sign, a room behind the glass), on
+  // as many buildings as the archetype's show them in the photos (aArchetype.y)
+  const shops = wall.mul(step(rnd(building, 11.3), archetype.y)).mul(secular);
+  const store = createStorefront({ above, groundTop: max(storey, 3.4), enabled: shops, seed: building });
+  const shop = store.mask;
 
   // The churches. Nave and choir: an equilateral pointed window in every 5.6 m bay, from a third of the way up to just
   // under the eaves, its stained glass in leaded panes; a lighter stone surround
@@ -439,24 +441,25 @@ function createMaterial() {
   const glass = glassMask.mul(float(1).sub(closed.mul(shutters)));
   col = mix(col, glassTint, glass.mul(0.9));
   col = mix(col, vec3(0.04, 0.04, 0.045), railing.mul(float(1).sub(bars)).mul(0.9));
-  col = mix(col, vec3(0.16, 0.17, 0.18), shop.mul(0.7));
+  col = mix(col, store.color, shop);
   col = mix(col, col.mul(1.15).min(1), lancetSurround.mul(0.85));
   col = mix(col, stained, lancet);
   col = mix(col, mix(vec3(0.03, 0.03, 0.035), vec3(0.2, 0.17, 0.13), slats), belfry);
   col = mix(col, vec3(0.03, 0.03, 0.035), slit);
   m.colorNode = col;
-  m.roughnessNode = mix(float(0.92), float(0.12), glass.add(shop).add(lancet.mul(0.7)).min(1));
-  m.metalnessNode = mix(float(0), float(0.35), glass.mul(0.8).add(railing.mul(0.5)).min(1));
+  m.roughnessNode = mix(mix(float(0.92), float(0.12), glass.add(lancet.mul(0.7)).min(1)), store.roughness, shop);
+  m.metalnessNode = mix(float(0), float(0.35), glass.mul(0.8).add(railing.mul(0.5)).min(1)).mul(float(1).sub(shop));
 
-  // After dusk: some windows and most shop fronts glow warm
+  // After dusk some windows glow warm; the shops' rooms and signs are lit by their own lamps (more so at night)
   const night = smoothstep(0.7, 1.45, cityUniforms.uInteriorGlow);
-  const lit = glass.mul(step(0.55, windowId)).add(shop.mul(step(0.3, rnd(bayIndex, building))));
+  const lit = glass.mul(step(0.55, windowId)).mul(float(1).sub(shop));
   const warm = mix(vec3(1.0, 0.72, 0.42), vec3(0.9, 0.92, 1.0), step(0.85, windowId));
   // the churches: no lit rooms, but floodlit from the foot of their walls, their stained glass faintly aglow
   const flood = exp(above.div(max(height, 6)).mul(-1.6)).mul(sacred).mul(wall).mul(float(1).sub(lancet));
   m.emissiveNode = warm.mul(lit.min(1)).mul(night).mul(1.4)
     .add(col.mul(vec3(1.0, 0.82, 0.6)).mul(flood).mul(night).mul(0.55))
-    .add(stained.mul(lancet).mul(night).mul(1.2));
+    .add(stained.mul(lancet).mul(night).mul(1.2))
+    .add(store.emissive.mul(shop));
   return m;
 }
 
