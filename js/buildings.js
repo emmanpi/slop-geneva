@@ -2063,8 +2063,9 @@ function buildCityBlocks(scene, { bag = false } = {}) {
             detail.cornices.push({ x, z, y: eave, w: length + 0.2, h: 0.44, d: 0.85, ry });
             if (height > 13) detail.cornices.push({ x, z, y: 4.4, w: length + 0.12, h: 0.22, d: 0.62, ry });
           }
-          // (none in the photomesh test areas: the real shop fronts are in the mesh)
-          if (shop && length > 9 && rand() < 0.48 && !insidePhotomesh(x, z)) {
+          // (none in the photomesh test areas: the real shop fronts are in the mesh; none in front of the
+          // swissBUILDINGS3D buildings (`bag`), whose facades are not where OSM's footprints put them)
+          if (shop && length > 9 && rand() < 0.48 && !bag && !insidePhotomesh(x, z)) {
             const count = Math.min(3, Math.floor(length / 8));
             for (let j = 0; j < count; j++) {
               const t = (j + 0.5) / count;
