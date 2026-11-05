@@ -21,6 +21,8 @@ import { createTreeField } from './trees.js';
 import { pavedPlazaRects, centralParkClearings, parkTreeSites, sidewalkBlocks, parkLampSites, berlinStreetSites } from './city-grid.js';
 import { bryantParkLawn } from './landmarks.js';
 import { nearestBerlinRoad } from './berlin-geometry.js';
+import { STREETLIGHTS } from './streetlights.js';
+import { surfaceHeight } from './terrain.js';
 
 // js/street-details.js
 // Populates Manhattan streets with authentic NYC street furniture using InstancedMesh:
@@ -598,6 +600,98 @@ function buildStreetDetails(scene) {
     }
   }
 
+  // Geneva's street lighting (js/streetlights.js): slim anthracite posts with a flat LED head on a short bracket over
+  // the road, luminaires hung from the span wires over the carriageways, lanterns on their posts away from the streets,
+  // and the TPG's overhead lines: grey masts, span wires, droppers and the contact wires over the tracks.
+  // The light pools (cobraLampSites) take their heights from the ground here (the instances are laid on it later).
+  function buildGenevaLighting() {
+    const POST_H = 8, ARM = 0.55, HUNG_Y = 6.55, WIRE_Y = 6.95, CONTACT_Y = 5.9, MAST_H = 8.4;
+    // post: tapered shaft, bracket towards +x, flat head; its diffuser underneath
+    const postGeo = mergeGeometries([
+      new THREE.CylinderGeometry(0.055, 0.09, POST_H, 10).translate(0, POST_H / 2, 0),
+      new THREE.CylinderGeometry(0.035, 0.035, ARM, 6).rotateZ(Math.PI / 2).translate(ARM / 2, POST_H - 0.12, 0),
+      new THREE.BoxGeometry(0.72, 0.07, 0.3).translate(ARM + 0.3, POST_H - 0.1, 0)
+    ].map((g) => g.toNonIndexed()));
+    const postLensGeo = new THREE.PlaneGeometry(0.62, 0.22).rotateX(Math.PI / 2).translate(ARM + 0.3, POST_H - 0.137, 0);
+    // hung luminaire: a flat drum on a short stem from the wire
+    const hungGeo = mergeGeometries([
+      new THREE.CylinderGeometry(0.34, 0.4, 0.13, 16).translate(0, HUNG_Y, 0),
+      new THREE.CylinderGeometry(0.012, 0.012, WIRE_Y - HUNG_Y, 4).translate(0, (WIRE_Y + HUNG_Y) / 2, 0)
+    ].map((g) => g.toNonIndexed()));
+    const hungLensGeo = new THREE.CircleGeometry(0.34, 16).rotateX(Math.PI / 2).translate(0, HUNG_Y - 0.066, 0);
+    // lantern on a 4 m post
+    const lanternGeo = mergeGeometries([
+      new THREE.CylinderGeometry(0.05, 0.08, 4, 8).translate(0, 2, 0),
+      new THREE.CylinderGeometry(0.2, 0.14, 0.08, 10).translate(0, 4.5, 0)
+    ].map((g) => g.toNonIndexed()));
+    const lanternGlassGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.44, 10).translate(0, 4.24, 0);
+    const posts = [], hung = [], lanterns = [];
+    const m = (x, z, yaw) => { dummy.position.set(x, 0, z); dummy.rotation.set(0, yaw, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); return dummy.matrix.clone(); };
+    for (const l of STREETLIGHTS.lamps) {
+      const g = surfaceHeight(l.x, l.z);
+      if (l.kind === 2) {
+        hung.push(m(l.x, l.z, l.yaw));
+        cobraLampSites.push({ x: l.x, y: g + HUNG_Y - 0.1, z: l.z, tx: l.x, ty: g, tz: l.z + 0.01 });
+      } else if (l.kind === 3) {
+        lanterns.push(m(l.x, l.z, 0));
+        streetPointSites.push({ x: l.x, y: g + 4.2, z: l.z, color: 0xffe0b0, intensity: 26, dist: 13 });
+        addPole(l.x, l.z, 0.1);
+      } else {
+        posts.push(m(l.x, l.z, l.yaw));
+        const dx = Math.cos(l.yaw), dz = -Math.sin(l.yaw), hx = l.x + dx * (ARM + 0.3), hz = l.z + dz * (ARM + 0.3);
+        cobraLampSites.push({ x: hx, y: g + POST_H - 0.2, z: hz, tx: hx + dx * 1.5, ty: g, tz: hz + dz * 1.5 });
+        addPole(l.x, l.z, 0.12);
+      }
+    }
+    addMatrixArrayInstanced(postGeo, poleMetalMat, posts);
+    addMatrixArrayInstanced(postLensGeo, lampBulbGlow, posts, false);
+    addMatrixArrayInstanced(hungGeo, poleMetalMat, hung);
+    addMatrixArrayInstanced(hungLensGeo, lampBulbGlow, hung, false);
+    addMatrixArrayInstanced(lanternGeo, poleMetalMat, lanterns);
+    addMatrixArrayInstanced(lanternGlassGeo, lampBulbGlow, lanterns, false);
+    // the TPG's masts
+    const mastMat = new THREE.MeshStandardNodeMaterial({ color: 0x6d7570, roughness: 0.6, metalness: 0.5 });
+    const masts = [];
+    for (let i = 0; i < STREETLIGHTS.masts.length; i += 2) {
+      const x = STREETLIGHTS.masts[i], z = STREETLIGHTS.masts[i + 1];
+      dummy.position.set(x, MAST_H / 2, z); dummy.rotation.set(0, 0, 0); dummy.scale.set(0.13, MAST_H, 0.13); dummy.updateMatrix();
+      masts.push(dummy.matrix.clone());
+      addPole(x, z, 0.26);
+    }
+    addMatrixArrayInstanced(unitCyl, mastMat, masts);
+    // the wires: thin lines, laid at their heights over the ground (or the bridge decks) every few metres
+    const pos = [];
+    const wire = (pts, h) => {
+      for (let i = 2; i < pts.length; i += 2) {
+        const ax = pts[i - 2], az = pts[i - 1], bx = pts[i], bz = pts[i + 1];
+        const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 5));
+        let px = ax, pz = az, py = surfaceHeight(ax, az) + h;
+        for (let k = 1; k <= n; k++) {
+          const x = ax + ((bx - ax) * k) / n, z = az + ((bz - az) * k) / n, y = surfaceHeight(x, z) + h;
+          pos.push(px, py, pz, x, y, z);
+          px = x; py = y; pz = z;
+        }
+      }
+    };
+    for (const line of STREETLIGHTS.lines) wire(line.pts, line.kind === 0 ? CONTACT_Y : WIRE_Y);
+    for (let i = 0; i < STREETLIGHTS.droppers.length; i += 2) {
+      const x = STREETLIGHTS.droppers[i], z = STREETLIGHTS.droppers[i + 1], g = surfaceHeight(x, z);
+      pos.push(x, g + CONTACT_Y, z, x, g + WIRE_Y, z);
+    }
+    const wiresGeo = new THREE.BufferGeometry();
+    wiresGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const wires = new THREE.LineSegments(wiresGeo, new THREE.LineBasicNodeMaterial({ color: 0x2a2c2e }));
+    wires.name = 'TPGOverheadLines';
+    wires.userData.terrain = 'absolute';
+    wires.frustumCulled = false;
+    overheadGroup.add(wires);
+    console.log(`[streetlights] ${posts.length} posts, ${hung.length} hung luminaires, ${lanterns.length} lanterns; ` +
+      `${masts.length} TPG masts, ${pos.length / 6} wire segments`);
+  }
+  const overheadGroup = new THREE.Group();
+  overheadGroup.name = 'GenevaOverheadLines';
+  overheadGroup.userData.terrain = 'absolute';
+
   const berlinSignMatrices = new Map();
   if (BERLIN_DATA) {
     const expansionStreetSigns = new Set(['Schlesische Straße', 'Skalitzer Straße', 'Kreuzbergstraße', 'Kottbusser Damm',
@@ -612,17 +706,25 @@ function buildStreetDetails(scene) {
       if (waterAt(s.x, s.z) && !s.road.bridge) continue;
       const block = blockAt(s.x, s.z);
       if (block && !block.sidewalk && !block.id?.toString().startsWith('sidewalk') && block.source && !block.park) continue;
-      setMatrix(poleMatrices, s.x, 4.1, s.z, 0.11, 8.2, 0.11);
-      const yaw = Math.atan2(-s.nz, s.nx);
-      setMatrix(armMatrices, s.x + s.nx * 1.1, 8.08, s.z + s.nz * 1.1, 2.2, 0.085, 0.085, yaw);
-      setMatrix(lampHeadMatrices, s.x + s.nx * 2.1, 8.1, s.z + s.nz * 2.1, 1, 1, 1, yaw);
-      cobraLampSites.push({ x: s.x + s.nx * 2.1, y: 8.04, z: s.z + s.nz * 2.1, tx: s.x + s.nx * 3.5, tz: s.z + s.nz * 3.5 });
+      const sign = s.name && i % 4 === 0 && (berlinSignMatrices.has(s.name) || berlinSignMatrices.size < 70 || expansionStreetSigns.has(s.name));
+      if (STREETLIGHTS) {
+        // (Geneva's own lamps below): only the street name sign, on a post of its own
+        if (!sign) continue;
+        setMatrix(poleMatrices, s.x, 1.8, s.z, 0.05, 3.6, 0.05);
+      } else {
+        setMatrix(poleMatrices, s.x, 4.1, s.z, 0.11, 8.2, 0.11);
+        const yaw = Math.atan2(-s.nz, s.nx);
+        setMatrix(armMatrices, s.x + s.nx * 1.1, 8.08, s.z + s.nz * 1.1, 2.2, 0.085, 0.085, yaw);
+        setMatrix(lampHeadMatrices, s.x + s.nx * 2.1, 8.1, s.z + s.nz * 2.1, 1, 1, 1, yaw);
+        cobraLampSites.push({ x: s.x + s.nx * 2.1, y: 8.04, z: s.z + s.nz * 2.1, tx: s.x + s.nx * 3.5, tz: s.z + s.nz * 3.5 });
+      }
       addPole(s.x, s.z, 0.11);
-      if (s.name && i % 4 === 0 && (berlinSignMatrices.has(s.name) || berlinSignMatrices.size < 70 || expansionStreetSigns.has(s.name))) {
+      if (sign) {
         if (!berlinSignMatrices.has(s.name)) berlinSignMatrices.set(s.name, []);
         setMatrix(berlinSignMatrices.get(s.name), s.x, 3.25, s.z, 1.8, 0.33, 0.055, -Math.atan2(s.uz, s.ux));
       }
     }
+    if (STREETLIGHTS) buildGenevaLighting();
     const sitgPoles = BERLIN_DATA.signalPoles || [], sitgHeads = BERLIN_DATA.signalHeads || [];
     // Signals as surveyed by the canton (tools/build-geneva-geodata.mjs): each pole where it stands, a cantilever's arm
     // over the carriageway, and its heads around it facing the traffic (or the crossing) they control. Heads facing
@@ -1435,7 +1537,7 @@ function buildStreetDetails(scene) {
       const fade = smoothFade(s._effDist, cobraCutoff * 0.62, cobraCutoff);
       const spot = streetlightSpotPool[i];
       spot.position.set(s.x, s.y, s.z);
-      spot.target.position.set(s.tx, 0.0, s.tz);
+      spot.target.position.set(s.tx, s.ty ?? 0.0, s.tz);
       spot.target.updateMatrixWorld();
       spot.intensity = 88.0 * lampScale * fade;
     }
@@ -1503,6 +1605,7 @@ function buildStreetDetails(scene) {
   }
 
   scene.add(group);
+  if (overheadGroup.children.length) scene.add(overheadGroup);
   return { group, footprints, signalClock, signalIntersections, audioSignals, update, bindSignals };
 }
 
