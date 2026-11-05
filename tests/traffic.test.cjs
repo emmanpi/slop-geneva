@@ -187,7 +187,7 @@ function populationContext() {
     focusX: 0, focusZ: 0, player: { active: false },
     clock: 0,
     VEHICLE_SPAWN_DISTANCE: 250, PED_SPAWN_DISTANCE: 150, NEAR_RADIUS: 350, PED_AVOID_INTERVAL: 0.12,
-    nearEdges: [], nearSignals: [], track: {}, KERB: 1.6, QUEUE_GAP: 0.62,
+    nearEdges: [], nearSignals: [], nearWays: { total: 0 }, WAY_SHARE: 0.6, track: {}, KERB: 1.6, QUEUE_GAP: 0.62,
     atCurb: () => {}, laneClear: () => true,
     place: (v, e, lane, s) => Object.assign(v, { edge: e, lane, s })
   };

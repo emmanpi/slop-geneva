@@ -1,4 +1,4 @@
-import { blockAt } from './city-config.js';
+import { blockAt, ROADS } from './city-config.js';
 import { surfaceHeight, ROAD_TOP, SIDEWALK_TOP } from './terrain.js';
 import { createPedestrianRoutes } from './pedestrian-routes.js';
 import { PersonCrowd, PersonRig, PEDESTRIAN_DIVE_DURATION } from './pedestrians.js';
@@ -10,6 +10,7 @@ const PED_RADIUS = 320;
 const NEAR_RADIUS = 350;
 const PED_SPAWN_DISTANCE = 150;
 const PED_AVOID_INTERVAL = 0.12;
+const WAY_SHARE = 0.6; // of the people placed where there are walkways nearby: on them rather than a street's sidewalk
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
 function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView }) {
@@ -87,11 +88,26 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
   }
 
   const KERB = 1.6; // how far along a crosswalk track pedestrians wait to cross (the curb is 2 m along)
-  const pedRoutes = createPedestrianRoutes(network, blockAt);
+  const pedRoutes = createPedestrianRoutes(network, blockAt, ROADS);
+  // The walkways around the focus (footways, pedestrian streets, quays, steps), weighted by length and kind
+  const nearWays = { segs: [], cum: [], total: 0 };
+  let waysX = Infinity, waysZ = Infinity;
   const track = { ax: 0, az: 0, ux: 0, uz: 1, len: 1, node: null, side: 0, line: 0, route: null };
 
   function sidewalkTrack(e) {
     const choices = pedRoutes.along(e);
+    if (!choices.length) return false;
+    const route = choices[Math.floor(Math.random() * choices.length)];
+    Object.assign(track, route, { route });
+    return true;
+  }
+
+  function wayTrack() {
+    if (!nearWays.total) return false;
+    const pick = Math.random() * nearWays.total;
+    let lo = 0, hi = nearWays.cum.length - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (nearWays.cum[mid] < pick) lo = mid + 1; else hi = mid; }
+    const choices = pedRoutes.wayTracks(nearWays.segs[lo]);
     if (!choices.length) return false;
     const route = choices[Math.floor(Math.random() * choices.length)];
     Object.assign(track, route, { route });
@@ -130,7 +146,8 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
       const crosswalk = p.crossesStreets && nearSignals.length > 0 && attempt < 5;
       const ok = crosswalk
         ? crosswalkTrack(nearSignals[Math.floor(Math.random() * nearSignals.length)])
-        : nearEdges.length > 0 && sidewalkTrack(nearEdges[Math.floor(Math.random() * nearEdges.length)]);
+        : nearWays.total > 0 && Math.random() < WAY_SHARE ? wayTrack()
+          : nearEdges.length > 0 && sidewalkTrack(nearEdges[Math.floor(Math.random() * nearEdges.length)]);
       if (!ok) continue;
       const along = (focusX - track.ax) * track.ux + (focusZ - track.az) * track.uz;
       const minT = Math.max(0, along - rMax), maxT = Math.min(track.len, along + rMax);
@@ -305,7 +322,7 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
       speed = PED_ESCAPE_SPEED;
       best = playerContactTime(p, dir * speed, forward);
       // Corner connectors need their pending route; only full sidewalk/crosswalk tracks can turn around.
-      if (p.node || p.route?.edge) {
+      if (p.node || p.route?.edge || p.route?.way) {
         const back = escapeRoom(p, -dir);
         const retreat = playerContactTime(p, -dir * speed, back);
         if (retreat > best + (avoiding ? 0.2 : 0)
@@ -370,7 +387,7 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
       p.nextLeg = 0;
       if (!p.node && p.nextRoute) atCurb(p);
     }
-    if (!p.node && p.route?.edge && p.t > 6 && p.t < p.len - 6 && clock >= p.restTime) {
+    if (!p.node && (p.route?.edge || p.route?.way) && p.t > 6 && p.t < p.len - 6 && clock >= p.restTime) {
       p.pause = 1.5 + Math.random() * 3;
       p.restTime = clock + 35 + Math.random() * 55;
     }
@@ -491,14 +508,14 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
     nextMeeting = clock + 1;
     meetingCells.clear();
     for (const p of peds) {
-      if (!p.placed || p.node || !p.route?.edge || p.conversation || clock < p.socialTime || p.t < 6 || p.t > p.len - 6) continue;
+      if (!p.placed || p.node || !(p.route?.edge || p.route?.way) || p.conversation || clock < p.socialTime || p.t < 6 || p.t > p.len - 6) continue;
       const ix = Math.floor(p.x / 2), iz = Math.floor(p.z / 2);
       let partner = null;
       for (let dx = -1; dx <= 1 && !partner; dx++) {
         for (let dz = -1; dz <= 1 && !partner; dz++) {
           for (const q of meetingCells.get(`${ix + dx}:${iz + dz}`) || []) {
             const distance = Math.hypot(p.x - q.x, p.z - q.z);
-            if (q.conversation || p.route.block !== q.route.block || distance < 0.75 || distance > 2 || Math.random() > 0.15) continue;
+            if (q.conversation || p.route.block.id !== q.route.block.id || distance < 0.75 || distance > 2 || Math.random() > 0.15) continue;
             partner = q;
             break;
           }
@@ -549,6 +566,10 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
     focusX = x;
     focusZ = z;
     hasView = view;
+    if (Math.hypot(x - waysX, z - waysZ) > 40) {
+      waysX = x; waysZ = z;
+      pedRoutes.waysNear(x, z, NEAR_RADIUS, nearWays);
+    }
     pedRange = player.active && (activeMode === 'car' || activeMode === 'cyclist' || activeMode === 'cargobike') && player.entity.position.y > -1
       ? Math.hypot(player.vx, player.vz) * PED_LOOKAHEAD + player.halfL + 6 : 0;
 
