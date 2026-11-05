@@ -513,9 +513,50 @@ const signalPoles = [], signalHeads = [];
       const a = (b.ANGLE * Math.PI) / 180;
       pole.heads.push([r2(Math.atan2(-Math.sin(a), Math.cos(a))), kind]);
     }
+    const streets = []; // [ax, az, bx, bz, half width] of each drivable way's segments
+    for (const r of roads) if (DRIVABLE.has(r.kind) && !r.tunnel) for (let i = 0; i + 3 < r.pts.length; i += 2) streets.push([...r.pts.slice(i, i + 4), (r.width || 6) / 2]);
+    // How far (x, z) lies inside the modelled carriageways, and the way out across the deepest one
+    const KERB = 0.6; // m from the carriageway's edge, on the footway
+    const intrusion = (x, z) => {
+      let worst = null;
+      for (const [ax, az, bx, bz, h] of streets) {
+        if (Math.min(ax, bx) > x + h || Math.max(ax, bx) < x - h || Math.min(az, bz) > z + h || Math.max(az, bz) < z - h) continue;
+        const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
+        if (l2 < 0.01) continue;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2));
+        const px = ax + dx * t, pz = az + dz * t, d = Math.hypot(x - px, z - pz);
+        const depth = h + KERB - d;
+        if (depth > 0.01 && (!worst || depth > worst.depth)) {
+          // out across the way, on the side the point already is (either side when on its axis)
+          const l = Math.sqrt(l2), nx = -dz / l, nz = dx / l, side = (x - px) * nx + (z - pz) * nz;
+          worst = { depth, px, pz, nx, nz, side, h };
+        }
+      }
+      return worst;
+    };
+    // The survey's plan symbols stand off their poles, often over the road, and the OSM carriageways cover some of
+    // the islands that carry poles: a pole on the modelled carriageway is moved out to its kerb (the nearer side
+    // that is clear of every carriageway, within MAX_SHIFT m)
+    const MAX_SHIFT = 9;
+    let moved = 0, stuck = 0;
+    for (const p of poles) {
+      p.ox = p.x; p.oz = p.z;
+      if (!p.heads.length || !intrusion(p.x, p.z)) continue;
+      let done = false;
+      for (let step = 0; step < 4 && !done; step++) {
+        const w = intrusion(p.x, p.z);
+        if (!w) { done = true; break; }
+        const options = (Math.abs(w.side) > 0.05 ? [Math.sign(w.side), -Math.sign(w.side)] : [1, -1])
+          .map((s) => ({ x: w.px + w.nx * s * (w.h + KERB), z: w.pz + w.nz * s * (w.h + KERB) }))
+          .filter((c) => Math.hypot(c.x - p.ox, c.z - p.oz) <= MAX_SHIFT)
+          .sort((a, b) => (intrusion(a.x, a.z) ? 1 : 0) - (intrusion(b.x, b.z) ? 1 : 0) || Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z));
+        if (!options.length) break;
+        p.x = options[0].x; p.z = options[0].z;
+      }
+      if (done || !intrusion(p.x, p.z)) moved++;
+      else { stuck++; p.x = p.ox; p.z = p.oz; }
+    }
     // Cantilever arms reach from the pole across the traffic its vehicle heads face, toward the carriageway's axis
-    const streets = [];
-    for (const r of roads) if (DRIVABLE.has(r.kind) && !r.tunnel) for (let i = 0; i + 3 < r.pts.length; i += 2) streets.push(r.pts.slice(i, i + 4));
     const axisNear = (x, z) => {
       let best = null, bd = 25;
       for (const [ax, az, bx, bz] of streets) {
@@ -544,7 +585,7 @@ const signalPoles = [], signalHeads = [];
       signalPoles.push(r2(p.x), r2(p.z), arm[0], arm[1]);
       for (const [yaw, kind] of p.heads) signalHeads.push(i, yaw, kind);
     }
-    log(`signals (SITG): ${signalPoles.length / 4} poles, ${signalHeads.length / 3} heads (${['vehicle', 'pedestrian', 'cyclist', 'flashing'].map((label, k) => `${signalHeads.filter((v, j) => j % 3 === 2 && v === k).length} ${label}`).join(', ')}), ${poles.filter((p) => p.heads.length && p.cantilever).length} cantilevers`);
+    log(`signals (SITG): ${signalPoles.length / 4} poles, ${signalHeads.length / 3} heads (${['vehicle', 'pedestrian', 'cyclist', 'flashing'].map((label, k) => `${signalHeads.filter((v, j) => j % 3 === 2 && v === k).length} ${label}`).join(', ')}), ${poles.filter((p) => p.heads.length && p.cantilever).length} cantilevers; ${moved} moved off the carriageway to its kerb, ${stuck} left`);
   }
 }
 

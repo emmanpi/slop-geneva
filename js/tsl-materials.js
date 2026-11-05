@@ -1826,7 +1826,9 @@ function createRoadPaintMaterial() {
     const centre = viewProjection.mul(vec4(positionGeometry.sub(sideOffset), 1.0));
     const halfWidthPx = length(edge.xy.div(edge.w).sub(centre.xy.div(centre.w)).mul(screenSize).mul(0.5));
     const inFront = step(0.05, min(edge.w, centre.w));
-    return clamp(float(0.75).div(max(halfWidthPx, 0.001)), 1.0, 16.0).mul(inFront).max(1.0);
+    // (filled shapes have no strip width, side (0, 0): drawn as they are)
+    const isStrip = step(0.0001, length(side));
+    return mix(float(1.0), clamp(float(0.75).div(max(halfWidthPx, 0.001)), 1.0, 16.0).mul(inFront).max(1.0), isStrip);
   })();
   mat.positionNode = positionGeometry.add(sideOffset.mul(widen.sub(1.0)));
 
