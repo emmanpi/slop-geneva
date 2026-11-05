@@ -68,7 +68,8 @@ import {
 import { GEO } from './nyc-geodata.js';
 import { LANDMARK_EXCLUSIONS, BERGHAIN_TREE_SITES } from './landmarks.js';
 import { berlinPoints, berlinBounds, berlinPolygonGeometry, berlinStrip, berlinRoadSegments, berlinGeometryGroups } from './berlin-geometry.js';
-import { buildTerrainMeshes, carveDepths, drapeOverlay, displaceGeometry, groundHeight, waterSurfaceHeight, deckHeight, deckHalfWidth, pierClear } from './terrain.js';
+import { buildTerrainMeshes, carveDepths, drapeOverlay, displaceGeometry, groundHeight, waterSurfaceHeight, deckHeight, deckHalfWidth, pierClear, inWater, TERRAIN } from './terrain.js';
+import { ROADWAY } from './roadway.js';
 
 // Live construction data consumed by the building and street-detail builders after buildCityGrid().
 let centralParkClearings;
@@ -95,6 +96,111 @@ function fadeToOrtho(mat) {
 }
 
 const railMats = [];
+// --- The surveyed street space (js/roadway.js) -----------------------------------------------------------------------
+// The carriageways as the cadastre outlines them, at the height of the engine's roads (0.11 m over the ground), the
+// traffic islands raised to the kerbs' top, and the kerbs: granite edging along every edge between carriageway and
+// footway or island, 0.16 m wide, standing 0.06 m above the carriageway. On the bridges the OSM decks stay.
+const KERB_W = 0.16, KERB_TOP = 0.17, KERB_FOOT = -0.01;
+// A bridge's own deck (not a street passing well below it) is drawn from OSM
+const onBridgeDeck = (x, z) => {
+  const d = deckHeight(x, z);
+  return d === d && (d - groundHeight(x, z) < 3 || inWater(x, z));
+};
+// Drops the triangles of a non-indexed geometry with a corner on a bridge deck
+function offDecks(geometry) {
+  const p = geometry.attributes.position.array;
+  const keep = [];
+  for (let t = 0; t < p.length; t += 9) {
+    if (onBridgeDeck(p[t], p[t + 2]) || onBridgeDeck(p[t + 3], p[t + 5]) || onBridgeDeck(p[t + 6], p[t + 8])) continue;
+    keep.push(t / 9);
+  }
+  if (keep.length * 9 === p.length) return geometry;
+  const out = new THREE.BufferGeometry();
+  for (const [name, attr] of Object.entries(geometry.attributes)) {
+    const n = attr.itemSize, src = attr.array, dst = new Float32Array(keep.length * 3 * n);
+    keep.forEach((t, k) => dst.set(src.subarray(t * 3 * n, (t + 1) * 3 * n), k * 3 * n));
+    out.setAttribute(name, new THREE.BufferAttribute(dst, n));
+  }
+  out.computeBoundingSphere(); out.computeBoundingBox();
+  geometry.dispose();
+  return out;
+}
+// A kerb along a polyline (the carriageway on the side (-dz, dx) of its direction): face, top and back, in pieces of
+// at most 3 m laid on the ground
+function kerbGeometry(line) {
+  const pos = [];
+  const pts = [];
+  for (let i = 0; i < line.length; i++) {
+    if (i && Math.hypot(line[i].x - line[i - 1].x, line[i].z - line[i - 1].z) < 0.02) continue;
+    pts.push(line[i]);
+  }
+  if (pts.length < 2) return null;
+  // the outward (away from the carriageway) offset at each point, mitred (bounded at sharp corners)
+  const out = pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const d0 = i ? Math.hypot(p.x - a.x, p.z - a.z) : 0, d1 = i < pts.length - 1 ? Math.hypot(b.x - p.x, b.z - p.z) : 0;
+    const n0 = i ? { x: (p.z - a.z) / d0, z: -(p.x - a.x) / d0 } : null, n1 = i < pts.length - 1 ? { x: (b.z - p.z) / d1, z: -(b.x - p.x) / d1 } : null;
+    const na = n0 || n1, nb = n1 || n0;
+    let mx = na.x + nb.x, mz = na.z + nb.z;
+    const ml = Math.hypot(mx, mz);
+    if (ml < 1e-3) return { x: na.x * KERB_W, z: na.z * KERB_W };
+    mx /= ml; mz /= ml;
+    const scale = KERB_W / Math.max(0.5, mx * na.x + mz * na.z);
+    return { x: mx * scale, z: mz * scale };
+  });
+  const quad = (a, b, c, d) => pos.push(...a, ...b, ...c, ...a, ...c, ...d);
+  const y = (x, z, h) => groundHeight(x, z) + h;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], oa = out[i - 1], ob = out[i];
+    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 3));
+    for (let k = 0; k < n; k++) {
+      const t0 = k / n, t1 = (k + 1) / n;
+      const ix0 = a.x + (b.x - a.x) * t0, iz0 = a.z + (b.z - a.z) * t0, ix1 = a.x + (b.x - a.x) * t1, iz1 = a.z + (b.z - a.z) * t1;
+      const ox0 = ix0 + oa.x + (ob.x - oa.x) * t0, oz0 = iz0 + oa.z + (ob.z - oa.z) * t0;
+      const ox1 = ix1 + oa.x + (ob.x - oa.x) * t1, oz1 = iz1 + oa.z + (ob.z - oa.z) * t1;
+      if (onBridgeDeck((ix0 + ix1) / 2, (iz0 + iz1) / 2)) continue;
+      const fi0 = [ix0, y(ix0, iz0, KERB_FOOT), iz0], ti0 = [ix0, y(ix0, iz0, KERB_TOP), iz0];
+      const fi1 = [ix1, y(ix1, iz1, KERB_FOOT), iz1], ti1 = [ix1, y(ix1, iz1, KERB_TOP), iz1];
+      const fo0 = [ox0, y(ox0, oz0, KERB_FOOT), oz0], to0 = [ox0, y(ox0, oz0, KERB_TOP), oz0];
+      const fo1 = [ox1, y(ox1, oz1, KERB_FOOT), oz1], to1 = [ox1, y(ox1, oz1, KERB_TOP), oz1];
+      quad(fi1, ti1, ti0, fi0); // face, towards the carriageway
+      quad(ti1, to1, to0, ti0); // top
+      quad(fo0, to0, to1, fo1); // back
+    }
+  }
+  if (!pos.length) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.computeVertexNormals();
+  // (the curb material's uv: along the kerb and up it, roughly)
+  const uvs = new Float32Array((pos.length / 3) * 2);
+  for (let v = 0; v < pos.length / 3; v++) { uvs[v * 2] = (pos[v * 3] + pos[v * 3 + 2]) * 0.5; uvs[v * 2 + 1] = pos[v * 3 + 1] * 4; }
+  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  return g;
+}
+function buildSurveyedRoadway({ collect, roadMat, islandMat, curbMat, surveyedSegments }) {
+  let triangles = 0, kerbMetres = 0;
+  // (non-indexed with a uv, like the OSM strips, so that they merge)
+  const lay = (ring, holes, y, lift) => {
+    const flat = berlinPolygonGeometry(ring, holes, y);
+    const draped = drapeOverlay(flat, { maxEdge: 6, lift });
+    flat.dispose();
+    const g = offDecks(draped);
+    triangles += g.attributes.position.count / 3;
+    return g;
+  };
+  for (const c of ROADWAY.carriageways) collect(lay(c.ring, c.holes, 0.06, 0.05), roadMat, { world: true });
+  for (const c of ROADWAY.islands) collect(lay(c.ring, c.holes, KERB_TOP - 0.06, 0.05), islandMat, { world: true });
+  for (const line of ROADWAY.kerbs) {
+    const g = kerbGeometry(line);
+    if (!g) continue;
+    for (let i = 1; i < line.length; i++) kerbMetres += Math.hypot(line[i].x - line[i - 1].x, line[i].z - line[i - 1].z);
+    collect(g, curbMat, { world: true });
+  }
+  console.log(`[roadway] surveyed street space: ${ROADWAY.carriageways.length} carriageways, ${ROADWAY.islands.length} islands, ` +
+    `${(kerbMetres / 1000).toFixed(1)} km of kerbs, ${Math.round(triangles / 1000)}k triangles (SITG); ${surveyedSegments} OSM segments replaced`);
+}
+
 function buildBerlinCityGrid(scene) {
   const group = new THREE.Group();
   group.name = 'BerlinMitteCityGrid';
@@ -301,11 +407,25 @@ function buildBerlinCityGrid(scene) {
   };
   const streetSiteKeys = new Set();
   const bridgeSlabs = [];
+  // Where the cadastre surveys the carriageway (js/roadway.js), it is drawn from the survey (below), not from OSM's
+  // centre line and width: such a segment keeps only its street furniture sites
+  const surveyed = (s) => {
+    if (!ROADWAY || !isCarriageway(s)) return false;
+    let on = 0;
+    for (const t of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+      const x = s.a.x + (s.b.x - s.a.x) * t, z = s.a.z + (s.b.z - s.a.z) * t;
+      if ([[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => ROADWAY.onCarriageway(x + dx, z + dz))) on++;
+    }
+    return on >= 3;
+  };
+  let surveyedSegments = 0;
   for (const s of roadSegments) {
     const width = s.width;
     const y = 0.06;
     deckContext = !!s.road.bridge && Array.isArray(s.road.ys);
-    if (!deckContext) carveStrips.push({ a: s.a, b: s.b, half: isCarriageway(s) ? width / 2 - 0.8 : Math.max(0.75, width * 0.5) - 0.3 });
+    const fromSurvey = !deckContext && surveyed(s);
+    if (fromSurvey) surveyedSegments++;
+    if (!deckContext && !fromSurvey) carveStrips.push({ a: s.a, b: s.b, half: isCarriageway(s) ? width / 2 - 0.8 : Math.max(0.75, width * 0.5) - 0.3 });
     if (deckContext && s.len > 0.5 && !bridgeSlabs.some(b => b.road === s.road && b.a === s.a)) bridgeSlabs.push(s);
     if (!isCarriageway(s)) {
       const half = Math.max(0.75, width * 0.5);
@@ -329,13 +449,15 @@ function buildBerlinCityGrid(scene) {
         }
       }
     }
-    collect(berlinStrip(s.a, s.b, width / 2, y), roadMat);
     const nx = -s.uz, nz = s.ux;
-    if (width >= 7 && !s.road.oneway && s.road.kind !== 'service') paintStrip(s, 0, 0.075, 0.45);
-    if (width >= 12) {
-      for (const side of [-1, 1]) paintStrip(s, side * width * 0.24, 0.065, 0.45);
+    if (!fromSurvey) {
+      collect(berlinStrip(s.a, s.b, width / 2, y), roadMat);
+      if (width >= 7 && !s.road.oneway && s.road.kind !== 'service') paintStrip(s, 0, 0.075, 0.45);
+      if (width >= 12) {
+        for (const side of [-1, 1]) paintStrip(s, side * width * 0.24, 0.065, 0.45);
+      }
     }
-    if (curbedKinds.has(s.road.kind)) for (const side of [-1, 1]) {
+    if (curbedKinds.has(s.road.kind) && !fromSurvey) for (const side of [-1, 1]) {
       const offset = side * (width / 2 + 0.08);
       const a = { x: s.a.x + nx * offset, z: s.a.z + nz * offset };
       const b = { x: s.b.x + nx * offset, z: s.b.z + nz * offset };
@@ -363,6 +485,7 @@ function buildBerlinCityGrid(scene) {
     }
   }
   deckContext = false;
+  if (ROADWAY) buildSurveyedRoadway({ collect, roadMat, islandMat: sidewalkMat, curbMat, surveyedSegments });
   // Bridge structures under the decks: a slab, parapets and, where the gap allows, piers down to the ground. OSM maps a
   // wide bridge as side by side ways (the Quaibrücke: footways, cycle lanes, carriageways, tram tracks): their slabs
   // join into one deck, and the parapets (solid for the player) stand only along its outer edges.
@@ -496,6 +619,15 @@ function buildBerlinCityGrid(scene) {
     }
   }
   const depths = carveDepths(carveStrips);
+  if (ROADWAY) {
+    // under the surveyed carriageways, a metre in from their edges
+    const { cols, rows, cell, minX, minZ } = TERRAIN;
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const x = minX + i * cell, z = minZ + j * cell;
+      if (ROADWAY.onCarriageway(x, z) && ROADWAY.onCarriageway(x - 1, z) && ROADWAY.onCarriageway(x + 1, z) &&
+        ROADWAY.onCarriageway(x, z - 1) && ROADWAY.onCarriageway(x, z + 1)) depths[j * cols + i] = Math.max(depths[j * cols + i], 0.3);
+    }
+  }
   // The bare ground between the mapped surfaces (courtyards, track fields, verges): the orthophoto too
   const groundMat = hideInPhotomesh(fadeToOrtho(createSidewalkMaterial()));
   for (const mesh of buildTerrainMeshes(groundMat, { depths, carve: (x, z) => (waterAt(x, z) ? 2.5 : 0) })) {

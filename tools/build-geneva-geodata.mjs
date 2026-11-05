@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { FRAME, WORLD_BOUNDS, lonLatToWorld, lv95ToWorld } from '../js/geneva-frame.js';
 import { parseTerrain, gridHeight } from '../js/terrain-grid.js';
 import { phenoClass } from '../js/phenology.js';
+import { ROADWAY } from '../js/roadway.js';
 import { toWorld, flat, geomPts, inFrame, ringArea, bbox, bboxInFrame, rdp, cleanRing, polygons, clipToFrame } from './osm-geometry.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -539,8 +540,23 @@ const signalPoles = [], signalHeads = [];
     // that is clear of every carriageway, within MAX_SHIFT m)
     const MAX_SHIFT = 9;
     let moved = 0, stuck = 0;
+    // With the cadastre's carriageways (data/geneva-roadway.bin), a pole is on the road only where they say so (the
+    // islands are not), and moves to the nearest point a kerb's width clear of them
+    const surveyed = ROADWAY && ((x, z) => [[0, 0], [KERB, 0], [-KERB, 0], [0, KERB], [0, -KERB]].some(([dx, dz]) => ROADWAY.onCarriageway(x + dx, z + dz)));
     for (const p of poles) {
       p.ox = p.x; p.oz = p.z;
+      if (surveyed) {
+        if (!p.heads.length || !ROADWAY.onCarriageway(p.x, p.z)) continue;
+        let best = null;
+        for (let r = 0.5; r <= MAX_SHIFT && !best; r += 0.25) {
+          for (let k = 0; k < 32; k++) {
+            const a = (k / 32) * Math.PI * 2, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;
+            if (!surveyed(x, z)) { best = { x, z }; break; }
+          }
+        }
+        if (best) { p.x = best.x; p.z = best.z; moved++; } else stuck++;
+        continue;
+      }
       if (!p.heads.length || !intrusion(p.x, p.z)) continue;
       let done = false;
       for (let step = 0; step < 4 && !done; step++) {

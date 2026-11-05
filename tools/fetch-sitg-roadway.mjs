@@ -17,7 +17,7 @@ import { FRAME } from '../js/geneva-frame.js';
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const CACHE = path.join(DIR, 'data', 'cache');
 const SERVICES = 'https://vector.sitg.ge.ch/arcgis/rest/services';
-const LAYERS = ['OTC_SL_EQUIPEMENT_BOITEFEUX', 'OTC_SL_RESEAU_MAT', 'OTC_SL_EQUIPEMENT_CARREFOUR', 'OTC_MARQUAGE_LIGNE', 'OTC_MARQUAGE_SURFACE'];
+const LAYERS = ['OTC_SL_EQUIPEMENT_BOITEFEUX', 'OTC_SL_RESEAU_MAT', 'OTC_SL_EQUIPEMENT_CARREFOUR', 'OTC_MARQUAGE_LIGNE', 'OTC_MARQUAGE_SURFACE', 'CAD_DOMROUTIER_OBJETS_NIV0'];
 const TILE = 500, PAGE = 1000;
 const [minE, minN, maxE, maxN] = FRAME.lv95;
 const log = (...a) => console.log('[sitg-roadway]', ...a);
