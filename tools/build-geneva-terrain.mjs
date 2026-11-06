@@ -9,26 +9,32 @@
 //
 // File layout (little endian): 'ZTR1', uint16 cols, uint16 rows, float32 cell (m), float32 minX, float32 minZ,
 // float32 scale (m per unit), then int16 heights row-major, row j at z = minZ + j * cell, column i at x = minX + i * cell.
-// usage: node tools/build-geneva-terrain.mjs [out.bin]
+// usage: node tools/build-geneva-terrain.mjs [--extent minE,minN,maxE,maxN] [--out out.bin]   (out.bin as the last
+//   positional argument still works). With --extent (a 1 km canton tile) the underground-cut fill is skipped: it needs
+//   the city's OSM ways (tools/data/cache/osm_geneva.json) which are only meaningful inside the frame.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { fromArrayBuffer } from 'geotiff';
-import { FRAME, WORLD_BOUNDS, worldToLv95, lonLatToWorld } from '../js/geneva-frame.js';
+import { FRAME, worldToLv95, lonLatToWorld } from '../js/geneva-frame.js';
 import { polygons, bbox as ringBox } from './osm-geometry.mjs';
 import { lv95ToWgs84 } from '../js/swiss-projection.js';
+import { DIR, parseArgs, parseExtent } from './args.mjs';
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = process.argv[2] || path.join(DIR, '..', 'data', 'geneva-terrain.bin');
+const args = parseArgs(process.argv.slice(2));
+const extent = parseExtent(args.extent);
+const OUT = args.out || args.positional[0] || path.join(DIR, '..', 'data', 'geneva-terrain.bin');
 const CACHE = path.join(DIR, 'data', 'cache', 'swissalti3d');
 const STAC = 'https://data.geo.admin.ch/api/stac/v1/collections/ch.swisstopo.swissalti3d/items';
 const log = (...a) => console.log('[geneva-terrain]', ...a);
 fs.mkdirSync(CACHE, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
-// --- 1 km tiles covering the frame (latest acquisition of each), 2 m resolution ----------------------------------------
-const [minE, minN, maxE, maxN] = FRAME.lv95;
-const corners = [[minE, minN], [maxE, minN], [minE, maxN], [maxE, maxN]].map(([e, n]) => lv95ToWgs84(e, n));
+// --- 1 km tiles covering the extent (latest acquisition of each), 2 m resolution ----------------------------------------
+// A canton tile is aligned to the LV95 kilometre grid: its edge nodes need the neighbouring tiles' first pixels, so the
+// STAC search (and the keep filter) reach a couple of metres past the extent.
+const MARGIN = extent ? 4 : 0;
+const [minE, minN, maxE, maxN] = extent ?? FRAME.lv95;
+const corners = [[minE - MARGIN, minN - MARGIN], [maxE + MARGIN, minN - MARGIN], [minE - MARGIN, maxN + MARGIN], [maxE + MARGIN, maxN + MARGIN]].map(([e, n]) => lv95ToWgs84(e, n));
 const bbox = [
   Math.min(...corners.map((c) => c.lon)), Math.min(...corners.map((c) => c.lat)),
   Math.max(...corners.map((c) => c.lon)), Math.max(...corners.map((c) => c.lat))
@@ -40,7 +46,7 @@ for (let url = `${STAC}?bbox=${bbox}&limit=100`; url;) {
     const m = /_(\d{4})_(\d{4})-(\d{4})$/.exec(f.id);
     if (!m) continue;
     const [, year, e, n] = m;
-    if (+e * 1000 + 1000 <= minE || +e * 1000 >= maxE || +n * 1000 + 1000 <= minN || +n * 1000 >= maxN) continue;
+    if (+e * 1000 + 1000 <= minE - MARGIN || +e * 1000 >= maxE + MARGIN || +n * 1000 + 1000 <= minN - MARGIN || +n * 1000 >= maxN + MARGIN) continue;
     const asset = Object.entries(f.assets).find(([k]) => /_2_2056_5728\.tif$/.test(k));
     const key = `${e}-${n}`;
     if (asset && (!latest.has(key) || latest.get(key).year < +year)) latest.set(key, { year: +year, e: +e, n: +n, href: asset[1].href });
@@ -85,7 +91,7 @@ function heightAt(e, n) {
 
 // --- Resample onto the world grid ----------------------------------------------------------------------------------------
 const cell = FRAME.terrainCell, scale = 0.01;
-const [minX, minZ, maxX, maxZ] = WORLD_BOUNDS;
+const [minX, minZ, maxX, maxZ] = [minE - FRAME.E0, FRAME.N0 - maxN, maxE - FRAME.E0, FRAME.N0 - minN];
 const cols = Math.round((maxX - minX) / cell) + 1, rows = Math.round((maxZ - minZ) / cell) + 1;
 const H = new Float64Array(cols * rows);
 let lo = Infinity, hi = -Infinity, missing = 0;
@@ -99,7 +105,8 @@ for (let j = 0; j < rows; j++) {
   }
 }
 
-// --- Fill the open cuts to the underground ----------------------------------------------------------------------------------
+// --- Fill the open cuts to the underground (the city frame only: it needs tools/data/cache/osm_geneva.json) -------------
+if (!extent) {
 // Candidates: nodes within a few metres of a way in a tunnel or below ground, outside the rivers and the lake (the
 // S-Bahn runs under the Sihl and the Limmat). A candidate is a pit when it lies 0.8 m or more under the median of the
 // ground 12-24 m around it (so the hills over real tunnels stay); pits are filled by harmonic interpolation from the
@@ -169,6 +176,9 @@ for (let iter = 0; iter < 400; iter++) {
   }
 }
 log(`filled ${filled.length} nodes of open cuts to the underground (${pits} pits)`);
+} else {
+  log('outside the frame: skipping the underground-cut fill (needs the city OSM ways)');
+}
 
 const heights = new Int16Array(cols * rows);
 for (let k = 0; k < heights.length; k++) heights[k] = Math.round((H[k] - FRAME.H0) / scale);

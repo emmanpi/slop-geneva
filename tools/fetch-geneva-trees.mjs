@@ -2,19 +2,19 @@
 // isolés (ICA, Office cantonal de l'agriculture et de la nature, open data SITG:
 // https://ckan.opendata.swiss/dataset/inventaire-cantonal-des-arbres-isoles), clipped to the world frame.
 // Each living tree keeps its LV95 position, crown diameter, total height, planting year, species and situation.
-// The ArcGIS service refuses large envelopes, so the frame is read in 500 m tiles, each paged by 2000 records.
-// usage: node tools/fetch-geneva-trees.mjs
+// The ArcGIS service refuses large envelopes, so the extent is read in 500 m tiles, each paged by 2000 records.
+// Optional arguments (see tools/args.mjs): --extent minE,minN,maxE,maxN, --cache-suffix <dir>.
+// usage: node tools/fetch-geneva-trees.mjs [--extent ...] [--cache-suffix ...]
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { FRAME } from '../js/geneva-frame.js';
+import { CACHE, parseArgs, parseExtent, cacheFile } from './args.mjs';
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(DIR, 'data', 'cache', 'geneva_trees.json');
 const SERVICE = 'https://vector.sitg.ge.ch/arcgis/rest/services/SIPV_ICA_ARBRE_ISOLE/MapServer/0/query';
 const FIELDS = 'ID_ARBRE,NOM_COMPLET,SITUATION,STATUT,HAUTEUR_TOTALE,DIAMETRE_COURONNE,DATE_PLANTATION';
 const TILE = 500, PAGE = 2000;
-const [minE, minN, maxE, maxN] = FRAME.lv95;
+const args = parseArgs(process.argv.slice(2));
+const [minE, minN, maxE, maxN] = parseExtent(args.extent) ?? FRAME.lv95;
 const log = (...a) => console.log('[geneva-trees]', ...a);
 
 async function query(params) {
@@ -64,6 +64,7 @@ log(`${trees.length} living trees (${gone} felled or gone skipped)`);
 const situations = {};
 for (const t of trees) situations[t.situation] = (situations[t.situation] || 0) + 1;
 log('situations:', JSON.stringify(situations));
+const OUT = cacheFile(args.cacheSuffix, 'geneva_trees.json');
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify({ source: SERVICE, fetched: new Date().toISOString().slice(0, 10), trees }));
 log(`wrote ${OUT}`);
