@@ -3,7 +3,8 @@ import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
 import { createPostProcessing } from './post-processing.js';
 import { ClusteredLighting } from 'three/addons/lighting/ClusteredLighting.js';
-import { getLocationLabel, isTypingInField, ROADS, CITY_LANDMARKS, TELEPORT_LOCATIONS, defaultSpawn } from './city-config.js';
+import { getLocationLabel, isTypingInField, ROADS, CITY_LANDMARKS, TELEPORT_LOCATIONS, defaultSpawn, ISLAND_BOUNDS } from './city-config.js';
+import { loadCommunes } from './communes.js';
 import { buildCityGrid } from './city-grid.js';
 import { buildBoroughs } from './boroughs.js';
 import { buildLandmarks } from './landmarks.js';
@@ -98,6 +99,7 @@ async function initApp() {
   container.dataset.threeRevision = THREE.REVISION;
 
   // 2. Build Scene & Physical Atmospheric Sky / PMREM IBL / 4096x4096 Shadow Lighting
+  loadCommunes(); // the canton's communes: the map, the location beyond the city (js/communes.js)
   const scene = new THREE.Scene();
   const lightingSystem = new LightingSystem(scene, renderer);
   if (!quality.shadows) lightingSystem.sunLight.castShadow = false;
@@ -638,6 +640,10 @@ async function initApp() {
   }
 
   function teleportTo(x, z, heading = Math.PI) {
+    // Beyond the mapped city there are no streets to walk, ride or drive (the canton's relief and buildings only): by
+    // helicopter there
+    const b = ISLAND_BOUNDS;
+    if ((x < b.minX || x > b.maxX || z < b.minZ || z > b.maxZ) && controllerManager.activeMode !== 'helicopter') selectMode('helicopter');
     const destination = controllerManager.teleportActiveTo(x, z, heading);
     touchControls.reset();
     gamepadControls.reset();

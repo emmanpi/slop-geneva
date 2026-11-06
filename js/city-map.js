@@ -1,4 +1,5 @@
 import { GEO } from './city-geodata.js';
+import { COMMUNES, loadCommunes, loadCantonPhoto } from './communes.js';
 import {
   ROADS,
   BLOCKS,
@@ -38,7 +39,19 @@ import {
 // CityMapSystem remains the public class name to preserve upstream interfaces.
 
 const FONT = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-const MIN_ZOOM = Math.min(0.06, 280 / (ISLAND_BOUNDS.maxX - ISLAND_BOUNDS.minX), 260 / (ISLAND_BOUNDS.maxZ - ISLAND_BOUNDS.minZ));
+// zooms out to the whole canton (~32 km across)
+const MIN_ZOOM = Math.min(0.02, 280 / (ISLAND_BOUNDS.maxX - ISLAND_BOUNDS.minX), 260 / (ISLAND_BOUNDS.maxZ - ISLAND_BOUNDS.minZ));
+
+// Beyond the mapped city: the canton's photo (data/geneva-canton-ortho.jpg, SWISSIMAGE at ~6 m, tools/build-geneva-canton.mjs)
+// under its communes' outlines and names (js/communes.js)
+const CANTON = { img: null, bounds: null, version: 0, loading: false };
+function loadCantonMap(onReady) {
+  if (CANTON.loading || typeof Image === 'undefined') return;
+  CANTON.loading = true;
+  loadCantonPhoto().then(({ img, bounds }) => { CANTON.img = img; CANTON.bounds = bounds; CANTON.version++; onReady(); }).catch(() => {});
+  loadCommunes().then(() => { CANTON.version++; onReady(); });
+}
+const insideCity = (x, z) => x >= ISLAND_BOUNDS.minX && x <= ISLAND_BOUNDS.maxX && z >= ISLAND_BOUNDS.minZ && z <= ISLAND_BOUNDS.maxZ;
 const MAX_ZOOM = 3.0; // single lots
 const RADAR_SCALE = 0.32; // radar pixels per metre on the ground (zooms out with altitude)
 const GRID_BEARING = (GEO.frame && GEO.frame.bearingDeg) ?? 0; // Geneva's axes follow grid north (LV95)
@@ -506,6 +519,7 @@ class CityMapSystem {
     this.allBlocks = allBlocks;
     this.onTeleport = onTeleport;
     this.onToggle = onToggle;
+    loadCantonMap(() => { this.fullStaticKey = null; if (this.isFullMapOpen) this.renderFullMap(); });
 
     this.miniCanvas = document.getElementById('minimap-canvas');
     this.miniCtx = this.miniCanvas ? this.miniCanvas.getContext('2d') : null;
@@ -676,7 +690,9 @@ class CityMapSystem {
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
           if (mx >= 0 && mx <= rect.width && my >= 0 && my <= rect.height) {
-            const wPos = this.clampToManhattan(this.screenToWorld(mx, my, rect.width, rect.height));
+            // within the city: onto its streets; beyond it, anywhere in the canton (by helicopter: main.js teleportTo)
+            const target = this.screenToWorld(mx, my, rect.width, rect.height);
+            const wPos = insideCity(target.x, target.z) ? this.clampToManhattan(target) : target;
             this.waypoint = {
               x: wPos.x,
               z: wPos.z,
@@ -725,6 +741,16 @@ class CityMapSystem {
     this.searchPath = null;
     if (q.length > 0) {
       const lmMatch = CITY_LANDMARKS.find((l) => l.name.toLowerCase().includes(q) || l.short.toLowerCase().includes(q));
+      // a commune of the canton: the map over it
+      const norm = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const commune = q.length >= 3 && COMMUNES.find((c) => c.name !== 'Genève' && norm(c.name).includes(norm(q)));
+      if (commune && !lmMatch) {
+        this.viewCenterX = commune.label[0];
+        this.viewCenterZ = commune.label[1];
+        this.viewZoom = 0.12;
+        this.renderFullMap();
+        return;
+      }
       const roads = ROAD_LABELS.filter((l) => l.lower.includes(q) || l.raw.includes(q));
       if (roads.length) {
         this.searchPath = new Path2D();
@@ -842,6 +868,31 @@ class CityMapSystem {
     v.world(ctx);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
+
+    // 0. The canton beyond the city: its photo, darkened to the map's graphite, and its communes' outlines
+    if (CANTON.bounds) {
+      const [x0, z0, x1, z1] = CANTON.bounds;
+      ctx.globalAlpha = isMinimap ? 0.5 : 0.62;
+      ctx.drawImage(CANTON.img, x0, z0, x1 - x0, z1 - z0);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(8, 12, 18, 0.38)';
+      ctx.fillRect(x0, z0, x1 - x0, z1 - z0);
+    }
+    if (COMMUNES.length) {
+      ctx.lineWidth = px(isMinimap ? 1 : 1.2);
+      ctx.strokeStyle = 'rgba(220, 230, 245, 0.28)';
+      ctx.setLineDash([px(5), px(4)]);
+      for (const c of COMMUNES) {
+        if (c.box[2] < v.minX || c.box[0] > v.maxX || c.box[3] < v.minZ || c.box[1] > v.maxZ) continue;
+        for (const r of c.rings) {
+          ctx.beginPath();
+          r.forEach(([x, z], i) => (i ? ctx.lineTo(x, z) : ctx.moveTo(x, z)));
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+    }
 
     // 1. Land around the harbour & the islands
     ctx.fillStyle = MAP.land;
@@ -1213,7 +1264,7 @@ class CityMapSystem {
 
     // Ground layers, names & landmark pins: re-rendered only when the view, the search or the buildings change
     const fp = footprintLayers(this.allBlocks);
-    const key = `${v.cx}|${v.cz}|${v.s}|${this.fullCanvas.width}|${this.fullCanvas.height}|${this.searchHighlight}|${fp ? fp.version : 0}`;
+    const key = `${v.cx}|${v.cz}|${v.s}|${this.fullCanvas.width}|${this.fullCanvas.height}|${this.searchHighlight}|${fp ? fp.version : 0}|${CANTON.version}`;
     if (!this.fullStatic) this.fullStatic = document.createElement('canvas');
     if (key !== this.fullStaticKey) {
       this.fullStaticKey = key;
@@ -1292,6 +1343,24 @@ class CityMapSystem {
       placed.push([lx - 6, ly - 6, lx + 6, ly + 6]);
       if (showLabel) placed.push(box);
       pins.push({ lm, lx, ly, showLabel });
+    }
+
+    // 3b. The canton's communes, beyond the city (Genève itself when zoomed out over the canton)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `600 12px ${FONT}`;
+    for (const c of COMMUNES) {
+      if (c.name === 'Genève' && s > 0.05) continue;
+      const dx = toX(c.label[0]), dy = toY(c.label[1]);
+      if (Math.abs(dx) > w * 0.47 || Math.abs(dy) > h * 0.47) continue;
+      const tw = this.textWidth(ctx, c.name);
+      const box = [dx - tw / 2 - 3, dy - 8, dx + tw / 2 + 3, dy + 8];
+      if (overlaps(placed, box)) continue;
+      placed.push(box);
+      ctx.fillStyle = 'rgba(6, 10, 16, 0.75)';
+      ctx.fillText(c.name, dx + 1, dy + 1);
+      ctx.fillStyle = 'rgba(236, 242, 250, 0.92)';
+      ctx.fillText(c.name, dx, dy);
     }
 
     // 4. Borough, waterway & neighbourhood watermark titles (wherever they fit), letter-spaced like a printed atlas

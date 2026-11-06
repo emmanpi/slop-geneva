@@ -5,9 +5,9 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const read = (path) => readFileSync(join(__dirname, '..', path), 'utf8');
-let TELEPORT_LOCATIONS, LANDMARK_SITES, blockAt, nearestRoads, WORLD_BOUNDS;
+let TELEPORT_LOCATIONS, LANDMARK_SITES, blockAt, nearestRoads, WORLD_BOUNDS, ISLAND_BOUNDS;
 test.before(async () => {
-  ({ TELEPORT_LOCATIONS, LANDMARK_SITES, blockAt, nearestRoads } = await import('../js/city-config.js'));
+  ({ TELEPORT_LOCATIONS, LANDMARK_SITES, blockAt, nearestRoads, ISLAND_BOUNDS } = await import('../js/city-config.js'));
   ({ WORLD_BOUNDS } = await import('../js/geneva-frame.js'));
 });
 
@@ -43,7 +43,10 @@ test('preset and map teleports share arrival resets and mark the resolved landin
   let map;
   const environment = {
     TELEPORT_LOCATIONS,
+    ISLAND_BOUNDS,
+    selectMode: (mode) => calls.push(['selectMode', mode]),
     controllerManager: {
+      activeMode: 'cyclist',
       teleportActiveTo: (...args) => { calls.push(['teleport', ...args]); return landed; }
     },
     touchControls: { reset: () => calls.push(['touch']) },

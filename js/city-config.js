@@ -1,5 +1,6 @@
 import { GEO } from './city-geodata.js';
 import { lonLatToWorld, lv95ToWorld } from './geneva-frame.js';
+import { communeAt } from './communes.js';
 
 // Geneva spatial adapter for mrdoob/slop-newyork's engine, after Slop Zürich (colorfield/slop-zurich) and the
 // irregular-city data path of the Slop Berlin, Warsaw and Utrecht forks. Legacy export names are retained as API
@@ -232,6 +233,8 @@ for(const lm of CITY_LANDMARKS){
 }
 for(const lm of CITY_LANDMARKS)if(!LANDMARK_SITES[lm.name])LANDMARK_SITES[lm.name]={x:lm.x,z:lm.z,w:60,d:60,h:20,ring:[]};
 function getLocationLabel(x,z){
+ // beyond the mapped city: its commune (js/communes.js)
+ if(x<minX||x>maxX||z<minZ||z>maxZ){const c=communeAt(x,z);return c?c.name:'Région genevoise';}
  for(const lm of CITY_LANDMARKS)if(Math.hypot(x-lm.x,z-lm.z)<100)return lm.name;
  const nearby=nearestRoads(x,z,100).filter(q=>q.road.raw);
  if(nearby.length>1&&nearby[1].dist<22)return `${nearby[0].road.name} & ${nearby[1].road.name}`;

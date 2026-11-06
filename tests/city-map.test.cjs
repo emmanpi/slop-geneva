@@ -11,7 +11,7 @@ for (const [width, height, dpr] of [[500, 300, 1], [320, 180, 1.5], [1920, 1080,
     const window = { innerWidth: width, innerHeight: height, devicePixelRatio: dpr };
     const { CityMapSystem } = loadModule(source, {
       globals: { window, performance: { now: () => 0 } },
-      imports: { './city-geodata.js': { GEO: {} }, './city-config.js': { ROADS: [], ISLAND_BOUNDS: { minX: -1900, maxX: 1900, minZ: -1900, maxZ: 1900 } } }
+      imports: { './city-geodata.js': { GEO: {} }, './communes.js': { COMMUNES: [], communeAt: () => null, loadCommunes: () => Promise.resolve([]), loadCantonPhoto: () => new Promise(() => {}) }, './city-config.js': { ROADS: [], ISLAND_BOUNDS: { minX: -1900, maxX: 1900, minZ: -1900, maxZ: 1900 } } }
     });
     const map = Object.create(CityMapSystem.prototype);
     // Capture the production render viewport; drawing primitives are irrelevant to coordinate conversion.
@@ -103,7 +103,7 @@ function mapHarness() {
   };
   const { CityMapSystem } = loadModule(source, {
     globals: { window, document },
-    imports: { './city-geodata.js': { GEO: { frame: {} } }, './city-config.js': config }
+    imports: { './city-geodata.js': { GEO: { frame: {} } }, './communes.js': { COMMUNES: [], communeAt: () => null, loadCommunes: () => Promise.resolve([]), loadCantonPhoto: () => new Promise(() => {}) }, './city-config.js': config }
   });
   const teleports = [], toggles = [];
   const map = new CityMapSystem({
