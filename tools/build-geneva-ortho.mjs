@@ -2,7 +2,8 @@
 // 1 m per pixel (4000 x 4800 px), the newest flight of each 1 km tile. Row 0 is the frame's north edge (z = minZ),
 // column 0 its west edge (x = minX), so the browser samples it at uv = ((x - minX) / W, (z - minZ) / H)
 // (js/orthophoto.js). Each tile's cloud-optimised GeoTIFF is read at its 0.4 m overview with HTTP range requests and
-// box-filtered down to 1 m.
+// box-filtered down to 1 m. A flight whose COG the server cannot read (a defective file) falls back to the tile's next
+// newest flight; the year used is written to the .json sidecar.
 // usage: node tools/build-geneva-ortho.mjs [--extent minE,minN,maxE,maxN] [--out out.jpg] [--trees trees.json]
 //   [--cache-suffix dir] [--download]   (out.jpg as the last positional argument still works)
 import fs from 'node:fs';
@@ -30,7 +31,7 @@ const bbox = [
   Math.min(...corners.map((c) => c.lon)), Math.min(...corners.map((c) => c.lat)),
   Math.max(...corners.map((c) => c.lon)), Math.max(...corners.map((c) => c.lat))
 ].join(',');
-const latest = new Map();
+const flights = new Map(); // key -> the tile's flights, newest first
 for (let url = `${STAC}?bbox=${bbox}&limit=100`; url;) {
   const page = await (await fetch(url)).json();
   for (const f of page.features) {
@@ -40,11 +41,15 @@ for (let url = `${STAC}?bbox=${bbox}&limit=100`; url;) {
     if (+e * 1000 + 1000 <= minE || +e * 1000 >= maxE || +n * 1000 + 1000 <= minN || +n * 1000 >= maxN) continue;
     const asset = Object.values(f.assets).find((a) => /_0\.1_2056\.tif$/.test(a.href));
     const key = `${e}-${n}`;
-    if (asset && (!latest.has(key) || latest.get(key).year < +year)) latest.set(key, { year: +year, e: +e, n: +n, href: asset.href });
+    if (!asset) continue;
+    const list = flights.get(key) ?? [];
+    if (!list.some((c) => c.year === +year)) list.push({ year: +year, e: +e, n: +n, href: asset.href });
+    flights.set(key, list.sort((a, b) => b.year - a.year));
   }
   url = page.links?.find((l) => l.rel === 'next')?.href;
 }
-log(`${latest.size} tiles:`, [...latest].map(([k, t]) => `${k}@${t.year}`).join(' '));
+log(`${flights.size} tiles:`, [...flights].map(([k, list]) => `${k}@${list[0].year}`).join(' '));
+const years = new Map([...flights].map(([key, list]) => [key, list[0].year])); // the flight actually used, per tile
 
 // --- Mosaic (cached raw in tools/data/cache/ortho_raw.rgba: the tree removal below can be re-run without downloading) ----
 const RAW = cacheFile(args.cacheSuffix, 'ortho_raw.rgba');
@@ -55,49 +60,57 @@ else {
 for (let i = 3; i < rgba.length; i += 4) rgba[i] = 255;
 const k = Math.round(RES / OVERVIEW_RES * 10) / 10; // overview pixels per output pixel (2.5)
 let done = 0;
-for (const t of latest.values()) {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      const tiff = await fromUrl(t.href);
-      const count = await tiff.getImageCount();
-      let image = null;
-      for (let i = 0; i < count; i++) {
-        const im = await tiff.getImage(i);
-        if (Math.abs(1000 / im.getWidth() - OVERVIEW_RES) < 0.01) { image = im; break; }
-      }
-      if (!image) throw new Error(`${t.href}: no ${OVERVIEW_RES} m overview`);
-      const size = image.getWidth();
-      const raster = await image.readRGB({ interleave: true }); // (JPEG-compressed in YCbCr: converted to RGB)
-      const tileE = t.e * 1000, tileN = t.n * 1000;
-      // Output pixels whose centre falls in this tile: box filter over the overview pixels they cover
-      const c0 = Math.max(0, Math.ceil((tileE - minE) / RES - 0.5)), c1 = Math.min(W - 1, Math.floor((tileE + 1000 - minE) / RES - 0.5));
-      const r0 = Math.max(0, Math.ceil((maxN - tileN - 1000) / RES - 0.5)), r1 = Math.min(H - 1, Math.floor((maxN - tileN) / RES - 0.5));
-      for (let r = r0; r <= r1; r++) {
-        const N = maxN - (r + 0.5) * RES;
-        const v0 = (tileN + 1000 - N - RES / 2) / OVERVIEW_RES;
-        for (let c = c0; c <= c1; c++) {
-          const E = minE + (c + 0.5) * RES;
-          const u0 = (E - RES / 2 - tileE) / OVERVIEW_RES;
-          let sr = 0, sg = 0, sb = 0, n = 0;
-          for (let y = Math.max(0, Math.floor(v0)); y < Math.min(size, Math.ceil(v0 + k)); y++) {
-            for (let x = Math.max(0, Math.floor(u0)); x < Math.min(size, Math.ceil(u0 + k)); x++) {
-              const p = (y * size + x) * 3;
-              sr += raster[p]; sg += raster[p + 1]; sb += raster[p + 2]; n++;
-            }
-          }
-          if (!n) continue;
-          const o = (r * W + c) * 4;
-          rgba[o] = sr / n; rgba[o + 1] = sg / n; rgba[o + 2] = sb / n;
+for (const [key, list] of flights) {
+  let used = null;
+  for (const t of list) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const tiff = await fromUrl(t.href);
+        const count = await tiff.getImageCount();
+        let image = null;
+        for (let i = 0; i < count; i++) {
+          const im = await tiff.getImage(i);
+          if (Math.abs(1000 / im.getWidth() - OVERVIEW_RES) < 0.01) { image = im; break; }
         }
+        if (!image) throw new Error(`${t.href}: no ${OVERVIEW_RES} m overview`);
+        const size = image.getWidth();
+        const raster = await image.readRGB({ interleave: true }); // (JPEG-compressed in YCbCr: converted to RGB)
+        const tileE = t.e * 1000, tileN = t.n * 1000;
+        // Output pixels whose centre falls in this tile: box filter over the overview pixels they cover
+        const c0 = Math.max(0, Math.ceil((tileE - minE) / RES - 0.5)), c1 = Math.min(W - 1, Math.floor((tileE + 1000 - minE) / RES - 0.5));
+        const r0 = Math.max(0, Math.ceil((maxN - tileN - 1000) / RES - 0.5)), r1 = Math.min(H - 1, Math.floor((maxN - tileN) / RES - 0.5));
+        for (let r = r0; r <= r1; r++) {
+          const N = maxN - (r + 0.5) * RES;
+          const v0 = (tileN + 1000 - N - RES / 2) / OVERVIEW_RES;
+          for (let c = c0; c <= c1; c++) {
+            const E = minE + (c + 0.5) * RES;
+            const u0 = (E - RES / 2 - tileE) / OVERVIEW_RES;
+            let sr = 0, sg = 0, sb = 0, n = 0;
+            for (let y = Math.max(0, Math.floor(v0)); y < Math.min(size, Math.ceil(v0 + k)); y++) {
+              for (let x = Math.max(0, Math.floor(u0)); x < Math.min(size, Math.ceil(u0 + k)); x++) {
+                const p = (y * size + x) * 3;
+                sr += raster[p]; sg += raster[p + 1]; sb += raster[p + 2]; n++;
+              }
+            }
+            if (!n) continue;
+            const o = (r * W + c) * 4;
+            rgba[o] = sr / n; rgba[o + 1] = sg / n; rgba[o + 2] = sb / n;
+          }
+        }
+        used = t;
+        break;
+      } catch (error) {
+        if (attempt === 4) break;
+        log(`retry ${t.e}-${t.n}@${t.year}: ${error.message}`);
+        await new Promise((r) => setTimeout(r, attempt * 2000));
       }
-      break;
-    } catch (error) {
-      if (attempt === 4) throw error;
-      log(`retry ${t.e}-${t.n}: ${error.message}`);
-      await new Promise((r) => setTimeout(r, attempt * 2000));
     }
+    if (used) break;
+    log(`${key}@${t.year} unreadable after 4 attempts, trying an older flight`);
   }
-  log(`${++done}/${latest.size} ${t.e}-${t.n}@${t.year}`);
+  if (!used) throw new Error(`${key}: no readable SWISSIMAGE flight`);
+  years.set(key, used.year);
+  log(`${++done}/${flights.size} ${key}@${used.year}`);
 }
 fs.mkdirSync(path.dirname(RAW), { recursive: true });
 fs.writeFileSync(RAW, rgba);
@@ -180,6 +193,6 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, data);
 fs.writeFileSync(OUT.replace(/\.jpg$/, '.json'), JSON.stringify({
   source: 'swisstopo SWISSIMAGE 10 cm', lv95: extent ?? FRAME.lv95, resolution: RES, width: W, height: H,
-  tiles: Object.fromEntries([...latest].map(([key, t]) => [key, t.year])), treesRemoved: removed, fetched: new Date().toISOString().slice(0, 10)
+  tiles: Object.fromEntries(years), treesRemoved: removed, fetched: new Date().toISOString().slice(0, 10)
 }));
 log(`wrote ${OUT}: ${W}x${H} @ ${RES} m, ${(data.length / 1048576).toFixed(1)} MB`);
