@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
-import { surfaceHeight, deckHeight, groundHeight, waterSurfaceHeight, ROAD_TOP, SIDEWALK_TOP } from './terrain.js';
+import { surfaceHeight, deckHeight, groundHeight, waterSurfaceHeight, ROAD_TOP, SIDEWALK_TOP, TERRAIN } from './terrain.js';
+import { surroundingsHeight } from './surroundings.js';
 import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
@@ -44,6 +45,12 @@ function spawnPosition(lateral, forward, y) {
   return new THREE.Vector3(SPAWN_X + lateral * cs + forward * sn, y, SPAWN_Z - lateral * sn + forward * cs);
 }
 const groundCollider = { type: 'ground' };
+// The helicopter flies over the whole canton (data/geneva-canton-boundary.json: x -14590..12974, z -17578..8355 with
+// the Céligny exclaves), with 2 km to spare; the other players stay on the mapped city (ISLAND_BOUNDS)
+const HELI_BOUNDS = { minX: -16600, maxX: 15000, minZ: -19600, maxZ: 10400 };
+// The ground under the helicopter: the city's terrain, the surroundings' relief beyond it (the canton, the Salève's foot)
+const heliGround = (x, z) => (surroundingsHeight && (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ)
+  ? surroundingsHeight(x, z) : surfaceHeight(x, z));
 // Parked players (the modes not in use) are drawn within this distance of the camera (m), see cullParked()
 const PARKED_VIEW = 250;
 
@@ -562,7 +569,7 @@ class ThirdPersonControllerManager {
     this.resetInput();
     if (!Number.isFinite(heading)) heading = ent.heading;
     const heli = this.activeMode === 'helicopter';
-    const ground = surfaceHeight(x, z);
+    const ground = heli ? heliGround(x, z) : surfaceHeight(x, z);
     const altitude = heli ? Math.max(ground + 0.25, Math.min(ground + 420, savedAltitude ?? Math.max(ground + 92, ent.position.y))) : 0;
     const destination = this.findTeleportPosition(x, z, heading, altitude);
     if (destination) {
@@ -612,7 +619,6 @@ class ThirdPersonControllerManager {
     const sinH = Math.sin(heading), cosH = Math.cos(heading);
     const shape = collisionBody(this.activeMode, radius, heading, 0.1);
     const reach = Math.max(shape.extX, shape.extZ);
-    const margin = heli ? 6000 : 0;
     const entity = this.getActiveEntity();
     // Conservative body cylinders, including the taxi's corners, bicycle wheels and helicopter tail/rotor.
     const body = { person: [0.48, 1.9], car: [2.4, 1.9], cyclist: [1.0, 1.9], cargobike: [1.45, 1.9], helicopter: [6.2, 3.2] };
@@ -623,8 +629,9 @@ class ThirdPersonControllerManager {
     const cameraBack = Math.cos(0.09) * entity.chaseDistance;
     const cameraUp = entity.chaseHeight + Math.sin(0.09) * entity.chaseDistance * 0.85;
     const clampPoint = (px, pz) => {
-      pz = Math.max(ISLAND_BOUNDS.minZ + (heli ? -6000 : 30), Math.min(ISLAND_BOUNDS.maxZ + margin, pz));
-      px = Math.max(ISLAND_BOUNDS.minX - margin, Math.min(ISLAND_BOUNDS.maxX + margin, px));
+      const B = heli ? HELI_BOUNDS : ISLAND_BOUNDS;
+      pz = Math.max(B.minZ + (heli ? 0 : 30), Math.min(B.maxZ, pz));
+      px = Math.max(B.minX, Math.min(B.maxX, px));
       if (!heli && getIslandBoundsAtZ) {
         const shore = getIslandBoundsAtZ(pz);
         const west = shore.westX + 8, east = shore.eastX - 8;
@@ -1709,9 +1716,9 @@ class ThirdPersonControllerManager {
       entity._lastDryPosition ??= {x: pos.x, z: pos.z};
       entity._lastDryPosition.x = pos.x; entity._lastDryPosition.z = pos.z;
     }
-    const m = heli ? 1200 : 0;
-    pos.x = Math.max(ISLAND_BOUNDS.minX - m, Math.min(ISLAND_BOUNDS.maxX + m, pos.x));
-    pos.z = Math.max(ISLAND_BOUNDS.minZ + (heli ? -6000 : 30), Math.min(ISLAND_BOUNDS.maxZ + m, pos.z));
+    const B = heli ? HELI_BOUNDS : ISLAND_BOUNDS;
+    pos.x = Math.max(B.minX, Math.min(B.maxX, pos.x));
+    pos.z = Math.max(B.minZ + (heli ? 0 : 30), Math.min(B.maxZ, pos.z));
     if (this.activeMode !== 'helicopter' && getIslandBoundsAtZ) {
       const shore = getIslandBoundsAtZ(pos.z);
       const minShoreX = shore.westX + 8.0;
@@ -2108,7 +2115,7 @@ class ThirdPersonControllerManager {
     h.position.y += h.verticalSpeed * dt;
 
     // Geneva's relief (and the bridge decks) is the floor; the ceiling stays 420 m above it
-    const floor = surfaceHeight(h.position.x, h.position.z) + 0.25;
+    const floor = heliGround(h.position.x, h.position.z) + 0.25;
     if (h.position.y < floor) {
       this.reportCollision(h, groundCollider, 'ground', h.position.x, floor, h.position.z, 0, 1, 0, -h.verticalSpeed);
     }
