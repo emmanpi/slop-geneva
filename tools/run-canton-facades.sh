@@ -29,13 +29,15 @@ step() {
   fi
 }
 
+# macOS's bash 3.2 treats an empty array as unbound under `set -u`, so the whole-canton run (no --area) must guard
+# every expansion of AREA: `${AREA[@]+"${AREA[@]}"}` is nothing when it is empty, the two words otherwise.
 mark "pipeline start (area: ${AREA[*]:-the whole canton})"
-step footprints  node tools/fetch-canton-footprints.mjs "${AREA[@]}"
-step batches     node tools/build-geneva-canton-facades.mjs --batches "${AREA[@]}"
+step footprints  node tools/fetch-canton-footprints.mjs ${AREA[@]+"${AREA[@]}"}
+step batches     node tools/build-geneva-canton-facades.mjs --batches ${AREA[@]+"${AREA[@]}"}
 step gwr         bash -c '[ -f tools/data/cache/gwr/gebaeude_batiment_edificio.csv ] || npm run data:gwr'
-step facades0    node tools/build-geneva-canton-facades.mjs --facades "${AREA[@]}"
-step samples     node tools/sample-photomesh-facades.mjs --canton "${AREA[@]}"
-step facades     node tools/build-geneva-canton-facades.mjs --facades "${AREA[@]}"
+step facades0    node tools/build-geneva-canton-facades.mjs --facades ${AREA[@]+"${AREA[@]}"}
+step samples     node tools/sample-photomesh-facades.mjs --canton ${AREA[@]+"${AREA[@]}"}
+step facades     node tools/build-geneva-canton-facades.mjs --facades ${AREA[@]+"${AREA[@]}"}
 step test        npm test
 mark "pipeline done"
 echo "DONE" >> "$LOG"
