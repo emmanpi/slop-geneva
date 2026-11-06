@@ -65,7 +65,15 @@ export const inWater = (x, z) => WATER.some((w) => x >= w.minX && x <= w.maxX &&
 }
 // (on the quays' levelled banks, the quay's height: see SHORE below; set once the shores are known)
 let quayCells = null;
+// Beyond the city's terrain grid: the ground another module provides (js/canton-ground.js: the canton's 4 m tiles where
+// loaded, the surroundings' relief elsewhere), NaN where it has none (the grid's edge then, as before)
+let outerGround = null;
+export function setOuterGround(fn) { outerGround = fn; }
 export const groundHeight = (x, z) => {
+  if (outerGround && (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ)) {
+    const h = outerGround(x, z);
+    if (h === h) return h;
+  }
   const g = gridHeight(TERRAIN, x, z);
   if (!quayCells) return g;
   const q = quayHeight(x, z);

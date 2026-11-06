@@ -12,6 +12,7 @@ import { buildCityBlocks } from './buildings.js';
 import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
 import { buildCanton } from './canton.js';
+import { buildCantonGround } from './canton-ground.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
 import { createWeather, WEATHER_PRESETS } from './weather.js';
@@ -121,6 +122,7 @@ async function initApp() {
     console.warn('[surroundings] the horizon stays empty:', error);
   }
   const canton = buildCanton(scene);
+  const cantonGround = buildCantonGround(scene); // the canton's 1 km ground tiles (data/canton/), streamed
   markInit('surroundings');
   const trams = buildTrams(scene);
   markInit('trams');
@@ -909,7 +911,10 @@ async function initApp() {
       setStreetView(c.x, c.z, c.y - groundHeight(c.x, c.z));
       photomesh.update(cameraSystem.camera.position);
     }
-    if (perf.run('canton')) canton.update(cameraSystem.camera);
+    if (perf.run('canton')) {
+      canton.update(cameraSystem.camera);
+      cantonGround.update(cameraSystem.camera);
+    }
     if (perf.run('trams')) {
       trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
       trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);

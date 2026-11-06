@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu';
 import { loadSwissTile, bakeFootprints } from './swissbuildings3d.js';
 import { surroundingsHeight } from './surroundings.js';
+import { groundHeight } from './terrain.js';
+import { groundReady } from './canton-ground.js';
 
 // The canton's buildings beyond the mapped city: swissBUILDINGS3D 3.0 tiles (data/geneva-canton-buildings.json, from
 // tools/build-geneva-canton.mjs) streamed straight from swisstopo's 3D Tiles service around the camera, nearest first,
@@ -49,6 +51,7 @@ export function buildCanton(scene) {
     loading++;
     try {
       await recentReady; // (a tile baked before the list would keep the buildings it replaces)
+      await groundReady(t.x, t.z); // (its feet settle on the ground: the canton's fine tile there, once loaded)
       const mesh = await loadSwissTile(origin + t.u, { seed: t.seed, stats: bake, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes, hidden: recent?.hidden?.[t.u] });
       // its recent buildings, on the same ground, in the same material
       const added = recent?.byTile.get(t.u);
@@ -86,7 +89,8 @@ export function buildCanton(scene) {
   function update(camera, now = performance.now()) {
     if (now < next || !tiles.length || !surroundingsHeight) return;
     next = now + 400;
-    bake.ground ??= surroundingsHeight;
+    // (terrain.js groundHeight beyond the city: the canton's fine tiles where loaded, else the surroundings' relief)
+    bake.ground ??= groundHeight;
     const p = camera.position;
     const reach = Math.min(4500, 1500 + Math.max(0, p.y) * 8);
     const order = [];

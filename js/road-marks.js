@@ -115,6 +115,10 @@ function buildTile(d, t) {
  * (the OSM cycle lanes' lines and pictograms) hidden once they are in, as the survey has them already.
  * Returns { group, update(camera), state }.
  */
+// (the canton's tiles have the same format: js/canton-ground.js)
+export { parse as parseRoadMarks, buildTile as buildRoadMarkTile };
+export const createRoadMarksMaterial = () => hideInPhotomesh(createRoadPaintMaterial());
+
 export function buildRoadMarks(scene, { replaces = [] } = {}) {
   const group = new THREE.Group();
   group.name = 'RoadMarksSITG';

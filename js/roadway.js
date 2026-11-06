@@ -59,3 +59,5 @@ function parse(buffer) {
 
 const buffer = await loadBinary(URL_DATA);
 export const ROADWAY = buffer ? parse(buffer) : null;
+// (the canton's tiles have the same format: js/canton-ground.js)
+export { parse as parseRoadway };

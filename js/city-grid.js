@@ -4140,6 +4140,8 @@ function buildUnderpassPortal(frames, acc, quad, lights, colliders) {
 }
 
 export {
+  kerbGeometry, // (the canton's tiles: js/canton-ground.js)
+  KERB_TOP,
   buildCityGrid,
   batchStaticGroupMeshes,
   centralParkClearings,

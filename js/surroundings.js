@@ -32,6 +32,8 @@ const curvatureDrop = (x, z, inner) => {
   const d = Math.max(0, Math.hypot(x, z) - inner);
   return (d * d * (1 - REFRACTION)) / (2 * EARTH_RADIUS);
 };
+/** The drop of the ground beyond the city for the Earth's curvature (m), as the surroundings' relief applies it */
+export const curvature = (x, z) => curvatureDrop(x, z, CITY_RADIUS);
 
 /**
  * One ring as a mesh: cells inside `hole` ({ minX, maxX, minZ, maxZ }, the area drawn in more detail) are left out but
@@ -92,6 +94,25 @@ function ringMeshes(grid, hole, innerHeight, materials, skirt) {
 }
 
 // Meadows and woods of the plateau, rock above the tree line, snow on the gentler slopes of the high Alps, lakes
+// Where the canton's 4 m ground tiles are shown (js/canton-ground.js), the relief beyond the city steps aside: a mask
+// over the canton's LV95 kilometres (1 = a fine tile is there), read by the land material
+const MASK_E0 = 2484, MASK_N0 = 1108, MASK_W = 32, MASK_H = 30; // km
+const fineMask = new THREE.DataTexture(new Uint8Array(MASK_W * MASK_H * 4), MASK_W, MASK_H, THREE.RGBAFormat);
+fineMask.magFilter = fineMask.minFilter = THREE.NearestFilter;
+fineMask.needsUpdate = true;
+/** Marks the LV95 kilometre tile (E, N in km) as drawn by a fine ground tile, or not */
+export function setFineGround(E, N, on) {
+  const i = E - MASK_E0, j = N - MASK_N0;
+  if (i < 0 || j < 0 || i >= MASK_W || j >= MASK_H) return;
+  fineMask.image.data[(j * MASK_W + i) * 4] = on ? 255 : 0;
+  fineMask.needsUpdate = true;
+}
+const fineGroundHere = () => {
+  const u = positionWorld.x.add(FRAME.E0 - MASK_E0 * 1000).div(MASK_W * 1000);
+  const v = float(FRAME.N0 - MASK_N0 * 1000).sub(positionWorld.z).div(MASK_H * 1000);
+  return texture(fineMask, vec2(u, v)).r;
+};
+
 // (colours in linear space)
 // Within the canton's orthophoto (data/geneva-canton-ortho.jpg, tools/build-geneva-canton.mjs: ±12.1 km at ~6 m) the
 // ground is the photo, fading to the painted relief towards the mosaic's edges
@@ -138,6 +159,7 @@ export async function buildSurroundings(scene) {
     canton = { info, map, ready };
   }
   const materials = { land: createMaterial(canton), lake: createWaterMaterial() };
+  materials.land.maskNode = fineGroundHere().lessThan(0.5); // (discarded under the canton's fine tiles)
   const group = new THREE.Group();
   group.name = 'surroundings';
   group.userData.terrain = 'absolute';

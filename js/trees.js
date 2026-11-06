@@ -838,14 +838,15 @@ function hashPos(x, y, z) {
  * tree's level of detail up to date from the camera of every view pass (scene.onBeforeRender). Returns
  * { group, material, atlas, update(cameraPosition) }.
  */
-function createTreeField(scene, sites) {
+// `shared`: another field's { atlas, material } (the canton's tile fields share one: one leaf atlas, one pipeline)
+function createTreeField(scene, sites, shared = null) {
   const group = new THREE.Group();
   group.name = 'Trees';
   // Each tree stands on the terrain from the start: the level-of-detail repacking below rewrites the instance matrices
   // from `mats`, so terrain.js placeOnTerrain must leave this subtree alone
   group.userData.terrain = 'absolute';
-  const atlas = createLeafAtlas();
-  const material = createTreeMaterial(atlas.texture);
+  const atlas = shared?.atlas || createLeafAtlas();
+  const material = shared?.material || createTreeMaterial(atlas.texture);
 
   // Geometries: [species][variant][lod]
   const geos = SPECIES.map((_, s) => [0, 1].map((v) => buildTreeGeometries(s, v, atlas.tileMeters)));

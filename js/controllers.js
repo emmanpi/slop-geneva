@@ -1,6 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { surfaceHeight, deckHeight, groundHeight, waterSurfaceHeight, ROAD_TOP, SIDEWALK_TOP, TERRAIN } from './terrain.js';
-import { surroundingsHeight } from './surroundings.js';
+import { surfaceHeight, deckHeight, groundHeight, waterSurfaceHeight, ROAD_TOP, SIDEWALK_TOP } from './terrain.js';
 import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
@@ -49,8 +48,8 @@ const groundCollider = { type: 'ground' };
 // the Céligny exclaves), with 2 km to spare; the other players stay on the mapped city (ISLAND_BOUNDS)
 const HELI_BOUNDS = { minX: -16600, maxX: 15000, minZ: -19600, maxZ: 10400 };
 // The ground under the helicopter: the city's terrain, the surroundings' relief beyond it (the canton, the Salève's foot)
-const heliGround = (x, z) => (surroundingsHeight && (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ)
-  ? surroundingsHeight(x, z) : surfaceHeight(x, z));
+// (terrain.js groundHeight answers there too: js/canton-ground.js's tiles, else the surroundings' relief)
+const heliGround = (x, z) => surfaceHeight(x, z);
 // Parked players (the modes not in use) are drawn within this distance of the camera (m), see cullParked()
 const PARKED_VIEW = 250;
 
