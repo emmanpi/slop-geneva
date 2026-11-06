@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { texture, uv } from 'three/tsl';
+import { float, texture, uv } from 'three/tsl';
 import { GENEVA_DATA } from './geneva-geodata.js';
 import { deckHeight, groundHeight, surfaceHeight, ROAD_TOP } from './terrain.js';
 import { hideInPhotomesh } from './photomesh.js';
@@ -211,7 +211,7 @@ function buildMarkings(lines) {
     g.computeVertexNormals();
     const m = new THREE.MeshStandardNodeMaterial({ color: YELLOW, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
     m.opacityNode = texture(pictogramTexture(), uv()).r;
-    m.alphaTest = 0.5;
+    m.alphaTestNode = float(0.5); // (alphaTestNode, not alphaTest: see createTreeMaterial (tsl-materials.js))
     const mesh = new THREE.Mesh(g, hideInPhotomesh(m));
     mesh.receiveShadow = true;
     mesh.renderOrder = 1;

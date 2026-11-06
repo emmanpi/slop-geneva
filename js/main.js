@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2, smoothstep } from 'three/tsl';
+import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2, vec4, smoothstep } from 'three/tsl';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
 import { createPostProcessing } from './post-processing.js';
 import { ClusteredLighting } from 'three/addons/lighting/ClusteredLighting.js';
@@ -40,6 +40,7 @@ import { LightingSystem } from './lighting.js';
 import { NYCMapSystem } from './nyc-map.js';
 import { setupSceneCulling, updateSceneCulling } from './scene-culling.js';
 import { CityAudioSystem } from './audio-system.js';
+import { perf } from './perf.js';
 
 // Saved player state (localStorage 'slopgeneva-player-state'); older versions are ignored
 const SAVE_VERSION = 3;
@@ -65,12 +66,14 @@ async function initApp() {
   }
 
   // 1. Initialize Three.js WebGPURenderer with 32-bit float reversedDepthBuffer
+  // Quality switches & profiling: ?shadows=0 ?ssr=0 ?bloom=0 ?msaa=0 ?res=0.75 ?perf=1 (js/perf.js)
+  const quality = perf.quality;
   const renderer = new THREE.WebGPURenderer({
-    antialias: true,
+    ...perf.rendererOptions(),
     powerPreference: 'high-performance',
     reversedDepthBuffer: true
   });
-  renderer.setPixelRatio(1.0);
+  renderer.setPixelRatio(quality.res);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.lighting = new ClusteredLighting(256, 32, 28, 48);
@@ -94,6 +97,7 @@ async function initApp() {
   // 2. Build Scene & Physical Atmospheric Sky / PMREM IBL / 4096x4096 Shadow Lighting
   const scene = new THREE.Scene();
   const lightingSystem = new LightingSystem(scene, renderer);
+  if (!quality.shadows) lightingSystem.sunLight.castShadow = false;
   markInit('lighting');
 
   if (loadingStatus) {
@@ -308,39 +312,45 @@ async function initApp() {
   scenePass.renderTarget.storeMultisampledColorBuffer = false;
   const ssrFade = smoothstep(360.0, 180.0, positionView.z.negate());
   const maxSSRRoughness = 0.75;
-  const sceneMRT = mrt({
+  // Without SSR (?ssr=0) the scene pass writes its colour only
+  const sceneMRT = quality.ssr ? mrt({
     output: output,
     normal: normalView,
     metalRough: vec2(roughness.lessThan(maxSSRRoughness).select(metalness.mul(ssrFade), 0), roughness)
-  });
-  sceneMRT.setBlendMode('normal', new THREE.BlendMode(THREE.MaterialBlending));
-  sceneMRT.setBlendMode('metalRough', new THREE.BlendMode(THREE.MaterialBlending));
+  }) : mrt({ output: output });
+  if (quality.ssr) {
+    sceneMRT.setBlendMode('normal', new THREE.BlendMode(THREE.MaterialBlending));
+    sceneMRT.setBlendMode('metalRough', new THREE.BlendMode(THREE.MaterialBlending));
+  }
   scenePass.setMRT(sceneMRT);
 
   const scenePassColor = scenePass.getTextureNode('output');
-  const scenePassDepth = scenePass.getTextureNode('depth');
-  const scenePassNormal = scenePass.getTextureNode('normal');
-  const scenePassMetalRough = scenePass.getTextureNode('metalRough');
+  let reflections = vec4(0);
+  if (quality.ssr) {
+    const scenePassDepth = scenePass.getTextureNode('depth');
+    const scenePassNormal = scenePass.getTextureNode('normal');
+    const scenePassMetalRough = scenePass.getTextureNode('metalRough');
 
-  const ssrPass = ssr(scenePassColor, scenePassDepth, scenePassNormal, {
-    metalnessNode: scenePassMetalRough.r,
-    roughnessNode: scenePassMetalRough.g,
-    camera: cameraSystem.camera
-  });
-  ssrPass.resolutionScale = 0.5;
-  ssrPass.blurQuality = 1;
-  ssrPass.maxDistance.value = 42;
-  ssrPass.thickness.value = 0.85;
-  // Fewer coarse steps, then refine detected hits to keep reflection edges precise.
-  ssrPass.quality.value = 0.25;
-  ssrPass.binaryRefine = true;
-  ssrPass.intensity.value = 0.50;
-  ssrPass.screenEdgeFadeBlack = true;
+    const ssrPass = ssr(scenePassColor, scenePassDepth, scenePassNormal, {
+      metalnessNode: scenePassMetalRough.r,
+      roughnessNode: scenePassMetalRough.g,
+      camera: cameraSystem.camera
+    });
+    ssrPass.resolutionScale = 0.5;
+    ssrPass.blurQuality = 1;
+    ssrPass.maxDistance.value = 42;
+    ssrPass.thickness.value = 0.85;
+    // Fewer coarse steps, then refine detected hits to keep reflection edges precise.
+    ssrPass.quality.value = 0.25;
+    ssrPass.binaryRefine = true;
+    ssrPass.intensity.value = 0.50;
+    ssrPass.screenEdgeFadeBlack = true;
 
-  // Roughness mip blur must not spread reflections back onto matte or nonreflective surfaces.
-  const reflectionMask = scenePassMetalRough.r.greaterThan(0).select(smoothstep(maxSSRRoughness, 0.55, scenePassMetalRough.g), 0);
-  const reflections = ssrPass.mul(reflectionMask);
-  const colorGrade = createPostProcessing(renderer, scenePassColor, reflections);
+    // Roughness mip blur must not spread reflections back onto matte or nonreflective surfaces.
+    const reflectionMask = scenePassMetalRough.r.greaterThan(0).select(smoothstep(maxSSRRoughness, 0.55, scenePassMetalRough.g), 0);
+    reflections = ssrPass.mul(reflectionMask);
+  }
+  const colorGrade = createPostProcessing(renderer, scenePassColor, reflections, { bloom: quality.bloom });
   const renderPipeline = new THREE.RenderPipeline(renderer, colorGrade.outputNode);
 
   // 6. Wire UI Controls (Strictly using safe DOM APIs: textContent, classList, addEventListener)
@@ -844,49 +854,61 @@ async function initApp() {
     simClock.tick(dt);
     elapsed += dt;
 
-    // Update 3rd-person controllers, camera, signals, traffic & vehicle collisions, building LODs, and dynamic shadow focus
+    // Update 3rd-person controllers, camera, signals, traffic & vehicle collisions, building LODs, and dynamic shadow focus.
+    // perf.run() times each section (?perf=1) and skips the systems switched off (?off=..., js/perf.js).
+    perf.run('controls');
     gamepadControls.update(dt);
     controllerManager.update(dt, elapsed);
     cameraSystem.update(dt, elapsed);
     streetDetails.signalClock.value = elapsed;
-    trafficSystem.update(
-      dt,
-      elapsed,
-      cameraSystem.currentPos,
-      controllerManager.getActiveEntity(),
-      controllerManager.activeMode,
-      cameraSystem.camera
-    );
-    highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
-    boats.update(dt, elapsed);
-    mooredBoats.update(elapsed, cameraSystem.camera);
-    weather.update(dt, cameraSystem.camera);
-    planes.setWind(weather.state.current);
-    planes.update();
-    fireworks.update(dt);
+    if (perf.run('traffic')) {
+      trafficSystem.update(
+        dt,
+        elapsed,
+        cameraSystem.currentPos,
+        controllerManager.getActiveEntity(),
+        controllerManager.activeMode,
+        cameraSystem.camera
+      );
+    }
+    if (perf.run('highway')) highwayTraffic.update(dt, cameraSystem.camera, controllerManager.getActiveEntity(), controllerManager.activeMode);
+    if (perf.run('boats')) boats.update(dt, elapsed);
+    if (perf.run('mooredBoats')) mooredBoats.update(elapsed, cameraSystem.camera);
+    if (perf.run('weather')) weather.update(dt, cameraSystem.camera);
+    if (perf.run('planes')) {
+      planes.setWind(weather.state.current);
+      planes.update();
+    }
+    if (perf.run('fireworks')) fireworks.update(dt);
     jet.setSwiss(Math.floor(seasonDay.value) === 212); // the 1st of August
-    cycling.update(dt, cameraSystem.camera);
-    {
+    if (perf.run('cycling')) cycling.update(dt, cameraSystem.camera);
+    if (perf.run('photomesh')) {
       // street level: the procedural city near the camera, the photomesh beyond (js/photomesh.js)
       const c = cameraSystem.camera.position;
       setStreetView(c.x, c.z, c.y - groundHeight(c.x, c.z));
+      photomesh.update(cameraSystem.camera.position);
     }
-    photomesh.update(cameraSystem.camera.position);
-    canton.update(cameraSystem.camera);
-    trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
-    trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);
+    if (perf.run('canton')) canton.update(cameraSystem.camera);
+    if (perf.run('trams')) {
+      trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });
+      trams.collidePlayer(controllerManager.getActiveEntity(), controllerManager.activeMode, controllerManager);
+    }
+    perf.run('misc');
     if (!document.hidden && now >= nextPlayerSave) {
       savePlayerState();
       nextPlayerSave = now + 5000;
     }
     if (boroughs.update) boroughs.update(elapsed); // Roosevelt Island Tramway cabins
-    cityBlocks.update(cameraSystem.currentPos.x, cameraSystem.currentPos.z);
-    if (cityBlocks.updateLights) cityBlocks.updateLights(cameraSystem.camera);
-    if (streetDetails.update) streetDetails.update(cameraSystem.camera);
-    roadMarks.update(cameraSystem.camera);
-    lightingSystem.update(cameraSystem.currentPos);
-    mapSystem.update();
-    audioSystem.update(dt, elapsed, cameraSystem.camera, lightingSystem.activePresetId === 'midnight');
+    if (perf.run('blocks')) {
+      cityBlocks.update(cameraSystem.currentPos.x, cameraSystem.currentPos.z);
+      if (cityBlocks.updateLights) cityBlocks.updateLights(cameraSystem.camera);
+    }
+    if (perf.run('streetDetails') && streetDetails.update) streetDetails.update(cameraSystem.camera);
+    if (perf.run('roadMarks')) roadMarks.update(cameraSystem.camera);
+    if (perf.run('lighting')) lightingSystem.update(cameraSystem.currentPos);
+    if (perf.run('map')) mapSystem.update();
+    if (perf.run('audio')) audioSystem.update(dt, elapsed, cameraSystem.camera, lightingSystem.activePresetId === 'midnight');
+    perf.run('culling');
     if (warmedUp) updateSceneCulling(cameraSystem.camera.position); // the warm-up frame draws every chunk
     // Traffic collisions can move the player after controller updates; finalize moving hierarchies here.
     for (const root of dynamicRoots) root.updateMatrixWorld();
@@ -911,7 +933,9 @@ async function initApp() {
       for (const o of culled) o.frustumCulled = true;
       markInit('warmup');
     }
+    perf.run('render');
     renderPipeline.render();
+    perf.run('hud');
     if (!warmedUp) {
       warmedUp = true;
       markInit('firstFrame');
@@ -941,8 +965,9 @@ async function initApp() {
             cameraSystem.fixedPos = new THREE.Vector3(px, py, pz); cameraSystem.fixedLook = new THREE.Vector3(tx, ty, tz);
             selectCamera('fixed', true);
           },
-          info() { return renderer.info ? { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles } : null; },
+          info() { return renderer.info ? { calls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles } : null; },
         };
+        perf.attach({ renderer, scene, camera: cameraSystem.camera, sceneTarget: scenePass.renderTarget });
         initTimings = null;
         if (loadingOverlay) loadingOverlay.classList.add('hidden');
         audioSystem.ready = true;
@@ -977,6 +1002,7 @@ async function initApp() {
       const where = cameraSystem.getActivePreset().category === 'follow' ? activeEnt.position : cameraSystem.currentPos;
       renderLocation(getLocationLabel(where.x, where.z));
     }
+    perf.endFrame();
   });
 }
 

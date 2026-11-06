@@ -52,7 +52,9 @@ export function hideInPhotomesh(material) {
   if (!PHOTOMESH_AREAS.length || material.userData.photomeshHidden) return material;
   const keep = float(1).sub(photomeshMask());
   material.opacityNode = material.opacityNode ? material.opacityNode.mul(keep) : keep;
-  if (!material.transparent) material.alphaTest = 0.5;
+  // (an alphaTestNode, not `alphaTest`: an alpha-tested shadow caster made three.js re-hash every caster's node graph
+  // each frame, see createTreeMaterial in tsl-materials.js)
+  if (!material.transparent) material.alphaTestNode = float(0.5);
   material.userData.photomeshHidden = true;
   return material;
 }
@@ -88,7 +90,7 @@ function createMaterial(map) {
   // cut away (and casting no shadow) within the street view's circle
   const shown = outsideStreetView(positionWorld.xz);
   m.opacityNode = shown;
-  m.alphaTest = 0.5;
+  m.alphaTestNode = float(0.5); // (alphaTestNode, not alphaTest: see createTreeMaterial (tsl-materials.js))
   m.maskShadowNode = shown.greaterThan(0.5);
   return m;
 }

@@ -1,0 +1,3061 @@
+{
+  "date": "2026-11-06T12:03:11.672Z",
+  "fixed": {
+    "heure": "16:45",
+    "meteo": "beau",
+    "lang": "fr"
+  },
+  "viewport": [
+    1512,
+    945
+  ],
+  "views": {
+    "cornavin": {
+      "teleport": "cornavin",
+      "baseline": {
+        "frames": 343,
+        "fps": 68.4,
+        "frameMs": {
+          "avg": 14.63,
+          "p50": 14.3,
+          "p95": 17.8,
+          "p99": 20.2
+        },
+        "cpuMs": {
+          "total": 13.34,
+          "p95": 15.3,
+          "sections": {
+            "render": 9.18,
+            "traffic": 3.28,
+            "trams": 0.41,
+            "controls": 0.12,
+            "map": 0.11,
+            "culling": 0.1,
+            "cycling": 0.05,
+            "streetDetails": 0.02,
+            "roadMarks": 0.02,
+            "highway": 0.01,
+            "boats": 0.01,
+            "hud": 0.01,
+            "mooredBoats": 0,
+            "weather": 0,
+            "planes": 0,
+            "fireworks": 0,
+            "photomesh": 0,
+            "canton": 0,
+            "misc": 0,
+            "blocks": 0,
+            "lighting": 0,
+            "audio": 0
+          }
+        },
+        "gpuMs": {
+          "total": 82.15,
+          "p95": 105.86,
+          "passes": {
+            "fx SSR.Blur": 19.85,
+            "scene": 9.35,
+            "fx UnrealBloomPass.h0": 7.11,
+            "fx SSR.SSR": 4.05,
+            "fx UnrealBloomPass.bright": 4.03,
+            "fx UnrealBloomPass.v0": 3.67,
+            "fx UnrealBloomPass.h1": 3.64,
+            "fx UnrealBloomPass.v1": 3.59,
+            "fx UnrealBloomPass.h2": 3.54,
+            "fx UnrealBloomPass.v2": 3.51,
+            "fx UnrealBloomPass.h3": 3.47,
+            "output": 3.41,
+            "fx UnrealBloomPass.v3": 3.41,
+            "fx UnrealBloomPass.h4": 3.37,
+            "fx UnrealBloomPass.v4": 3.35,
+            "shadow1": 1.71,
+            "shadow0": 1.1
+          }
+        },
+        "drawCalls": {
+          "scene": 748.69,
+          "shadow1": 241.65,
+          "shadow0": 113.65,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "triangles": {
+          "scene": 8711467,
+          "shadow1": 2228634,
+          "shadow0": 1730026,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "drawCallsTotal": 1123,
+        "trianglesTotal": 12670146
+      },
+      "systems": {
+        "traffic": {
+          "fps": 86,
+          "frameMs": 11.63,
+          "p95": 13,
+          "cpu": 11.21,
+          "gpu": 84.52,
+          "draws": 1186,
+          "tris": 12719897
+        },
+        "highway": {
+          "fps": 72.3,
+          "frameMs": 13.83,
+          "p95": 15.2,
+          "cpu": 13.45,
+          "gpu": 85.22,
+          "draws": 1186,
+          "tris": 12742355
+        },
+        "boats": {
+          "fps": 71.2,
+          "frameMs": 14.05,
+          "p95": 16.2,
+          "cpu": 13.71,
+          "gpu": 83.87,
+          "draws": 1186,
+          "tris": 12752030
+        },
+        "mooredBoats": {
+          "fps": 71.4,
+          "frameMs": 14,
+          "p95": 16.1,
+          "cpu": 13.67,
+          "gpu": 84.01,
+          "draws": 1186,
+          "tris": 12775415
+        },
+        "weather": {
+          "fps": 71.6,
+          "frameMs": 13.97,
+          "p95": 15.9,
+          "cpu": 13.65,
+          "gpu": 84.18,
+          "draws": 1186,
+          "tris": 12778326
+        },
+        "planes": {
+          "fps": 71.7,
+          "frameMs": 13.94,
+          "p95": 15.9,
+          "cpu": 13.59,
+          "gpu": 83.37,
+          "draws": 1186,
+          "tris": 12772410
+        },
+        "fireworks": {
+          "fps": 71.5,
+          "frameMs": 14,
+          "p95": 15.9,
+          "cpu": 13.67,
+          "gpu": 82.51,
+          "draws": 1186,
+          "tris": 12755151
+        },
+        "cycling": {
+          "fps": 72.3,
+          "frameMs": 13.84,
+          "p95": 16,
+          "cpu": 13.5,
+          "gpu": 84.51,
+          "draws": 1186,
+          "tris": 12766338
+        },
+        "photomesh": {
+          "fps": 70.8,
+          "frameMs": 14.13,
+          "p95": 16,
+          "cpu": 13.78,
+          "gpu": 82.33,
+          "draws": 1186,
+          "tris": 12769361
+        },
+        "canton": {
+          "fps": 68.4,
+          "frameMs": 14.61,
+          "p95": 16.4,
+          "cpu": 14.26,
+          "gpu": 74.26,
+          "draws": 1186,
+          "tris": 12758864
+        },
+        "trams": {
+          "fps": 74.3,
+          "frameMs": 13.46,
+          "p95": 15.1,
+          "cpu": 13.13,
+          "gpu": 85.08,
+          "draws": 1186,
+          "tris": 12747541
+        },
+        "blocks": {
+          "fps": 71.8,
+          "frameMs": 13.92,
+          "p95": 15.9,
+          "cpu": 13.57,
+          "gpu": 83.98,
+          "draws": 1186,
+          "tris": 12763166
+        },
+        "streetDetails": {
+          "fps": 71.8,
+          "frameMs": 13.93,
+          "p95": 16.1,
+          "cpu": 13.6,
+          "gpu": 83.75,
+          "draws": 1186,
+          "tris": 12769460
+        },
+        "roadMarks": {
+          "fps": 71.3,
+          "frameMs": 14.02,
+          "p95": 16,
+          "cpu": 13.68,
+          "gpu": 83.34,
+          "draws": 1186,
+          "tris": 12758259
+        },
+        "lighting": {
+          "fps": 71.5,
+          "frameMs": 13.99,
+          "p95": 16,
+          "cpu": 13.67,
+          "gpu": 84.17,
+          "draws": 1186,
+          "tris": 12751696
+        },
+        "map": {
+          "fps": 72.7,
+          "frameMs": 13.75,
+          "p95": 15.6,
+          "cpu": 13.51,
+          "gpu": 81.24,
+          "draws": 1186,
+          "tris": 12750778
+        },
+        "audio": {
+          "fps": 71.6,
+          "frameMs": 13.97,
+          "p95": 15.9,
+          "cpu": 13.64,
+          "gpu": 83.71,
+          "draws": 1186,
+          "tris": 12746526
+        }
+      },
+      "layers": {
+        "BerlinMitteCityGrid": {
+          "fps": 82.8,
+          "frameMs": 12.07,
+          "p95": 12.9,
+          "cpu": 11.73,
+          "gpu": 67.4,
+          "draws": 881,
+          "tris": 8608054
+        },
+        "BerlinStreetDetails": {
+          "fps": 84.5,
+          "frameMs": 11.84,
+          "p95": 13.1,
+          "cpu": 11.5,
+          "gpu": 64.58,
+          "draws": 842,
+          "tris": 10810844
+        },
+        "GenevaTrams": {
+          "fps": 70.9,
+          "frameMs": 14.1,
+          "p95": 15.6,
+          "cpu": 13.76,
+          "gpu": 81.89,
+          "draws": 1180,
+          "tris": 11357891
+        },
+        "surroundings": {
+          "fps": 71.1,
+          "frameMs": 14.07,
+          "p95": 16,
+          "cpu": 13.75,
+          "gpu": 80.96,
+          "draws": 1182,
+          "tris": 11398368
+        },
+        "RoadMarksSITG": {
+          "fps": 72.7,
+          "frameMs": 13.75,
+          "p95": 15.6,
+          "cpu": 13.42,
+          "gpu": 83.5,
+          "draws": 1153,
+          "tris": 12620007
+        },
+        "ManhattanTrafficAndPedestrians": {
+          "fps": 73.2,
+          "frameMs": 13.65,
+          "p95": 15.2,
+          "cpu": 13.31,
+          "gpu": 80.6,
+          "draws": 1150,
+          "tris": 10564191
+        },
+        "ShadowProxy": {
+          "fps": 71.5,
+          "frameMs": 13.99,
+          "p95": 15.7,
+          "cpu": 13.66,
+          "gpu": 83.01,
+          "draws": 1172,
+          "tris": 12613596
+        },
+        "Photomesh": {
+          "fps": 70.1,
+          "frameMs": 14.27,
+          "p95": 16.2,
+          "cpu": 13.94,
+          "gpu": 83.03,
+          "draws": 1186,
+          "tris": 12688442
+        },
+        "swissbuildings3d": {
+          "fps": 87.8,
+          "frameMs": 11.39,
+          "p95": 12.8,
+          "cpu": 11.05,
+          "gpu": 62.29,
+          "draws": 861,
+          "tris": 12416644
+        },
+        "MooredBoats": {
+          "fps": 71.9,
+          "frameMs": 13.91,
+          "p95": 15.3,
+          "cpu": 13.58,
+          "gpu": 81.71,
+          "draws": 1171,
+          "tris": 12086561
+        },
+        "Quays": {
+          "fps": 71.3,
+          "frameMs": 14.02,
+          "p95": 15.7,
+          "cpu": 13.7,
+          "gpu": 81.99,
+          "draws": 1174,
+          "tris": 12276686
+        },
+        "RoadMarkings": {
+          "fps": 70.9,
+          "frameMs": 14.1,
+          "p95": 16,
+          "cpu": 13.77,
+          "gpu": 81.71,
+          "draws": 1185,
+          "tris": 12577821
+        },
+        "PlayerCargoBike": {
+          "fps": 71.6,
+          "frameMs": 13.97,
+          "p95": 15.8,
+          "cpu": 13.64,
+          "gpu": 83.41,
+          "draws": 1186,
+          "tris": 12668264
+        },
+        "PontDuMontBlancFlags": {
+          "fps": 71.4,
+          "frameMs": 14,
+          "p95": 15.8,
+          "cpu": 13.66,
+          "gpu": 83.27,
+          "draws": 1186,
+          "tris": 12639776
+        },
+        "Cyclists": {
+          "fps": 71.7,
+          "frameMs": 13.94,
+          "p95": 16,
+          "cpu": 13.61,
+          "gpu": 85.07,
+          "draws": 1177,
+          "tris": 12394379
+        },
+        "PeopleNear": {
+          "fps": 66.1,
+          "frameMs": 15.12,
+          "p95": 19.9,
+          "cpu": 13.83,
+          "gpu": 82.95,
+          "draws": 1177,
+          "tris": 12599920
+        },
+        "PlayerTaxiCar": {
+          "fps": 71.3,
+          "frameMs": 14.02,
+          "p95": 16,
+          "cpu": 13.69,
+          "gpu": 84.33,
+          "draws": 1186,
+          "tris": 12625958
+        },
+        "PlayerCyclist": {
+          "fps": 69.2,
+          "frameMs": 14.45,
+          "p95": 16.2,
+          "cpu": 14.1,
+          "gpu": 77.37,
+          "draws": 1143,
+          "tris": 12636206
+        },
+        "HighwayTraffic": {
+          "fps": 70.6,
+          "frameMs": 14.17,
+          "p95": 16,
+          "cpu": 13.83,
+          "gpu": 85.16,
+          "draws": 1186,
+          "tris": 12642943
+        }
+      }
+    },
+    "montblanc": {
+      "teleport": "montblanc",
+      "baseline": {
+        "frames": 357,
+        "fps": 71.4,
+        "frameMs": {
+          "avg": 14.01,
+          "p50": 13.9,
+          "p95": 15,
+          "p99": 15.6
+        },
+        "cpuMs": {
+          "total": 13.68,
+          "p95": 14.6,
+          "sections": {
+            "render": 8.77,
+            "traffic": 3.93,
+            "trams": 0.51,
+            "map": 0.12,
+            "controls": 0.11,
+            "culling": 0.11,
+            "cycling": 0.04,
+            "streetDetails": 0.02,
+            "highway": 0.01,
+            "boats": 0.01,
+            "mooredBoats": 0.01,
+            "roadMarks": 0.01,
+            "hud": 0.01,
+            "weather": 0,
+            "planes": 0,
+            "fireworks": 0,
+            "photomesh": 0,
+            "canton": 0,
+            "misc": 0,
+            "blocks": 0,
+            "lighting": 0,
+            "audio": 0
+          }
+        },
+        "gpuMs": {
+          "total": 70.16,
+          "p95": 98.21,
+          "passes": {
+            "fx SSR.Blur": 16.84,
+            "scene": 8.35,
+            "fx UnrealBloomPass.h0": 5.83,
+            "fx SSR.SSR": 3.98,
+            "fx UnrealBloomPass.bright": 3.29,
+            "fx UnrealBloomPass.v0": 3.01,
+            "fx UnrealBloomPass.h1": 2.99,
+            "fx UnrealBloomPass.v1": 2.98,
+            "fx UnrealBloomPass.h2": 2.96,
+            "fx UnrealBloomPass.v2": 2.91,
+            "fx UnrealBloomPass.h3": 2.87,
+            "fx UnrealBloomPass.v3": 2.85,
+            "output": 2.82,
+            "fx UnrealBloomPass.h4": 2.82,
+            "fx UnrealBloomPass.v4": 2.78,
+            "shadow1": 1.74,
+            "shadow0": 1.12
+          }
+        },
+        "drawCalls": {
+          "shadow1": 443.01,
+          "scene": 437.66,
+          "shadow0": 276.01,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "triangles": {
+          "scene": 7065250,
+          "shadow1": 2314801,
+          "shadow0": 1667422,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "drawCallsTotal": 1176,
+        "trianglesTotal": 11047492
+      },
+      "systems": {
+        "traffic": {
+          "fps": 86.8,
+          "frameMs": 11.53,
+          "p95": 23.7,
+          "cpu": 11.16,
+          "gpu": 78.34,
+          "draws": 1183,
+          "tris": 11057110
+        },
+        "highway": {
+          "fps": 70.2,
+          "frameMs": 14.25,
+          "p95": 15.2,
+          "cpu": 13.91,
+          "gpu": 60.31,
+          "draws": 1182,
+          "tris": 11079872
+        },
+        "boats": {
+          "fps": 70.4,
+          "frameMs": 14.2,
+          "p95": 15.1,
+          "cpu": 13.87,
+          "gpu": 74.02,
+          "draws": 1186,
+          "tris": 11136027
+        },
+        "mooredBoats": {
+          "fps": 70.2,
+          "frameMs": 14.25,
+          "p95": 15,
+          "cpu": 13.92,
+          "gpu": 72.82,
+          "draws": 1189,
+          "tris": 11168350
+        },
+        "weather": {
+          "fps": 70.2,
+          "frameMs": 14.24,
+          "p95": 15.2,
+          "cpu": 13.9,
+          "gpu": 71.67,
+          "draws": 1189,
+          "tris": 11224333
+        },
+        "planes": {
+          "fps": 69.8,
+          "frameMs": 14.32,
+          "p95": 15,
+          "cpu": 13.98,
+          "gpu": 72.91,
+          "draws": 1189,
+          "tris": 11267816
+        },
+        "fireworks": {
+          "fps": 69.7,
+          "frameMs": 14.34,
+          "p95": 15.2,
+          "cpu": 13.99,
+          "gpu": 56.42,
+          "draws": 1189,
+          "tris": 11305880
+        },
+        "cycling": {
+          "fps": 69.2,
+          "frameMs": 14.45,
+          "p95": 15.3,
+          "cpu": 14.11,
+          "gpu": 72.13,
+          "draws": 1189,
+          "tris": 11356168
+        },
+        "photomesh": {
+          "fps": 71.7,
+          "frameMs": 13.94,
+          "p95": 14.7,
+          "cpu": 13.61,
+          "gpu": 45.89,
+          "draws": 1189,
+          "tris": 11392994
+        },
+        "canton": {
+          "fps": 69.8,
+          "frameMs": 14.33,
+          "p95": 18,
+          "cpu": 13.69,
+          "gpu": 45.58,
+          "draws": 1189,
+          "tris": 11405872
+        },
+        "trams": {
+          "fps": 74.4,
+          "frameMs": 13.44,
+          "p95": 14.3,
+          "cpu": 13.1,
+          "gpu": 45.81,
+          "draws": 1189,
+          "tris": 11435864
+        },
+        "blocks": {
+          "fps": 72.3,
+          "frameMs": 13.83,
+          "p95": 14.6,
+          "cpu": 13.49,
+          "gpu": 45.91,
+          "draws": 1189,
+          "tris": 11439026
+        },
+        "streetDetails": {
+          "fps": 72.8,
+          "frameMs": 13.73,
+          "p95": 14.4,
+          "cpu": 13.41,
+          "gpu": 46.19,
+          "draws": 1189,
+          "tris": 11442952
+        },
+        "roadMarks": {
+          "fps": 72.4,
+          "frameMs": 13.81,
+          "p95": 14.7,
+          "cpu": 13.48,
+          "gpu": 46.27,
+          "draws": 1189,
+          "tris": 11441197
+        },
+        "lighting": {
+          "fps": 72.4,
+          "frameMs": 13.81,
+          "p95": 14.6,
+          "cpu": 13.49,
+          "gpu": 46.63,
+          "draws": 1189,
+          "tris": 11424029
+        },
+        "map": {
+          "fps": 73.3,
+          "frameMs": 13.65,
+          "p95": 14.5,
+          "cpu": 13.38,
+          "gpu": 65.75,
+          "draws": 1189,
+          "tris": 11391235
+        },
+        "audio": {
+          "fps": 68,
+          "frameMs": 14.71,
+          "p95": 15.4,
+          "cpu": 14.36,
+          "gpu": 77.66,
+          "draws": 1189,
+          "tris": 11393109
+        }
+      },
+      "layers": {
+        "BerlinMitteCityGrid": {
+          "fps": 81.8,
+          "frameMs": 12.22,
+          "p95": 13,
+          "cpu": 11.88,
+          "gpu": 44.35,
+          "draws": 943,
+          "tris": 8240203
+        },
+        "BerlinStreetDetails": {
+          "fps": 87.1,
+          "frameMs": 11.48,
+          "p95": 12.8,
+          "cpu": 11.15,
+          "gpu": 65.58,
+          "draws": 893,
+          "tris": 10071172
+        },
+        "GenevaTrams": {
+          "fps": 72.5,
+          "frameMs": 13.78,
+          "p95": 14.6,
+          "cpu": 13.44,
+          "gpu": 67.2,
+          "draws": 1183,
+          "tris": 10032887
+        },
+        "surroundings": {
+          "fps": 72.5,
+          "frameMs": 13.78,
+          "p95": 14.6,
+          "cpu": 13.42,
+          "gpu": 66.85,
+          "draws": 1185,
+          "tris": 10089099
+        },
+        "RoadMarksSITG": {
+          "fps": 72.2,
+          "frameMs": 13.85,
+          "p95": 14.8,
+          "cpu": 13.47,
+          "gpu": 65.67,
+          "draws": 1178,
+          "tris": 11331049
+        },
+        "ManhattanTrafficAndPedestrians": {
+          "fps": 73.5,
+          "frameMs": 13.61,
+          "p95": 14.4,
+          "cpu": 13.27,
+          "gpu": 72.66,
+          "draws": 1138,
+          "tris": 9192758
+        },
+        "ShadowProxy": {
+          "fps": 73.3,
+          "frameMs": 13.65,
+          "p95": 14.7,
+          "cpu": 13.29,
+          "gpu": 64.19,
+          "draws": 1175,
+          "tris": 11321048
+        },
+        "Photomesh": {
+          "fps": 72.8,
+          "frameMs": 13.74,
+          "p95": 14.8,
+          "cpu": 13.37,
+          "gpu": 65.97,
+          "draws": 1175,
+          "tris": 11313384
+        },
+        "swissbuildings3d": {
+          "fps": 79.6,
+          "frameMs": 12.57,
+          "p95": 15.9,
+          "cpu": 12.06,
+          "gpu": 66.83,
+          "draws": 1083,
+          "tris": 11212355
+        },
+        "MooredBoats": {
+          "fps": 74.3,
+          "frameMs": 13.47,
+          "p95": 14.3,
+          "cpu": 13.12,
+          "gpu": 65.5,
+          "draws": 1169,
+          "tris": 10733866
+        },
+        "Quays": {
+          "fps": 73.6,
+          "frameMs": 13.58,
+          "p95": 14.4,
+          "cpu": 13.23,
+          "gpu": 63.81,
+          "draws": 1177,
+          "tris": 10931439
+        },
+        "RoadMarkings": {
+          "fps": 73.3,
+          "frameMs": 13.64,
+          "p95": 14.5,
+          "cpu": 13.3,
+          "gpu": 64.11,
+          "draws": 1188,
+          "tris": 11205052
+        },
+        "PlayerCargoBike": {
+          "fps": 77.3,
+          "frameMs": 12.94,
+          "p95": 13.6,
+          "cpu": 12.6,
+          "gpu": 50.24,
+          "draws": 907,
+          "tris": 11182725
+        },
+        "PontDuMontBlancFlags": {
+          "fps": 71.4,
+          "frameMs": 14,
+          "p95": 14.8,
+          "cpu": 13.64,
+          "gpu": 62.99,
+          "draws": 1177,
+          "tris": 11166816
+        },
+        "Cyclists": {
+          "fps": 70.9,
+          "frameMs": 14.1,
+          "p95": 15,
+          "cpu": 13.77,
+          "gpu": 50.03,
+          "draws": 1180,
+          "tris": 11026537
+        },
+        "PeopleNear": {
+          "fps": 72,
+          "frameMs": 13.89,
+          "p95": 14.6,
+          "cpu": 13.56,
+          "gpu": 45.82,
+          "draws": 1180,
+          "tris": 11259543
+        },
+        "PlayerTaxiCar": {
+          "fps": 73.5,
+          "frameMs": 13.6,
+          "p95": 14.5,
+          "cpu": 13.27,
+          "gpu": 45.7,
+          "draws": 1171,
+          "tris": 11292548
+        },
+        "PlayerCyclist": {
+          "fps": 73.7,
+          "frameMs": 13.57,
+          "p95": 14.3,
+          "cpu": 13.24,
+          "gpu": 45.17,
+          "draws": 1145,
+          "tris": 11266131
+        },
+        "HighwayTraffic": {
+          "fps": 71,
+          "frameMs": 14.09,
+          "p95": 14.8,
+          "cpu": 13.76,
+          "gpu": 45.96,
+          "draws": 1189,
+          "tris": 11268446
+        }
+      }
+    },
+    "jetdeau": {
+      "teleport": "jetdeau",
+      "baseline": {
+        "frames": 330,
+        "fps": 65.9,
+        "frameMs": {
+          "avg": 15.17,
+          "p50": 14.9,
+          "p95": 17,
+          "p99": 17.7
+        },
+        "cpuMs": {
+          "total": 14.83,
+          "p95": 16.6,
+          "sections": {
+            "render": 10.42,
+            "traffic": 3.5,
+            "trams": 0.47,
+            "map": 0.11,
+            "controls": 0.1,
+            "culling": 0.1,
+            "cycling": 0.03,
+            "mooredBoats": 0.02,
+            "roadMarks": 0.02,
+            "highway": 0.01,
+            "boats": 0.01,
+            "streetDetails": 0.01,
+            "hud": 0.01,
+            "weather": 0,
+            "planes": 0,
+            "fireworks": 0,
+            "photomesh": 0,
+            "canton": 0,
+            "misc": 0,
+            "blocks": 0,
+            "lighting": 0,
+            "audio": 0
+          }
+        },
+        "gpuMs": {
+          "total": 86.69,
+          "p95": 103.93,
+          "passes": {
+            "fx SSR.Blur": 20.92,
+            "scene": 10.69,
+            "fx UnrealBloomPass.h0": 7.52,
+            "fx UnrealBloomPass.bright": 4.27,
+            "fx SSR.SSR": 4.18,
+            "fx UnrealBloomPass.v0": 3.87,
+            "fx UnrealBloomPass.h1": 3.84,
+            "fx UnrealBloomPass.v1": 3.81,
+            "fx UnrealBloomPass.h2": 3.78,
+            "fx UnrealBloomPass.v2": 3.75,
+            "fx UnrealBloomPass.h3": 3.72,
+            "output": 3.67,
+            "fx UnrealBloomPass.v3": 3.67,
+            "fx UnrealBloomPass.h4": 3.63,
+            "fx UnrealBloomPass.v4": 3.6,
+            "shadow1": 0.91,
+            "shadow0": 0.87
+          }
+        },
+        "drawCalls": {
+          "scene": 984.03,
+          "shadow1": 150.03,
+          "shadow0": 87.03,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "triangles": {
+          "scene": 9773640,
+          "shadow1": 1699298,
+          "shadow0": 1415045,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "drawCallsTotal": 1240,
+        "trianglesTotal": 12888002
+      },
+      "systems": {
+        "traffic": {
+          "fps": 73.7,
+          "frameMs": 13.57,
+          "p95": 24.9,
+          "cpu": 13.18,
+          "gpu": 89.07,
+          "draws": 1243,
+          "tris": 12860651
+        },
+        "highway": {
+          "fps": 62.9,
+          "frameMs": 15.89,
+          "p95": 18,
+          "cpu": 15.54,
+          "gpu": 87.16,
+          "draws": 1243,
+          "tris": 12841516
+        },
+        "boats": {
+          "fps": 65,
+          "frameMs": 15.39,
+          "p95": 17.2,
+          "cpu": 15.06,
+          "gpu": 82.73,
+          "draws": 1243,
+          "tris": 12846927
+        },
+        "mooredBoats": {
+          "fps": 64.9,
+          "frameMs": 15.41,
+          "p95": 17.1,
+          "cpu": 15.07,
+          "gpu": 87.65,
+          "draws": 1235,
+          "tris": 12827630
+        },
+        "weather": {
+          "fps": 62.9,
+          "frameMs": 15.89,
+          "p95": 20.6,
+          "cpu": 15.2,
+          "gpu": 84.04,
+          "draws": 1232,
+          "tris": 12794541
+        },
+        "planes": {
+          "fps": 66.8,
+          "frameMs": 14.97,
+          "p95": 16.7,
+          "cpu": 14.64,
+          "gpu": 78.04,
+          "draws": 1230,
+          "tris": 12712453
+        },
+        "fireworks": {
+          "fps": 65.9,
+          "frameMs": 15.18,
+          "p95": 16.9,
+          "cpu": 14.83,
+          "gpu": 85.75,
+          "draws": 1231,
+          "tris": 12696512
+        },
+        "cycling": {
+          "fps": 66.6,
+          "frameMs": 15.01,
+          "p95": 16.6,
+          "cpu": 14.68,
+          "gpu": 81.89,
+          "draws": 1220,
+          "tris": 12698089
+        },
+        "photomesh": {
+          "fps": 66.1,
+          "frameMs": 15.13,
+          "p95": 17,
+          "cpu": 14.8,
+          "gpu": 85.89,
+          "draws": 1221,
+          "tris": 12722824
+        },
+        "canton": {
+          "fps": 66.6,
+          "frameMs": 15.01,
+          "p95": 16.8,
+          "cpu": 14.68,
+          "gpu": 80.97,
+          "draws": 1224,
+          "tris": 12739087
+        },
+        "trams": {
+          "fps": 67.4,
+          "frameMs": 14.85,
+          "p95": 16.9,
+          "cpu": 14.52,
+          "gpu": 82.09,
+          "draws": 1223,
+          "tris": 12735601
+        },
+        "blocks": {
+          "fps": 66.7,
+          "frameMs": 15,
+          "p95": 16.9,
+          "cpu": 14.66,
+          "gpu": 80.4,
+          "draws": 1226,
+          "tris": 12748662
+        },
+        "streetDetails": {
+          "fps": 66.5,
+          "frameMs": 15.04,
+          "p95": 17,
+          "cpu": 14.71,
+          "gpu": 81.19,
+          "draws": 1226,
+          "tris": 12755889
+        },
+        "roadMarks": {
+          "fps": 67,
+          "frameMs": 14.94,
+          "p95": 16.7,
+          "cpu": 14.61,
+          "gpu": 81.29,
+          "draws": 1226,
+          "tris": 12755665
+        },
+        "lighting": {
+          "fps": 66.8,
+          "frameMs": 14.96,
+          "p95": 16.9,
+          "cpu": 14.62,
+          "gpu": 81.21,
+          "draws": 1226,
+          "tris": 12751277
+        },
+        "map": {
+          "fps": 66.8,
+          "frameMs": 14.97,
+          "p95": 17.1,
+          "cpu": 14.71,
+          "gpu": 81.5,
+          "draws": 1226,
+          "tris": 12733837
+        },
+        "audio": {
+          "fps": 65.5,
+          "frameMs": 15.27,
+          "p95": 17,
+          "cpu": 14.91,
+          "gpu": 90.99,
+          "draws": 1226,
+          "tris": 12765404
+        }
+      },
+      "layers": {
+        "BerlinMitteCityGrid": {
+          "fps": 82.9,
+          "frameMs": 12.07,
+          "p95": 12.8,
+          "cpu": 11.78,
+          "gpu": 38.85,
+          "draws": 795,
+          "tris": 7442159
+        },
+        "BerlinStreetDetails": {
+          "fps": 73.6,
+          "frameMs": 13.59,
+          "p95": 15.3,
+          "cpu": 13.24,
+          "gpu": 78.55,
+          "draws": 1031,
+          "tris": 11688780
+        },
+        "GenevaTrams": {
+          "fps": 67.6,
+          "frameMs": 14.8,
+          "p95": 16.3,
+          "cpu": 14.45,
+          "gpu": 83.17,
+          "draws": 1219,
+          "tris": 11452467
+        },
+        "surroundings": {
+          "fps": 66.5,
+          "frameMs": 15.04,
+          "p95": 17,
+          "cpu": 14.71,
+          "gpu": 89.23,
+          "draws": 1230,
+          "tris": 11532829
+        },
+        "RoadMarksSITG": {
+          "fps": 66.5,
+          "frameMs": 15.04,
+          "p95": 16.9,
+          "cpu": 14.71,
+          "gpu": 90.43,
+          "draws": 1224,
+          "tris": 12790212
+        },
+        "ManhattanTrafficAndPedestrians": {
+          "fps": 68.9,
+          "frameMs": 14.51,
+          "p95": 16.1,
+          "cpu": 14.18,
+          "gpu": 81.24,
+          "draws": 1192,
+          "tris": 11037065
+        },
+        "ShadowProxy": {
+          "fps": 62.9,
+          "frameMs": 15.9,
+          "p95": 20.8,
+          "cpu": 15.13,
+          "gpu": 79.47,
+          "draws": 1225,
+          "tris": 12819699
+        },
+        "Photomesh": {
+          "fps": 65.1,
+          "frameMs": 15.36,
+          "p95": 17.3,
+          "cpu": 15.03,
+          "gpu": 76.62,
+          "draws": 1233,
+          "tris": 12904685
+        },
+        "swissbuildings3d": {
+          "fps": 75.1,
+          "frameMs": 13.32,
+          "p95": 27.4,
+          "cpu": 12.9,
+          "gpu": 87.98,
+          "draws": 811,
+          "tris": 12523508
+        },
+        "MooredBoats": {
+          "fps": 66.4,
+          "frameMs": 15.07,
+          "p95": 17.1,
+          "cpu": 14.72,
+          "gpu": 79.67,
+          "draws": 1217,
+          "tris": 12347573
+        },
+        "Quays": {
+          "fps": 67.6,
+          "frameMs": 14.8,
+          "p95": 16.6,
+          "cpu": 14.47,
+          "gpu": 81.44,
+          "draws": 1222,
+          "tris": 12551025
+        },
+        "RoadMarkings": {
+          "fps": 67.2,
+          "frameMs": 14.88,
+          "p95": 16.9,
+          "cpu": 14.56,
+          "gpu": 83.99,
+          "draws": 1233,
+          "tris": 12852875
+        },
+        "PlayerCargoBike": {
+          "fps": 67.3,
+          "frameMs": 14.87,
+          "p95": 16.8,
+          "cpu": 14.54,
+          "gpu": 87.88,
+          "draws": 1231,
+          "tris": 12959999
+        },
+        "PontDuMontBlancFlags": {
+          "fps": 65.4,
+          "frameMs": 15.28,
+          "p95": 17.2,
+          "cpu": 14.95,
+          "gpu": 76.68,
+          "draws": 1227,
+          "tris": 12904816
+        },
+        "Cyclists": {
+          "fps": 64.5,
+          "frameMs": 15.5,
+          "p95": 17.3,
+          "cpu": 15.14,
+          "gpu": 78.05,
+          "draws": 1212,
+          "tris": 12654204
+        },
+        "PeopleNear": {
+          "fps": 66.9,
+          "frameMs": 14.95,
+          "p95": 16.8,
+          "cpu": 14.61,
+          "gpu": 86.94,
+          "draws": 1222,
+          "tris": 12896672
+        },
+        "PlayerTaxiCar": {
+          "fps": 67.8,
+          "frameMs": 14.75,
+          "p95": 16.6,
+          "cpu": 14.41,
+          "gpu": 81.74,
+          "draws": 1226,
+          "tris": 12914926
+        },
+        "PlayerCyclist": {
+          "fps": 68.9,
+          "frameMs": 14.52,
+          "p95": 16.6,
+          "cpu": 14.18,
+          "gpu": 85.16,
+          "draws": 1185,
+          "tris": 12886801
+        },
+        "HighwayTraffic": {
+          "fps": 68.3,
+          "frameMs": 14.64,
+          "p95": 16.7,
+          "cpu": 14.29,
+          "gpu": 85.31,
+          "draws": 1217,
+          "tris": 12871093
+        }
+      }
+    },
+    "cathedrale": {
+      "teleport": "cathedrale",
+      "baseline": {
+        "frames": 293,
+        "fps": 58.5,
+        "frameMs": {
+          "avg": 17.1,
+          "p50": 17.1,
+          "p95": 17.8,
+          "p99": 18.8
+        },
+        "cpuMs": {
+          "total": 16.73,
+          "p95": 17.4,
+          "sections": {
+            "render": 11.72,
+            "traffic": 4.13,
+            "trams": 0.45,
+            "controls": 0.11,
+            "culling": 0.11,
+            "map": 0.1,
+            "cycling": 0.03,
+            "roadMarks": 0.02,
+            "highway": 0.01,
+            "boats": 0.01,
+            "streetDetails": 0.01,
+            "hud": 0.01,
+            "mooredBoats": 0,
+            "weather": 0,
+            "planes": 0,
+            "fireworks": 0,
+            "photomesh": 0,
+            "canton": 0,
+            "misc": 0,
+            "blocks": 0,
+            "lighting": 0,
+            "audio": 0
+          }
+        },
+        "gpuMs": {
+          "total": 63,
+          "p95": 71.25,
+          "passes": {
+            "fx SSR.Blur": 13.75,
+            "scene": 9.33,
+            "fx UnrealBloomPass.h0": 5.07,
+            "fx SSR.SSR": 2.84,
+            "fx UnrealBloomPass.bright": 2.81,
+            "fx UnrealBloomPass.v0": 2.6,
+            "fx UnrealBloomPass.h1": 2.59,
+            "fx UnrealBloomPass.v1": 2.57,
+            "fx UnrealBloomPass.h2": 2.57,
+            "fx UnrealBloomPass.v2": 2.54,
+            "fx UnrealBloomPass.h3": 2.52,
+            "output": 2.5,
+            "fx UnrealBloomPass.v3": 2.49,
+            "fx UnrealBloomPass.h4": 2.47,
+            "fx UnrealBloomPass.v4": 2.45,
+            "shadow1": 2.15,
+            "shadow0": 1.75
+          }
+        },
+        "drawCalls": {
+          "scene": 985,
+          "shadow1": 354,
+          "shadow0": 130,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "triangles": {
+          "scene": 9409420,
+          "shadow1": 3169911,
+          "shadow0": 1993582,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "drawCallsTotal": 1488,
+        "trianglesTotal": 14572932
+      },
+      "systems": {
+        "traffic": {
+          "fps": 76.1,
+          "frameMs": 13.14,
+          "p95": 15.1,
+          "cpu": 12.79,
+          "gpu": 67.62,
+          "draws": 1488,
+          "tris": 14570362
+        },
+        "highway": {
+          "fps": 59.2,
+          "frameMs": 16.89,
+          "p95": 18.5,
+          "cpu": 16.54,
+          "gpu": 64.81,
+          "draws": 1486,
+          "tris": 14554677
+        },
+        "boats": {
+          "fps": 58.8,
+          "frameMs": 17,
+          "p95": 17.7,
+          "cpu": 16.63,
+          "gpu": 63.13,
+          "draws": 1485,
+          "tris": 14546463
+        },
+        "mooredBoats": {
+          "fps": 58.6,
+          "frameMs": 17.07,
+          "p95": 18,
+          "cpu": 16.71,
+          "gpu": 63.56,
+          "draws": 1485,
+          "tris": 14515624
+        },
+        "weather": {
+          "fps": 59,
+          "frameMs": 16.95,
+          "p95": 18,
+          "cpu": 16.59,
+          "gpu": 61.67,
+          "draws": 1485,
+          "tris": 14497087
+        },
+        "planes": {
+          "fps": 58.9,
+          "frameMs": 16.99,
+          "p95": 17.7,
+          "cpu": 16.62,
+          "gpu": 62.34,
+          "draws": 1485,
+          "tris": 14435400
+        },
+        "fireworks": {
+          "fps": 59,
+          "frameMs": 16.96,
+          "p95": 17.7,
+          "cpu": 16.61,
+          "gpu": 62.62,
+          "draws": 1485,
+          "tris": 14435109
+        },
+        "cycling": {
+          "fps": 59.6,
+          "frameMs": 16.77,
+          "p95": 18.2,
+          "cpu": 16.4,
+          "gpu": 63.72,
+          "draws": 1485,
+          "tris": 14441840
+        },
+        "photomesh": {
+          "fps": 54.7,
+          "frameMs": 18.27,
+          "p95": 22.4,
+          "cpu": 17.89,
+          "gpu": 64.25,
+          "draws": 1485,
+          "tris": 14442134
+        },
+        "canton": {
+          "fps": 59,
+          "frameMs": 16.96,
+          "p95": 17.6,
+          "cpu": 16.59,
+          "gpu": 62.55,
+          "draws": 1485,
+          "tris": 14446299
+        },
+        "trams": {
+          "fps": 58.9,
+          "frameMs": 16.98,
+          "p95": 17.7,
+          "cpu": 16.63,
+          "gpu": 62.2,
+          "draws": 1485,
+          "tris": 14443775
+        },
+        "blocks": {
+          "fps": 59.1,
+          "frameMs": 16.91,
+          "p95": 17.9,
+          "cpu": 16.54,
+          "gpu": 62.7,
+          "draws": 1485,
+          "tris": 14412599
+        },
+        "streetDetails": {
+          "fps": 57.6,
+          "frameMs": 17.38,
+          "p95": 18.9,
+          "cpu": 16.92,
+          "gpu": 62.49,
+          "draws": 1485,
+          "tris": 14419820
+        },
+        "roadMarks": {
+          "fps": 58.9,
+          "frameMs": 16.97,
+          "p95": 17.8,
+          "cpu": 16.59,
+          "gpu": 61.76,
+          "draws": 1485,
+          "tris": 14422839
+        },
+        "lighting": {
+          "fps": 58.8,
+          "frameMs": 17,
+          "p95": 18.2,
+          "cpu": 16.62,
+          "gpu": 62.09,
+          "draws": 1485,
+          "tris": 14421994
+        },
+        "map": {
+          "fps": 59.5,
+          "frameMs": 16.8,
+          "p95": 17.7,
+          "cpu": 16.52,
+          "gpu": 61.95,
+          "draws": 1485,
+          "tris": 14427052
+        },
+        "audio": {
+          "fps": 58.9,
+          "frameMs": 16.98,
+          "p95": 17.8,
+          "cpu": 16.61,
+          "gpu": 61.74,
+          "draws": 1485,
+          "tris": 14440216
+        }
+      },
+      "layers": {
+        "BerlinMitteCityGrid": {
+          "fps": 70.6,
+          "frameMs": 14.17,
+          "p95": 14.8,
+          "cpu": 13.85,
+          "gpu": 50.29,
+          "draws": 1111,
+          "tris": 9801306
+        },
+        "BerlinStreetDetails": {
+          "fps": 68.3,
+          "frameMs": 14.65,
+          "p95": 15.3,
+          "cpu": 14.31,
+          "gpu": 49.16,
+          "draws": 1103,
+          "tris": 12487306
+        },
+        "GenevaTrams": {
+          "fps": 60,
+          "frameMs": 16.66,
+          "p95": 17.5,
+          "cpu": 16.31,
+          "gpu": 63.29,
+          "draws": 1479,
+          "tris": 13140105
+        },
+        "surroundings": {
+          "fps": 60,
+          "frameMs": 16.67,
+          "p95": 17.5,
+          "cpu": 16.32,
+          "gpu": 63.04,
+          "draws": 1481,
+          "tris": 13188545
+        },
+        "RoadMarksSITG": {
+          "fps": 59.8,
+          "frameMs": 16.72,
+          "p95": 17.5,
+          "cpu": 16.34,
+          "gpu": 61.69,
+          "draws": 1464,
+          "tris": 14380568
+        },
+        "ManhattanTrafficAndPedestrians": {
+          "fps": 60.4,
+          "frameMs": 16.56,
+          "p95": 17.3,
+          "cpu": 16.19,
+          "gpu": 60.28,
+          "draws": 1449,
+          "tris": 11843148
+        },
+        "ShadowProxy": {
+          "fps": 59.2,
+          "frameMs": 16.9,
+          "p95": 17.8,
+          "cpu": 16.52,
+          "gpu": 62.1,
+          "draws": 1475,
+          "tris": 14400676
+        },
+        "Photomesh": {
+          "fps": 61.1,
+          "frameMs": 16.38,
+          "p95": 17.1,
+          "cpu": 16.01,
+          "gpu": 58.06,
+          "draws": 1398,
+          "tris": 14069738
+        },
+        "swissbuildings3d": {
+          "fps": 69.4,
+          "frameMs": 14.41,
+          "p95": 16.6,
+          "cpu": 13.99,
+          "gpu": 93.89,
+          "draws": 1228,
+          "tris": 14019858
+        },
+        "MooredBoats": {
+          "fps": 59.3,
+          "frameMs": 16.86,
+          "p95": 17.8,
+          "cpu": 16.5,
+          "gpu": 64.4,
+          "draws": 1465,
+          "tris": 13894987
+        },
+        "Quays": {
+          "fps": 59.5,
+          "frameMs": 16.8,
+          "p95": 18,
+          "cpu": 16.44,
+          "gpu": 61.52,
+          "draws": 1473,
+          "tris": 14119503
+        },
+        "RoadMarkings": {
+          "fps": 59.5,
+          "frameMs": 16.81,
+          "p95": 17.6,
+          "cpu": 16.42,
+          "gpu": 62.83,
+          "draws": 1484,
+          "tris": 14409711
+        },
+        "PlayerCargoBike": {
+          "fps": 60.6,
+          "frameMs": 16.5,
+          "p95": 17.1,
+          "cpu": 16.18,
+          "gpu": 63.15,
+          "draws": 1343,
+          "tris": 14446198
+        },
+        "PontDuMontBlancFlags": {
+          "fps": 59.5,
+          "frameMs": 16.8,
+          "p95": 17.6,
+          "cpu": 16.42,
+          "gpu": 61.54,
+          "draws": 1470,
+          "tris": 14429240
+        },
+        "Cyclists": {
+          "fps": 59.4,
+          "frameMs": 16.83,
+          "p95": 17.6,
+          "cpu": 16.46,
+          "gpu": 62.83,
+          "draws": 1468,
+          "tris": 14231184
+        },
+        "PeopleNear": {
+          "fps": 59.2,
+          "frameMs": 16.89,
+          "p95": 17.8,
+          "cpu": 16.52,
+          "gpu": 62.73,
+          "draws": 1468,
+          "tris": 14452048
+        },
+        "PlayerTaxiCar": {
+          "fps": 59.4,
+          "frameMs": 16.83,
+          "p95": 17.6,
+          "cpu": 16.46,
+          "gpu": 62.1,
+          "draws": 1458,
+          "tris": 14483951
+        },
+        "PlayerCyclist": {
+          "fps": 59.7,
+          "frameMs": 16.75,
+          "p95": 17.7,
+          "cpu": 16.39,
+          "gpu": 60.94,
+          "draws": 1439,
+          "tris": 14473872
+        },
+        "HighwayTraffic": {
+          "fps": 59.1,
+          "frameMs": 16.93,
+          "p95": 17.7,
+          "cpu": 16.57,
+          "gpu": 62.98,
+          "draws": 1477,
+          "tris": 14469856
+        }
+      }
+    },
+    "plainpalais": {
+      "teleport": "plainpalais",
+      "baseline": {
+        "frames": 348,
+        "fps": 69.5,
+        "frameMs": {
+          "avg": 14.38,
+          "p50": 14.3,
+          "p95": 15.2,
+          "p99": 16
+        },
+        "cpuMs": {
+          "total": 14.05,
+          "p95": 14.8,
+          "sections": {
+            "render": 9.15,
+            "traffic": 4,
+            "trams": 0.46,
+            "culling": 0.12,
+            "map": 0.1,
+            "controls": 0.08,
+            "cycling": 0.04,
+            "streetDetails": 0.02,
+            "roadMarks": 0.02,
+            "highway": 0.01,
+            "boats": 0.01,
+            "blocks": 0.01,
+            "hud": 0.01,
+            "mooredBoats": 0,
+            "weather": 0,
+            "planes": 0,
+            "fireworks": 0,
+            "photomesh": 0,
+            "canton": 0,
+            "misc": 0,
+            "lighting": 0,
+            "audio": 0
+          }
+        },
+        "gpuMs": {
+          "total": 75.62,
+          "p95": 104,
+          "passes": {
+            "fx SSR.Blur": 17.78,
+            "scene": 8.83,
+            "fx UnrealBloomPass.h0": 6.18,
+            "fx SSR.SSR": 4.16,
+            "fx UnrealBloomPass.bright": 3.46,
+            "fx UnrealBloomPass.v0": 3.19,
+            "fx UnrealBloomPass.h1": 3.17,
+            "fx UnrealBloomPass.v1": 3.13,
+            "fx UnrealBloomPass.h2": 3.12,
+            "fx UnrealBloomPass.v2": 3.09,
+            "fx UnrealBloomPass.h3": 3.07,
+            "fx UnrealBloomPass.v3": 3.04,
+            "output": 3.02,
+            "fx UnrealBloomPass.h4": 3.01,
+            "fx UnrealBloomPass.v4": 2.98,
+            "shadow1": 2.73,
+            "shadow0": 1.65
+          }
+        },
+        "drawCalls": {
+          "scene": 522.07,
+          "shadow1": 360.07,
+          "shadow0": 143.07,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "triangles": {
+          "scene": 7107719,
+          "shadow1": 3093258,
+          "shadow0": 2083274,
+          "fx SSR.Blur": 5,
+          "fx UnrealBloomPass.h0": 2,
+          "fx SSR.SSR": 1,
+          "fx UnrealBloomPass.bright": 1,
+          "fx UnrealBloomPass.v0": 1,
+          "fx UnrealBloomPass.h1": 1,
+          "fx UnrealBloomPass.v1": 1,
+          "fx UnrealBloomPass.h2": 1,
+          "fx UnrealBloomPass.v2": 1,
+          "fx UnrealBloomPass.h3": 1,
+          "fx UnrealBloomPass.v3": 1,
+          "fx UnrealBloomPass.h4": 1,
+          "fx UnrealBloomPass.v4": 1,
+          "output": 1
+        },
+        "drawCallsTotal": 1044,
+        "trianglesTotal": 12284270
+      },
+      "systems": {
+        "traffic": {
+          "fps": 88,
+          "frameMs": 11.36,
+          "p95": 13,
+          "cpu": 10.89,
+          "gpu": 83,
+          "draws": 1054,
+          "tris": 12308096
+        },
+        "highway": {
+          "fps": 70.2,
+          "frameMs": 14.24,
+          "p95": 16,
+          "cpu": 13.83,
+          "gpu": 79.25,
+          "draws": 1043,
+          "tris": 12290595
+        },
+        "boats": {
+          "fps": 71.7,
+          "frameMs": 13.94,
+          "p95": 15.7,
+          "cpu": 13.61,
+          "gpu": 79.57,
+          "draws": 1043,
+          "tris": 12307082
+        },
+        "mooredBoats": {
+          "fps": 70.7,
+          "frameMs": 14.14,
+          "p95": 18.4,
+          "cpu": 13.52,
+          "gpu": 78.9,
+          "draws": 1043,
+          "tris": 12295701
+        },
+        "weather": {
+          "fps": 72.8,
+          "frameMs": 13.74,
+          "p95": 15.5,
+          "cpu": 13.4,
+          "gpu": 80.08,
+          "draws": 1043,
+          "tris": 12308549
+        },
+        "planes": {
+          "fps": 72.5,
+          "frameMs": 13.8,
+          "p95": 15.6,
+          "cpu": 13.47,
+          "gpu": 76.36,
+          "draws": 1043,
+          "tris": 12307633
+        },
+        "fireworks": {
+          "fps": 72.5,
+          "frameMs": 13.79,
+          "p95": 15.5,
+          "cpu": 13.45,
+          "gpu": 77.41,
+          "draws": 1043,
+          "tris": 12310612
+        },
+        "cycling": {
+          "fps": 72,
+          "frameMs": 13.88,
+          "p95": 15.8,
+          "cpu": 13.55,
+          "gpu": 81.58,
+          "draws": 1043,
+          "tris": 12296502
+        },
+        "photomesh": {
+          "fps": 72,
+          "frameMs": 13.9,
+          "p95": 15.8,
+          "cpu": 13.57,
+          "gpu": 84.39,
+          "draws": 1043,
+          "tris": 12301824
+        },
+        "canton": {
+          "fps": 73.1,
+          "frameMs": 13.67,
+          "p95": 15.3,
+          "cpu": 13.35,
+          "gpu": 84.88,
+          "draws": 1043,
+          "tris": 12292342
+        },
+        "trams": {
+          "fps": 75.6,
+          "frameMs": 13.23,
+          "p95": 15.4,
+          "cpu": 12.9,
+          "gpu": 84.05,
+          "draws": 1043,
+          "tris": 12302815
+        },
+        "blocks": {
+          "fps": 74.4,
+          "frameMs": 13.44,
+          "p95": 15.5,
+          "cpu": 13.1,
+          "gpu": 84.65,
+          "draws": 1043,
+          "tris": 12310742
+        },
+        "streetDetails": {
+          "fps": 73.1,
+          "frameMs": 13.69,
+          "p95": 15.7,
+          "cpu": 13.36,
+          "gpu": 85.11,
+          "draws": 1043,
+          "tris": 12295223
+        },
+        "roadMarks": {
+          "fps": 73.6,
+          "frameMs": 13.58,
+          "p95": 15.2,
+          "cpu": 13.23,
+          "gpu": 82.08,
+          "draws": 1043,
+          "tris": 12278862
+        },
+        "lighting": {
+          "fps": 72.2,
+          "frameMs": 13.85,
+          "p95": 15.6,
+          "cpu": 13.52,
+          "gpu": 79.33,
+          "draws": 1043,
+          "tris": 12276381
+        },
+        "map": {
+          "fps": 73.4,
+          "frameMs": 13.62,
+          "p95": 15.6,
+          "cpu": 13.36,
+          "gpu": 75.92,
+          "draws": 1043,
+          "tris": 12286963
+        },
+        "audio": {
+          "fps": 72.1,
+          "frameMs": 13.86,
+          "p95": 15.6,
+          "cpu": 13.51,
+          "gpu": 79.5,
+          "draws": 1043,
+          "tris": 12294447
+        }
+      },
+      "layers": {
+        "BerlinMitteCityGrid": {
+          "fps": 80.7,
+          "frameMs": 12.4,
+          "p95": 13.4,
+          "cpu": 12.06,
+          "gpu": 61.72,
+          "draws": 889,
+          "tris": 9964584
+        },
+        "BerlinStreetDetails": {
+          "fps": 89.5,
+          "frameMs": 11.18,
+          "p95": 11.9,
+          "cpu": 10.83,
+          "gpu": 54.78,
+          "draws": 599,
+          "tris": 9389125
+        },
+        "GenevaTrams": {
+          "fps": 72.9,
+          "frameMs": 13.71,
+          "p95": 14.7,
+          "cpu": 13.35,
+          "gpu": 79.09,
+          "draws": 1037,
+          "tris": 10951332
+        },
+        "surroundings": {
+          "fps": 69.8,
+          "frameMs": 14.33,
+          "p95": 18.4,
+          "cpu": 13.6,
+          "gpu": 80.35,
+          "draws": 1039,
+          "tris": 11013063
+        },
+        "RoadMarksSITG": {
+          "fps": 73.3,
+          "frameMs": 13.65,
+          "p95": 15.6,
+          "cpu": 13.33,
+          "gpu": 81.35,
+          "draws": 1020,
+          "tris": 12281598
+        },
+        "ManhattanTrafficAndPedestrians": {
+          "fps": 75.2,
+          "frameMs": 13.3,
+          "p95": 14.8,
+          "cpu": 12.96,
+          "gpu": 74.76,
+          "draws": 1003,
+          "tris": 9960638
+        },
+        "ShadowProxy": {
+          "fps": 72.1,
+          "frameMs": 13.87,
+          "p95": 15.8,
+          "cpu": 13.55,
+          "gpu": 80.62,
+          "draws": 1033,
+          "tris": 12235003
+        },
+        "Photomesh": {
+          "fps": 74.9,
+          "frameMs": 13.35,
+          "p95": 15.3,
+          "cpu": 13.03,
+          "gpu": 83.92,
+          "draws": 1002,
+          "tris": 12098377
+        },
+        "swissbuildings3d": {
+          "fps": 85,
+          "frameMs": 11.76,
+          "p95": 12.9,
+          "cpu": 11.41,
+          "gpu": 86.7,
+          "draws": 894,
+          "tris": 12113319
+        },
+        "MooredBoats": {
+          "fps": 72.3,
+          "frameMs": 13.83,
+          "p95": 15.1,
+          "cpu": 13.48,
+          "gpu": 75.31,
+          "draws": 1039,
+          "tris": 11702279
+        },
+        "Quays": {
+          "fps": 72.9,
+          "frameMs": 13.72,
+          "p95": 14.6,
+          "cpu": 13.37,
+          "gpu": 73.32,
+          "draws": 1039,
+          "tris": 11908024
+        },
+        "RoadMarkings": {
+          "fps": 71.7,
+          "frameMs": 13.95,
+          "p95": 14.9,
+          "cpu": 13.61,
+          "gpu": 74.75,
+          "draws": 1050,
+          "tris": 12204852
+        },
+        "PlayerCargoBike": {
+          "fps": 70.6,
+          "frameMs": 14.16,
+          "p95": 14.9,
+          "cpu": 13.83,
+          "gpu": 72.6,
+          "draws": 1051,
+          "tris": 12294314
+        },
+        "PontDuMontBlancFlags": {
+          "fps": 70.7,
+          "frameMs": 14.15,
+          "p95": 14.8,
+          "cpu": 13.82,
+          "gpu": 73.46,
+          "draws": 1051,
+          "tris": 12290975
+        },
+        "Cyclists": {
+          "fps": 70.9,
+          "frameMs": 14.1,
+          "p95": 14.9,
+          "cpu": 13.77,
+          "gpu": 74.59,
+          "draws": 1042,
+          "tris": 12069237
+        },
+        "PeopleNear": {
+          "fps": 71.9,
+          "frameMs": 13.91,
+          "p95": 15.7,
+          "cpu": 13.59,
+          "gpu": 81.3,
+          "draws": 1042,
+          "tris": 12302484
+        },
+        "PlayerTaxiCar": {
+          "fps": 71.9,
+          "frameMs": 13.91,
+          "p95": 15.9,
+          "cpu": 13.58,
+          "gpu": 81.45,
+          "draws": 1051,
+          "tris": 12368716
+        },
+        "PlayerCyclist": {
+          "fps": 73.3,
+          "frameMs": 13.64,
+          "p95": 15.6,
+          "cpu": 13.3,
+          "gpu": 81.56,
+          "draws": 1007,
+          "tris": 12352115
+        },
+        "HighwayTraffic": {
+          "fps": 73,
+          "frameMs": 13.69,
+          "p95": 15.6,
+          "cpu": 13.36,
+          "gpu": 83.22,
+          "draws": 1051,
+          "tris": 12372151
+        }
+      }
+    }
+  },
+  "inventory": [
+    {
+      "name": "BerlinMitteCityGrid",
+      "visible": true,
+      "roots": 1,
+      "meshes": 728,
+      "visibleMeshes": 728,
+      "draws": 728,
+      "instances": 0,
+      "triangles": 8173448,
+      "casters": 118,
+      "casterTriangles": 1092108,
+      "lights": 0
+    },
+    {
+      "name": "BerlinStreetDetails",
+      "visible": true,
+      "roots": 1,
+      "meshes": 6306,
+      "visibleMeshes": 587,
+      "draws": 6306,
+      "instances": 37380,
+      "triangles": 2347172,
+      "casters": 6182,
+      "casterTriangles": 1691146,
+      "lights": 0
+    },
+    {
+      "name": "GenevaTrams",
+      "visible": true,
+      "roots": 1,
+      "meshes": 4,
+      "visibleMeshes": 4,
+      "draws": 4,
+      "instances": 130,
+      "triangles": 1346230,
+      "casters": 1,
+      "casterTriangles": 4680,
+      "lights": 0
+    },
+    {
+      "name": "surroundings",
+      "visible": true,
+      "roots": 1,
+      "meshes": 4,
+      "visibleMeshes": 4,
+      "draws": 4,
+      "instances": 0,
+      "triangles": 1310256,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "RoadMarksSITG",
+      "visible": true,
+      "roots": 1,
+      "meshes": 339,
+      "visibleMeshes": 81,
+      "draws": 339,
+      "instances": 0,
+      "triangles": 789773,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "ManhattanTrafficAndPedestrians",
+      "visible": true,
+      "roots": 1,
+      "meshes": 21,
+      "visibleMeshes": 19,
+      "draws": 21,
+      "instances": 1433,
+      "triangles": 565516,
+      "casters": 17,
+      "casterTriangles": 565440,
+      "lights": 102
+    },
+    {
+      "name": "ShadowProxy",
+      "visible": true,
+      "roots": 73,
+      "meshes": 73,
+      "visibleMeshes": 73,
+      "draws": 73,
+      "instances": 4033,
+      "triangles": 306508,
+      "casters": 73,
+      "casterTriangles": 306508,
+      "lights": 0
+    },
+    {
+      "name": "Photomesh",
+      "visible": true,
+      "roots": 1,
+      "meshes": 84,
+      "visibleMeshes": 84,
+      "draws": 84,
+      "instances": 0,
+      "triangles": 262124,
+      "casters": 84,
+      "casterTriangles": 262124,
+      "lights": 0
+    },
+    {
+      "name": "swissbuildings3d",
+      "visible": true,
+      "roots": 1,
+      "meshes": 102,
+      "visibleMeshes": 102,
+      "draws": 102,
+      "instances": 0,
+      "triangles": 261362,
+      "casters": 102,
+      "casterTriangles": 261362,
+      "lights": 0
+    },
+    {
+      "name": "MooredBoats",
+      "visible": true,
+      "roots": 1,
+      "meshes": 8,
+      "visibleMeshes": 8,
+      "draws": 8,
+      "instances": 5187,
+      "triangles": 205492,
+      "casters": 8,
+      "casterTriangles": 205492,
+      "lights": 0
+    },
+    {
+      "name": "Quays",
+      "visible": true,
+      "roots": 1,
+      "meshes": 5,
+      "visibleMeshes": 5,
+      "draws": 5,
+      "instances": 0,
+      "triangles": 163552,
+      "casters": 3,
+      "casterTriangles": 97618,
+      "lights": 0
+    },
+    {
+      "name": "RoadMarkings",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 99346,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "CycleMarkings",
+      "visible": false,
+      "roots": 1,
+      "meshes": 2,
+      "visibleMeshes": 0,
+      "draws": 2,
+      "instances": 0,
+      "triangles": 68218,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "PlayerCargoBike",
+      "visible": true,
+      "roots": 1,
+      "meshes": 145,
+      "visibleMeshes": 145,
+      "draws": 145,
+      "instances": 99,
+      "triangles": 47236,
+      "casters": 141,
+      "casterTriangles": 46836,
+      "lights": 1
+    },
+    {
+      "name": "PontDuMontBlancFlags",
+      "visible": true,
+      "roots": 1,
+      "meshes": 4,
+      "visibleMeshes": 4,
+      "draws": 4,
+      "instances": 112,
+      "triangles": 26208,
+      "casters": 4,
+      "casterTriangles": 26208,
+      "lights": 0
+    },
+    {
+      "name": "Cyclists",
+      "visible": true,
+      "roots": 1,
+      "meshes": 3,
+      "visibleMeshes": 3,
+      "draws": 3,
+      "instances": 66,
+      "triangles": 25784,
+      "casters": 3,
+      "casterTriangles": 25784,
+      "lights": 0
+    },
+    {
+      "name": "PeopleNear",
+      "visible": true,
+      "roots": 3,
+      "meshes": 3,
+      "visibleMeshes": 3,
+      "draws": 3,
+      "instances": 0,
+      "triangles": 10302,
+      "casters": 3,
+      "casterTriangles": 10302,
+      "lights": 0
+    },
+    {
+      "name": "PlayerTaxiCar",
+      "visible": true,
+      "roots": 1,
+      "meshes": 10,
+      "visibleMeshes": 10,
+      "draws": 10,
+      "instances": 0,
+      "triangles": 4546,
+      "casters": 9,
+      "casterTriangles": 4544,
+      "lights": 2
+    },
+    {
+      "name": "PeopleFar",
+      "visible": true,
+      "roots": 3,
+      "meshes": 3,
+      "visibleMeshes": 3,
+      "draws": 3,
+      "instances": 0,
+      "triangles": 2862,
+      "casters": 3,
+      "casterTriangles": 2862,
+      "lights": 0
+    },
+    {
+      "name": "PlayerCyclist",
+      "visible": true,
+      "roots": 1,
+      "meshes": 16,
+      "visibleMeshes": 16,
+      "draws": 16,
+      "instances": 0,
+      "triangles": 2622,
+      "casters": 14,
+      "casterTriangles": 2508,
+      "lights": 1
+    },
+    {
+      "name": "PlayerHelicopter",
+      "visible": true,
+      "roots": 1,
+      "meshes": 7,
+      "visibleMeshes": 7,
+      "draws": 7,
+      "instances": 0,
+      "triangles": 2216,
+      "casters": 3,
+      "casterTriangles": 1752,
+      "lights": 0
+    },
+    {
+      "name": "GenevaAirport",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 2,
+      "triangles": 1400,
+      "casters": 1,
+      "casterTriangles": 1400,
+      "lights": 0
+    },
+    {
+      "name": "Group#40",
+      "visible": true,
+      "roots": 1,
+      "meshes": 7,
+      "visibleMeshes": 7,
+      "draws": 7,
+      "instances": 0,
+      "triangles": 936,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "Mouettes",
+      "visible": true,
+      "roots": 1,
+      "meshes": 2,
+      "visibleMeshes": 2,
+      "draws": 2,
+      "instances": 8,
+      "triangles": 480,
+      "casters": 1,
+      "casterTriangles": 416,
+      "lights": 0
+    },
+    {
+      "name": "Mesh#36",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 308,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "JetDeau",
+      "visible": true,
+      "roots": 1,
+      "meshes": 2,
+      "visibleMeshes": 2,
+      "draws": 2,
+      "instances": 0,
+      "triangles": 82,
+      "casters": 1,
+      "casterTriangles": 80,
+      "lights": 0
+    },
+    {
+      "name": "Mesh#116",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 12,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "Precipitation",
+      "visible": false,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 0,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 2,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "Fireworks",
+      "visible": false,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 0,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 2,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "HighwayTraffic",
+      "visible": true,
+      "roots": 1,
+      "meshes": 10,
+      "visibleMeshes": 0,
+      "draws": 10,
+      "instances": 0,
+      "triangles": 2,
+      "casters": 3,
+      "casterTriangles": 0,
+      "lights": 28
+    },
+    {
+      "name": "PlayerPerson",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 2,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "SunLight#0",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 1
+    },
+    {
+      "name": "HemisphereLight#1",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 1
+    },
+    {
+      "name": "CantonBuildings",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "PointLight#11",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 1
+    },
+    {
+      "name": "BerlinBoundaryContext",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "ManhattanLandmarks",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "StoreClusteredLights",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 28
+    },
+    {
+      "name": "BerlinMitteCityBlocks",
+      "visible": true,
+      "roots": 1,
+      "meshes": 15,
+      "visibleMeshes": 15,
+      "draws": 15,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 10,
+      "casterTriangles": 0,
+      "lights": 0
+    },
+    {
+      "name": "StreetClusteredLights",
+      "visible": true,
+      "roots": 1,
+      "meshes": 0,
+      "visibleMeshes": 0,
+      "draws": 0,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 84
+    },
+    {
+      "name": "GenevaOverheadLines",
+      "visible": true,
+      "roots": 1,
+      "meshes": 1,
+      "visibleMeshes": 1,
+      "draws": 1,
+      "instances": 0,
+      "triangles": 0,
+      "casters": 0,
+      "casterTriangles": 0,
+      "lights": 0
+    }
+  ],
+  "render": {
+    "shadows": {
+      "cornavin": {
+        "fps": 94.4,
+        "frameMs": 10.6,
+        "p95": 12.7,
+        "cpu": 9.96,
+        "gpu": 77.3,
+        "draws": 821,
+        "tris": 8748595
+      },
+      "montblanc": {
+        "fps": 106.9,
+        "frameMs": 9.36,
+        "p95": 17.3,
+        "cpu": 9.02,
+        "gpu": 74.48,
+        "draws": 461,
+        "tris": 7060993
+      },
+      "jetdeau": {
+        "fps": 80.9,
+        "frameMs": 12.36,
+        "p95": 16.6,
+        "cpu": 11.97,
+        "gpu": 83.08,
+        "draws": 1003,
+        "tris": 9815689
+      },
+      "cathedrale": {
+        "fps": 82,
+        "frameMs": 12.19,
+        "p95": 13.4,
+        "cpu": 11.89,
+        "gpu": 59.81,
+        "draws": 1008,
+        "tris": 9373812
+      },
+      "plainpalais": {
+        "fps": 104.6,
+        "frameMs": 9.56,
+        "p95": 10.5,
+        "cpu": 9.12,
+        "gpu": 69.55,
+        "draws": 544,
+        "tris": 7096653
+      }
+    },
+    "ssr": {
+      "cornavin": {
+        "fps": 71.1,
+        "frameMs": 14.07,
+        "p95": 16.8,
+        "cpu": 13.1,
+        "gpu": 48.53,
+        "draws": 1150,
+        "tris": 12691159
+      },
+      "montblanc": {
+        "fps": 76.9,
+        "frameMs": 13.01,
+        "p95": 14.3,
+        "cpu": 12.67,
+        "gpu": 46.67,
+        "draws": 1174,
+        "tris": 11107394
+      },
+      "jetdeau": {
+        "fps": 70.2,
+        "frameMs": 14.24,
+        "p95": 16.1,
+        "cpu": 13.92,
+        "gpu": 56.45,
+        "draws": 1224,
+        "tris": 12883171
+      },
+      "cathedrale": {
+        "fps": 60.3,
+        "frameMs": 16.59,
+        "p95": 17.6,
+        "cpu": 16.23,
+        "gpu": 43.6,
+        "draws": 1489,
+        "tris": 14504100
+      },
+      "plainpalais": {
+        "fps": 73.4,
+        "frameMs": 13.63,
+        "p95": 14.5,
+        "cpu": 13.31,
+        "gpu": 52.36,
+        "draws": 1043,
+        "tris": 12241160
+      }
+    },
+    "bloom": {
+      "cornavin": {
+        "fps": 64.4,
+        "frameMs": 15.53,
+        "p95": 18.1,
+        "cpu": 14.12,
+        "gpu": 39.45,
+        "draws": 1104,
+        "tris": 12629747
+      },
+      "montblanc": {
+        "fps": 74.6,
+        "frameMs": 13.41,
+        "p95": 14.8,
+        "cpu": 13.05,
+        "gpu": 36.12,
+        "draws": 1163,
+        "tris": 11044074
+      },
+      "jetdeau": {
+        "fps": 63.8,
+        "frameMs": 15.68,
+        "p95": 17.4,
+        "cpu": 15.34,
+        "gpu": 40.09,
+        "draws": 1231,
+        "tris": 12988771
+      },
+      "cathedrale": {
+        "fps": 57.8,
+        "frameMs": 17.29,
+        "p95": 18.4,
+        "cpu": 16.91,
+        "gpu": 32.98,
+        "draws": 1487,
+        "tris": 14556856
+      },
+      "plainpalais": {
+        "fps": 74,
+        "frameMs": 13.51,
+        "p95": 15.1,
+        "cpu": 13.17,
+        "gpu": 39.07,
+        "draws": 1039,
+        "tris": 12248648
+      }
+    },
+    "msaa": {
+      "cornavin": {
+        "fps": 70,
+        "frameMs": 14.28,
+        "p95": 17.3,
+        "cpu": 12.97,
+        "gpu": 64.54,
+        "draws": 1121,
+        "tris": 12695572
+      },
+      "montblanc": {
+        "fps": 76.5,
+        "frameMs": 13.07,
+        "p95": 14.1,
+        "cpu": 12.69,
+        "gpu": 51.55,
+        "draws": 1176,
+        "tris": 11049615
+      },
+      "jetdeau": {
+        "fps": 67.9,
+        "frameMs": 14.72,
+        "p95": 16.3,
+        "cpu": 14.38,
+        "gpu": 56.41,
+        "draws": 1242,
+        "tris": 13063569
+      },
+      "cathedrale": {
+        "fps": 59,
+        "frameMs": 16.95,
+        "p95": 20.1,
+        "cpu": 16.57,
+        "gpu": 55.06,
+        "draws": 1486,
+        "tris": 14525720
+      },
+      "plainpalais": {
+        "fps": 75.1,
+        "frameMs": 13.31,
+        "p95": 14.3,
+        "cpu": 12.94,
+        "gpu": 59.7,
+        "draws": 1039,
+        "tris": 12259556
+      }
+    },
+    "res075": {
+      "cornavin": {
+        "fps": 69.3,
+        "frameMs": 14.43,
+        "p95": 17.4,
+        "cpu": 13.15,
+        "gpu": 57.33,
+        "draws": 1124,
+        "tris": 12661615
+      },
+      "montblanc": {
+        "fps": 75.9,
+        "frameMs": 13.17,
+        "p95": 14.4,
+        "cpu": 12.82,
+        "gpu": 52.77,
+        "draws": 1176,
+        "tris": 11061568
+      },
+      "jetdeau": {
+        "fps": 67.5,
+        "frameMs": 14.82,
+        "p95": 16.5,
+        "cpu": 14.47,
+        "gpu": 55.86,
+        "draws": 1243,
+        "tris": 12970153
+      },
+      "cathedrale": {
+        "fps": 59.7,
+        "frameMs": 16.75,
+        "p95": 17.8,
+        "cpu": 16.38,
+        "gpu": 45.37,
+        "draws": 1488,
+        "tris": 14481976
+      },
+      "plainpalais": {
+        "fps": 72.5,
+        "frameMs": 13.79,
+        "p95": 14.8,
+        "cpu": 13.3,
+        "gpu": 53.41,
+        "draws": 1048,
+        "tris": 12260463
+      }
+    },
+    "res050": {
+      "cornavin": {
+        "fps": 68.6,
+        "frameMs": 14.58,
+        "p95": 17.3,
+        "cpu": 13.17,
+        "gpu": 41.57,
+        "draws": 1118,
+        "tris": 12741250
+      },
+      "montblanc": {
+        "fps": 76.2,
+        "frameMs": 13.13,
+        "p95": 14,
+        "cpu": 12.78,
+        "gpu": 40.57,
+        "draws": 1173,
+        "tris": 11014829
+      },
+      "jetdeau": {
+        "fps": 66.8,
+        "frameMs": 14.97,
+        "p95": 16.6,
+        "cpu": 14.62,
+        "gpu": 40.07,
+        "draws": 1241,
+        "tris": 13062857
+      },
+      "cathedrale": {
+        "fps": 59.6,
+        "frameMs": 16.78,
+        "p95": 17.8,
+        "cpu": 16.41,
+        "gpu": 31.62,
+        "draws": 1495,
+        "tris": 14439003
+      },
+      "plainpalais": {
+        "fps": 72.6,
+        "frameMs": 13.77,
+        "p95": 14.7,
+        "cpu": 13.41,
+        "gpu": 43.67,
+        "draws": 1051,
+        "tris": 12215102
+      }
+    },
+    "bare": {
+      "cornavin": {
+        "fps": 102.9,
+        "frameMs": 9.72,
+        "p95": 11.9,
+        "cpu": 9.15,
+        "gpu": 10.69,
+        "draws": 800,
+        "tris": 8728331
+      },
+      "montblanc": {
+        "fps": 124.5,
+        "frameMs": 8.03,
+        "p95": 8.9,
+        "cpu": 7.77,
+        "gpu": 8.77,
+        "draws": 440,
+        "tris": 7078101
+      },
+      "jetdeau": {
+        "fps": 91.3,
+        "frameMs": 10.95,
+        "p95": 12.1,
+        "cpu": 10.67,
+        "gpu": 11.38,
+        "draws": 985,
+        "tris": 9805613
+      },
+      "cathedrale": {
+        "fps": 87.9,
+        "frameMs": 11.38,
+        "p95": 12.6,
+        "cpu": 11.1,
+        "gpu": 10.56,
+        "draws": 990,
+        "tris": 9392466
+      },
+      "plainpalais": {
+        "fps": 116.3,
+        "frameMs": 8.6,
+        "p95": 9.5,
+        "cpu": 8.34,
+        "gpu": 9.82,
+        "draws": 525,
+        "tris": 7115975
+      }
+    }
+  },
+  "memory": {
+    "attributes": 3045,
+    "attributesSize": 455134400,
+    "geometries": 1224,
+    "indexAttributes": 668,
+    "indexAttributesSize": 48539574,
+    "indirectStorageAttributes": 0,
+    "indirectStorageAttributesSize": 0,
+    "programs": 232,
+    "programsSize": 2439918,
+    "readbackBuffers": 0,
+    "readbackBuffersSize": 0,
+    "renderTargets": 17,
+    "storageAttributes": 467,
+    "storageAttributesSize": 16096544,
+    "textures": 118,
+    "texturesSize": 447904366,
+    "uniformBuffers": 2845,
+    "uniformBuffersSize": 670096,
+    "total": 970784898
+  }
+}

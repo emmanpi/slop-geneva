@@ -66,7 +66,7 @@ function railingMaterial() {
   const rails = step(0.9, v).add(step(v, 0.07)).add(step(v.sub(0.5).abs(), 0.025));
   const post = step(fract(along.div(2.2)), 0.04);
   m.opacityNode = bar.add(rails).add(post).min(1);
-  m.alphaTest = 0.5;
+  m.alphaTestNode = float(0.5); // (alphaTestNode, not alphaTest: see createTreeMaterial (tsl-materials.js))
   return hideInPhotomesh(m);
 }
 
