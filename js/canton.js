@@ -6,9 +6,12 @@ import { surroundingsHeight } from './surroundings.js';
 // tools/build-geneva-canton.mjs) streamed straight from swisstopo's 3D Tiles service around the camera, nearest first,
 // and released again once the camera has moved on. The reach grows with the camera's height: ~1.5 km from the street
 // (only the frame's edges look out that far), up to 4.5 km from the helicopter. They stand on the surroundings' relief
-// (js/surroundings.js) in the city's facade material, unlit by the RegBL (style "inconnu").
+// (js/surroundings.js) in the city's facade material. Their facades (style, storey height, wall colour, windows) come
+// from data/geneva-canton-facades.json when it is there (same format as data/geneva-facades.json, per canton tile:
+// tools/build-geneva-canton-facades.mjs); without it they stay unknown (style "inconnu", a generic colour).
 
 const INDEX_URL = new URL('../data/geneva-canton-buildings.json', import.meta.url);
+const FACADES_URL = new URL('../data/geneva-canton-facades.json', import.meta.url);
 const MAX_TILES = 1400, CONCURRENCY = 6;
 
 export function buildCanton(scene) {
@@ -18,8 +21,9 @@ export function buildCanton(scene) {
   scene.add(group);
   const stats = { tiles: 0, loaded: 0, loading: 0, failed: 0 };
   group.userData.stats = stats;
-  let tiles = [], origin = '';
+  let tiles = [], origin = '', facades = null;
   const bake = { offsets: [], ground: null };
+  fetch(FACADES_URL).then((r) => (r.ok ? r.json() : null)).then((f) => { facades = f; }).catch(() => {});
   fetch(INDEX_URL).then((r) => (r.ok ? r.json() : null)).then((index) => {
     if (!index) return;
     origin = index.origin;
@@ -32,7 +36,7 @@ export function buildCanton(scene) {
     t.busy = true;
     loading++;
     try {
-      const mesh = await loadSwissTile(origin + t.u, { seed: t.seed, stats: bake });
+      const mesh = await loadSwissTile(origin + t.u, { seed: t.seed, stats: bake, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes });
       if (mesh && t.want) {
         mesh.name = t.u;
         mesh.matrixAutoUpdate = false;

@@ -489,11 +489,11 @@ async function fetchBuffer(url) {
  * ({ offsets, ground }). Resolves to null for a tile without buildings.
  */
 let sharedMaterial = null;
-export async function loadSwissTile(url, { seed = 0, stats }) {
+export async function loadSwissTile(url, { seed = 0, stats, facades = undefined, archetypes = undefined }) {
   sharedMaterial ??= createMaterial();
   const tile = parseB3dm(await fetchBuffer(url));
   const gltf = await loaderFor().parseAsync(tile.glb, '');
-  const geometry = bakeTile(gltf, { ...tile, seed }, stats);
+  const geometry = bakeTile(gltf, { ...tile, seed, facades, archetypes }, stats);
   if (!geometry) return null;
   const mesh = new THREE.Mesh(geometry, sharedMaterial);
   mesh.castShadow = mesh.receiveShadow = true;
