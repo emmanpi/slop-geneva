@@ -1,0 +1,5939 @@
+{
+  "source": "swisstopo swissALTI3D & SWISSIMAGE 10 cm; SITG (État de Genève) CAD_DOMROUTIER_OBJETS_NIV0, OTC_MARQUAGE_LIGNE/SURFACE, Inventaire cantonal des arbres isolés",
+  "fetched": "2026-11-06",
+  "tileSize": 1000,
+  "tiles": {
+    "2485-1109": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 341813,
+        "roadway": 125436,
+        "trees": 269
+      },
+      "trees": 4,
+      "orthoYear": 2023
+    },
+    "2485-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 304608,
+        "roadway": 126128
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2486-1109": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 351705,
+        "trees": 68
+      },
+      "trees": 1,
+      "orthoYear": 2023
+    },
+    "2486-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 349573,
+        "roadway": 133508,
+        "roadmarks": 2972,
+        "trees": 1858
+      },
+      "trees": 28,
+      "orthoYear": 2023
+    },
+    "2486-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 304208,
+        "roadway": 150156,
+        "roadmarks": 22944,
+        "trees": 17038
+      },
+      "trees": 260,
+      "orthoYear": 2023
+    },
+    "2486-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 281696,
+        "roadway": 133296,
+        "roadmarks": 12484,
+        "trees": 2677
+      },
+      "trees": 41,
+      "orthoYear": 2023
+    },
+    "2486-1113": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 285950
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2486-1114": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 27955
+      },
+      "trees": 0,
+      "orthoYear": null
+    },
+    "2486-1115": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 27955
+      },
+      "trees": 0,
+      "orthoYear": null
+    },
+    "2486-1116": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 306427
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2486-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 340127,
+        "roadway": 127516,
+        "roadmarks": 668,
+        "trees": 1061
+      },
+      "trees": 17,
+      "orthoYear": 2023
+    },
+    "2486-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 262162,
+        "roadway": 126292
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2486-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 237439,
+        "roadway": 125092
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2487-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 372817,
+        "roadway": 125332,
+        "roadmarks": 436,
+        "trees": 470
+      },
+      "trees": 7,
+      "orthoYear": 2023
+    },
+    "2487-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 245581,
+        "roadway": 129704,
+        "trees": 8315
+      },
+      "trees": 125,
+      "orthoYear": 2023
+    },
+    "2487-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 229523,
+        "roadway": 151488,
+        "roadmarks": 18688,
+        "trees": 13293
+      },
+      "trees": 202,
+      "orthoYear": 2023
+    },
+    "2487-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 284925,
+        "roadway": 138240,
+        "roadmarks": 1948,
+        "trees": 15128
+      },
+      "trees": 230,
+      "orthoYear": 2023
+    },
+    "2487-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 283530,
+        "roadway": 128372,
+        "trees": 7728
+      },
+      "trees": 118,
+      "orthoYear": 2023
+    },
+    "2487-1115": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 314433
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2487-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 228897,
+        "roadway": 136640,
+        "trees": 1492
+      },
+      "trees": 23,
+      "orthoYear": 2023
+    },
+    "2487-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 302397,
+        "roadway": 147804,
+        "roadmarks": 3252,
+        "trees": 3436
+      },
+      "trees": 54,
+      "orthoYear": 2023
+    },
+    "2487-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 228578,
+        "roadway": 142488,
+        "roadmarks": 400,
+        "trees": 1258
+      },
+      "trees": 19,
+      "orthoYear": 2023
+    },
+    "2487-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 247218,
+        "roadway": 127792
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2488-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 292513,
+        "roadway": 134708,
+        "roadmarks": 5552,
+        "trees": 12005
+      },
+      "trees": 181,
+      "orthoYear": 2023
+    },
+    "2488-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 287494,
+        "roadway": 155260,
+        "roadmarks": 21968,
+        "trees": 20201
+      },
+      "trees": 309,
+      "orthoYear": 2023
+    },
+    "2488-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 222430,
+        "roadway": 142544,
+        "roadmarks": 16828,
+        "trees": 14711
+      },
+      "trees": 225,
+      "orthoYear": 2023
+    },
+    "2488-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 246416,
+        "roadway": 143812,
+        "roadmarks": 16980,
+        "trees": 27994
+      },
+      "trees": 425,
+      "orthoYear": 2020
+    },
+    "2488-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 280280,
+        "roadway": 144876,
+        "roadmarks": 14084,
+        "trees": 4602
+      },
+      "trees": 70,
+      "orthoYear": 2023
+    },
+    "2488-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 271356,
+        "roadway": 153704,
+        "roadmarks": 6396,
+        "trees": 17886
+      },
+      "trees": 275,
+      "orthoYear": 2023
+    },
+    "2488-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 322249,
+        "roadway": 143916,
+        "roadmarks": 2620,
+        "trees": 14549
+      },
+      "trees": 225,
+      "orthoYear": 2023
+    },
+    "2488-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 323435,
+        "roadway": 154376,
+        "roadmarks": 1780,
+        "trees": 11198
+      },
+      "trees": 171,
+      "orthoYear": 2023
+    },
+    "2488-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 276116,
+        "roadway": 135136,
+        "roadmarks": 296,
+        "trees": 2965
+      },
+      "trees": 44,
+      "orthoYear": 2023
+    },
+    "2488-1120": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 282851
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2489-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 307135,
+        "roadway": 153564,
+        "roadmarks": 15320,
+        "trees": 19391
+      },
+      "trees": 295,
+      "orthoYear": 2023
+    },
+    "2489-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 240470,
+        "roadway": 143636,
+        "roadmarks": 22384,
+        "trees": 17439
+      },
+      "trees": 264,
+      "orthoYear": 2023
+    },
+    "2489-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 187514,
+        "roadway": 135104,
+        "roadmarks": 16788,
+        "trees": 5324
+      },
+      "trees": 82,
+      "orthoYear": 2023
+    },
+    "2489-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 285601,
+        "roadway": 143860,
+        "roadmarks": 12920,
+        "trees": 27379
+      },
+      "trees": 423,
+      "orthoYear": 2023
+    },
+    "2489-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 306690,
+        "roadway": 153600,
+        "roadmarks": 15196,
+        "trees": 19360
+      },
+      "trees": 298,
+      "orthoYear": 2023
+    },
+    "2489-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 331576,
+        "roadway": 142156,
+        "roadmarks": 8236,
+        "trees": 15612
+      },
+      "trees": 243,
+      "orthoYear": 2023
+    },
+    "2489-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 271323,
+        "roadway": 138164,
+        "roadmarks": 2240,
+        "trees": 435
+      },
+      "trees": 7,
+      "orthoYear": 2023
+    },
+    "2489-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 283857,
+        "roadway": 137064,
+        "roadmarks": 1464,
+        "trees": 1694
+      },
+      "trees": 26,
+      "orthoYear": 2023
+    },
+    "2489-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 336743,
+        "roadway": 134152,
+        "roadmarks": 312,
+        "trees": 201
+      },
+      "trees": 3,
+      "orthoYear": 2023
+    },
+    "2489-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 321518,
+        "roadway": 125268,
+        "trees": 273
+      },
+      "trees": 4,
+      "orthoYear": 2023
+    },
+    "2490-1110": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 257133
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2490-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 246110,
+        "roadway": 131300,
+        "roadmarks": 2996,
+        "trees": 5903
+      },
+      "trees": 93,
+      "orthoYear": 2023
+    },
+    "2490-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 215880,
+        "roadway": 130840,
+        "roadmarks": 2292,
+        "trees": 4958
+      },
+      "trees": 77,
+      "orthoYear": 2023
+    },
+    "2490-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 244084,
+        "roadway": 141360,
+        "roadmarks": 25360,
+        "trees": 9063
+      },
+      "trees": 140,
+      "orthoYear": 2023
+    },
+    "2490-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 320326,
+        "roadway": 154416,
+        "roadmarks": 27640,
+        "trees": 48836
+      },
+      "trees": 756,
+      "orthoYear": 2023
+    },
+    "2490-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 311193,
+        "roadway": 127788,
+        "roadmarks": 636,
+        "trees": 4941
+      },
+      "trees": 78,
+      "orthoYear": 2023
+    },
+    "2490-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 262779,
+        "roadway": 151604,
+        "roadmarks": 16296,
+        "trees": 8885
+      },
+      "trees": 137,
+      "orthoYear": 2023
+    },
+    "2490-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 266644,
+        "roadway": 143896,
+        "roadmarks": 14144,
+        "trees": 2360
+      },
+      "trees": 38,
+      "orthoYear": 2023
+    },
+    "2490-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 265170,
+        "roadway": 146392,
+        "roadmarks": 6444,
+        "trees": 7685
+      },
+      "trees": 120,
+      "orthoYear": 2023
+    },
+    "2490-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255572,
+        "roadway": 142352,
+        "roadmarks": 256,
+        "trees": 12279
+      },
+      "trees": 187,
+      "orthoYear": 2023
+    },
+    "2490-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 240449,
+        "roadway": 136044,
+        "trees": 8056
+      },
+      "trees": 122,
+      "orthoYear": 2023
+    },
+    "2490-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 334481,
+        "roadway": 125668,
+        "trees": 68
+      },
+      "trees": 1,
+      "orthoYear": 2023
+    },
+    "2491-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255452,
+        "roadway": 130428,
+        "roadmarks": 3152,
+        "trees": 751
+      },
+      "trees": 12,
+      "orthoYear": 2023
+    },
+    "2491-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 226686,
+        "roadway": 133932,
+        "roadmarks": 3804,
+        "trees": 13191
+      },
+      "trees": 209,
+      "orthoYear": 2023
+    },
+    "2491-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 267363,
+        "roadway": 156124,
+        "roadmarks": 24560,
+        "trees": 15601
+      },
+      "trees": 241,
+      "orthoYear": 2023
+    },
+    "2491-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 193076,
+        "roadway": 133512,
+        "roadmarks": 6764,
+        "trees": 17114
+      },
+      "trees": 263,
+      "orthoYear": 2023
+    },
+    "2491-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 252709,
+        "roadway": 144708,
+        "roadmarks": 20872,
+        "trees": 7869
+      },
+      "trees": 125,
+      "orthoYear": 2023
+    },
+    "2491-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 305962,
+        "roadway": 129708,
+        "roadmarks": 5920,
+        "trees": 4495
+      },
+      "trees": 69,
+      "orthoYear": 2023
+    },
+    "2491-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 290579,
+        "roadway": 137996,
+        "roadmarks": 9904,
+        "trees": 4312
+      },
+      "trees": 67,
+      "orthoYear": 2023
+    },
+    "2491-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 243654,
+        "roadway": 136988,
+        "roadmarks": 1092,
+        "trees": 5627
+      },
+      "trees": 87,
+      "orthoYear": 2023
+    },
+    "2491-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 294299,
+        "roadway": 155024,
+        "roadmarks": 30352,
+        "trees": 35321
+      },
+      "trees": 560,
+      "orthoYear": 2023
+    },
+    "2491-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 305579,
+        "roadway": 161776,
+        "roadmarks": 43056,
+        "trees": 42441
+      },
+      "trees": 660,
+      "orthoYear": 2023
+    },
+    "2491-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 241564,
+        "roadway": 142312,
+        "roadmarks": 3960,
+        "trees": 17224
+      },
+      "trees": 263,
+      "orthoYear": 2023
+    },
+    "2491-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 238556,
+        "roadway": 126964,
+        "trees": 734
+      },
+      "trees": 11,
+      "orthoYear": 2023
+    },
+    "2492-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 236290,
+        "roadway": 128364,
+        "roadmarks": 1844,
+        "trees": 1947
+      },
+      "trees": 31,
+      "orthoYear": 2023
+    },
+    "2492-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 262467,
+        "roadway": 143968,
+        "roadmarks": 18372,
+        "trees": 9701
+      },
+      "trees": 156,
+      "orthoYear": 2023
+    },
+    "2492-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 236209,
+        "roadway": 132308,
+        "roadmarks": 3232,
+        "trees": 5639
+      },
+      "trees": 86,
+      "orthoYear": 2023
+    },
+    "2492-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 261951,
+        "roadway": 149512,
+        "roadmarks": 4920,
+        "trees": 13807
+      },
+      "trees": 214,
+      "orthoYear": 2023
+    },
+    "2492-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 293045,
+        "roadway": 145048,
+        "roadmarks": 16884,
+        "trees": 18024
+      },
+      "trees": 282,
+      "orthoYear": 2023
+    },
+    "2492-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 316108,
+        "roadway": 138052,
+        "roadmarks": 8332,
+        "trees": 6184
+      },
+      "trees": 96,
+      "orthoYear": 2023
+    },
+    "2492-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 279192,
+        "roadway": 149320,
+        "roadmarks": 29292,
+        "trees": 24227
+      },
+      "trees": 384,
+      "orthoYear": 2023
+    },
+    "2492-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 272873,
+        "roadway": 141856,
+        "roadmarks": 16224,
+        "trees": 12570
+      },
+      "trees": 200,
+      "orthoYear": 2023
+    },
+    "2492-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 317807,
+        "roadway": 132116,
+        "roadmarks": 1076,
+        "trees": 3630
+      },
+      "trees": 57,
+      "orthoYear": 2023
+    },
+    "2492-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 239835,
+        "roadway": 145644,
+        "roadmarks": 13744,
+        "trees": 27077
+      },
+      "trees": 426,
+      "orthoYear": 2023
+    },
+    "2492-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 238032,
+        "roadway": 142536,
+        "roadmarks": 2172,
+        "trees": 11765
+      },
+      "trees": 185,
+      "orthoYear": 2023
+    },
+    "2492-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 319050,
+        "roadway": 129268,
+        "roadmarks": 3244,
+        "trees": 4555
+      },
+      "trees": 72,
+      "orthoYear": 2023
+    },
+    "2493-1111": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 235879
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2493-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 227243,
+        "roadway": 132268,
+        "roadmarks": 6636,
+        "trees": 13874
+      },
+      "trees": 213,
+      "orthoYear": 2023
+    },
+    "2493-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 278586,
+        "roadway": 171632,
+        "roadmarks": 23140,
+        "trees": 7018
+      },
+      "trees": 110,
+      "orthoYear": 2023
+    },
+    "2493-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 275354,
+        "roadway": 159560,
+        "roadmarks": 44284,
+        "trees": 21338
+      },
+      "trees": 342,
+      "orthoYear": 2023
+    },
+    "2493-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 234746,
+        "roadway": 143428,
+        "roadmarks": 7604,
+        "trees": 9128
+      },
+      "trees": 142,
+      "orthoYear": 2023
+    },
+    "2493-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 284572,
+        "roadway": 130532,
+        "roadmarks": 5532,
+        "trees": 1121
+      },
+      "trees": 17,
+      "orthoYear": 2023
+    },
+    "2493-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 318590,
+        "roadway": 148692,
+        "roadmarks": 38760,
+        "trees": 5148
+      },
+      "trees": 83,
+      "orthoYear": 2023
+    },
+    "2493-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 290608,
+        "roadway": 130772,
+        "roadmarks": 1432,
+        "trees": 8846
+      },
+      "trees": 139,
+      "orthoYear": 2023
+    },
+    "2493-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 313938,
+        "roadway": 145840,
+        "roadmarks": 24180,
+        "trees": 22486
+      },
+      "trees": 352,
+      "orthoYear": 2023
+    },
+    "2493-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 322223,
+        "roadway": 169832,
+        "roadmarks": 58392,
+        "trees": 42841
+      },
+      "trees": 671,
+      "orthoYear": 2023
+    },
+    "2493-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 251279,
+        "roadway": 158764,
+        "roadmarks": 27760,
+        "trees": 66359
+      },
+      "trees": 1042,
+      "orthoYear": 2023
+    },
+    "2493-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 310119,
+        "roadway": 128812,
+        "trees": 5582
+      },
+      "trees": 85,
+      "orthoYear": 2023
+    },
+    "2494-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 340866,
+        "roadway": 126196,
+        "trees": 4011
+      },
+      "trees": 61,
+      "orthoYear": 2023
+    },
+    "2494-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 256902,
+        "roadway": 140584,
+        "roadmarks": 3508,
+        "trees": 7131
+      },
+      "trees": 109,
+      "orthoYear": 2023
+    },
+    "2494-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 330601,
+        "roadway": 178624,
+        "roadmarks": 37056,
+        "trees": 24227
+      },
+      "trees": 384,
+      "orthoYear": 2023
+    },
+    "2494-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 379179,
+        "roadway": 177176,
+        "roadmarks": 77304,
+        "trees": 70886
+      },
+      "trees": 1122,
+      "orthoYear": 2023
+    },
+    "2494-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 232004,
+        "roadway": 146844,
+        "roadmarks": 33848,
+        "trees": 32795
+      },
+      "trees": 521,
+      "orthoYear": 2023
+    },
+    "2494-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 296577,
+        "roadway": 138076,
+        "trees": 2584
+      },
+      "trees": 40,
+      "orthoYear": 2023
+    },
+    "2494-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 295888,
+        "roadway": 153896,
+        "roadmarks": 14608,
+        "trees": 23755
+      },
+      "trees": 383,
+      "orthoYear": 2023
+    },
+    "2494-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 331885,
+        "roadway": 156748,
+        "roadmarks": 27988,
+        "trees": 27107
+      },
+      "trees": 418,
+      "orthoYear": 2023
+    },
+    "2494-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 318695,
+        "roadway": 160632,
+        "roadmarks": 64328,
+        "trees": 32802
+      },
+      "trees": 515,
+      "orthoYear": 2023
+    },
+    "2494-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 390960,
+        "roadway": 177440,
+        "roadmarks": 106580,
+        "trees": 126041
+      },
+      "trees": 1964,
+      "orthoYear": 2023
+    },
+    "2494-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 260619,
+        "roadway": 154080,
+        "roadmarks": 51212,
+        "trees": 80700
+      },
+      "trees": 1275,
+      "orthoYear": 2023
+    },
+    "2494-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 268151,
+        "roadway": 125308,
+        "trees": 1463
+      },
+      "trees": 22,
+      "orthoYear": 2023
+    },
+    "2495-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 400148,
+        "roadway": 126404,
+        "roadmarks": 1944,
+        "trees": 1371
+      },
+      "trees": 21,
+      "orthoYear": 2023
+    },
+    "2495-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 270126,
+        "roadway": 177576,
+        "roadmarks": 46056,
+        "trees": 33228
+      },
+      "trees": 509,
+      "orthoYear": 2023
+    },
+    "2495-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 246762,
+        "roadway": 142244,
+        "roadmarks": 9724,
+        "trees": 13029
+      },
+      "trees": 204,
+      "orthoYear": 2023
+    },
+    "2495-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 337481,
+        "roadway": 181228,
+        "roadmarks": 100624,
+        "trees": 71323
+      },
+      "trees": 1109,
+      "orthoYear": 2023
+    },
+    "2495-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 358596,
+        "roadway": 189332,
+        "roadmarks": 112280,
+        "trees": 81192
+      },
+      "trees": 1283,
+      "orthoYear": 2023
+    },
+    "2495-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 327590,
+        "roadway": 139520,
+        "roadmarks": 9292,
+        "trees": 50313
+      },
+      "trees": 799,
+      "orthoYear": 2023
+    },
+    "2495-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 258929,
+        "roadway": 147492,
+        "roadmarks": 2960,
+        "trees": 52017
+      },
+      "trees": 844,
+      "orthoYear": 2023
+    },
+    "2495-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 313621,
+        "roadway": 145136,
+        "roadmarks": 33732,
+        "trees": 57219
+      },
+      "trees": 898,
+      "orthoYear": 2023
+    },
+    "2495-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 368442,
+        "roadway": 176012,
+        "roadmarks": 112632,
+        "trees": 89497
+      },
+      "trees": 1395,
+      "orthoYear": 2023
+    },
+    "2495-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 337996,
+        "roadway": 190060,
+        "roadmarks": 117452,
+        "trees": 109161
+      },
+      "trees": 1695,
+      "orthoYear": 2023
+    },
+    "2495-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 296323,
+        "roadway": 174912,
+        "roadmarks": 76092,
+        "trees": 77395
+      },
+      "trees": 1204,
+      "orthoYear": 2023
+    },
+    "2495-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 297421,
+        "roadway": 130500,
+        "roadmarks": 2592,
+        "trees": 10725
+      },
+      "trees": 164,
+      "orthoYear": 2023
+    },
+    "2496-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 312580,
+        "roadway": 153608,
+        "roadmarks": 19460,
+        "trees": 56010
+      },
+      "trees": 895,
+      "orthoYear": 2023
+    },
+    "2496-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 287600,
+        "roadway": 177868,
+        "roadmarks": 58140,
+        "trees": 78709
+      },
+      "trees": 1250,
+      "orthoYear": 2023
+    },
+    "2496-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 315680,
+        "roadway": 175324,
+        "roadmarks": 54348,
+        "trees": 17499
+      },
+      "trees": 276,
+      "orthoYear": 2023
+    },
+    "2496-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 337928,
+        "roadway": 165648,
+        "roadmarks": 29816,
+        "trees": 40064
+      },
+      "trees": 620,
+      "orthoYear": 2023
+    },
+    "2496-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 385893,
+        "roadway": 208256,
+        "roadmarks": 136800,
+        "trees": 187917
+      },
+      "trees": 2927,
+      "orthoYear": 2023
+    },
+    "2496-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 357050,
+        "roadway": 173564,
+        "roadmarks": 99268,
+        "trees": 91139
+      },
+      "trees": 1452,
+      "orthoYear": 2023
+    },
+    "2496-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 382865,
+        "roadway": 162708,
+        "roadmarks": 70084,
+        "trees": 86143
+      },
+      "trees": 1379,
+      "orthoYear": 2023
+    },
+    "2496-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 340104,
+        "roadway": 142816,
+        "roadmarks": 57384,
+        "trees": 38866
+      },
+      "trees": 620,
+      "orthoYear": 2023
+    },
+    "2496-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 380385,
+        "roadway": 223412,
+        "roadmarks": 176860,
+        "trees": 57378
+      },
+      "trees": 881,
+      "orthoYear": 2023
+    },
+    "2496-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 229922,
+        "roadway": 154380,
+        "roadmarks": 50376,
+        "trees": 10463
+      },
+      "trees": 163,
+      "orthoYear": 2023
+    },
+    "2496-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 263491,
+        "roadway": 138232,
+        "roadmarks": 8908,
+        "trees": 31684
+      },
+      "trees": 482,
+      "orthoYear": 2023
+    },
+    "2496-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 265254,
+        "roadway": 125196,
+        "roadmarks": 436,
+        "trees": 4220
+      },
+      "trees": 64,
+      "orthoYear": 2023
+    },
+    "2497-1110": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 266044
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2497-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 250800,
+        "roadway": 149060,
+        "roadmarks": 9540,
+        "trees": 74229
+      },
+      "trees": 1179,
+      "orthoYear": 2023
+    },
+    "2497-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 212603,
+        "roadway": 156864,
+        "roadmarks": 17208,
+        "trees": 70938
+      },
+      "trees": 1122,
+      "orthoYear": 2023
+    },
+    "2497-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 377428,
+        "roadway": 186108,
+        "roadmarks": 81216,
+        "trees": 56090
+      },
+      "trees": 870,
+      "orthoYear": 2023
+    },
+    "2497-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 405960,
+        "roadway": 197804,
+        "roadmarks": 140828,
+        "trees": 109113
+      },
+      "trees": 1717,
+      "orthoYear": 2023
+    },
+    "2497-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 412225,
+        "roadway": 205972,
+        "roadmarks": 116436,
+        "trees": 169758
+      },
+      "trees": 2630,
+      "orthoYear": 2023
+    },
+    "2497-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 381539,
+        "roadway": 215916,
+        "roadmarks": 223132,
+        "trees": 147048
+      },
+      "trees": 2327,
+      "orthoYear": 2023
+    },
+    "2497-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 328137,
+        "roadway": 161160,
+        "roadmarks": 97536,
+        "trees": 83147
+      },
+      "trees": 1330,
+      "orthoYear": 2023
+    },
+    "2497-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 388406,
+        "roadway": 188072,
+        "roadmarks": 206860,
+        "trees": 92785
+      },
+      "trees": 1462,
+      "orthoYear": 2023
+    },
+    "2497-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 392772,
+        "roadway": 227596,
+        "roadmarks": 183732,
+        "trees": 209669
+      },
+      "trees": 3278,
+      "orthoYear": 2023
+    },
+    "2497-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 398652,
+        "roadway": 199220,
+        "roadmarks": 185224,
+        "trees": 86555
+      },
+      "trees": 1322,
+      "orthoYear": 2023
+    },
+    "2497-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 216682,
+        "roadway": 141536,
+        "roadmarks": 24244,
+        "trees": 4206
+      },
+      "trees": 66,
+      "orthoYear": 2023
+    },
+    "2497-1122": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 304392
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2497-1123": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 375896
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2497-1124": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 326921
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2497-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 281668,
+        "roadway": 129704,
+        "roadmarks": 88,
+        "trees": 4093
+      },
+      "trees": 62,
+      "orthoYear": 2023
+    },
+    "2497-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 270173,
+        "roadway": 138460,
+        "roadmarks": 4836,
+        "trees": 9481
+      },
+      "trees": 146,
+      "orthoYear": 2023
+    },
+    "2497-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 339833,
+        "roadway": 126128,
+        "roadmarks": 216,
+        "trees": 68
+      },
+      "trees": 1,
+      "orthoYear": 2023
+    },
+    "2498-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 330789,
+        "roadway": 129716,
+        "roadmarks": 492,
+        "trees": 21749
+      },
+      "trees": 347,
+      "orthoYear": 2023
+    },
+    "2498-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 227043,
+        "roadway": 155508,
+        "roadmarks": 28968,
+        "trees": 109415
+      },
+      "trees": 1741,
+      "orthoYear": 2023
+    },
+    "2498-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 278051,
+        "roadway": 156784,
+        "roadmarks": 17272,
+        "trees": 50962
+      },
+      "trees": 807,
+      "orthoYear": 2023
+    },
+    "2498-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 356564,
+        "roadway": 199644,
+        "roadmarks": 94316,
+        "trees": 104966
+      },
+      "trees": 1662,
+      "orthoYear": 2023
+    },
+    "2498-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 379257,
+        "roadway": 244576,
+        "roadmarks": 194552,
+        "trees": 135641
+      },
+      "trees": 2149,
+      "orthoYear": 2023
+    },
+    "2498-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 351502,
+        "roadway": 217040,
+        "roadmarks": 216104,
+        "trees": 132271
+      },
+      "trees": 2107,
+      "orthoYear": 2023
+    },
+    "2498-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 369418,
+        "roadway": 215916,
+        "roadmarks": 207444,
+        "trees": 167749
+      },
+      "trees": 2624,
+      "orthoYear": 2023
+    },
+    "2498-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 331451,
+        "roadway": 178092,
+        "roadmarks": 183196,
+        "trees": 129930
+      },
+      "trees": 2091,
+      "orthoYear": 2023
+    },
+    "2498-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 362467,
+        "roadway": 240876,
+        "roadmarks": 350820,
+        "trees": 180584
+      },
+      "trees": 2854,
+      "orthoYear": 2023
+    },
+    "2498-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 371407,
+        "roadway": 191436,
+        "roadmarks": 169648,
+        "trees": 249604
+      },
+      "trees": 3857,
+      "orthoYear": 2023
+    },
+    "2498-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 369665,
+        "roadway": 192804,
+        "roadmarks": 156632,
+        "trees": 204122
+      },
+      "trees": 3201,
+      "orthoYear": 2023
+    },
+    "2498-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 343387,
+        "roadway": 199752,
+        "roadmarks": 145300,
+        "trees": 55948
+      },
+      "trees": 876,
+      "orthoYear": 2023
+    },
+    "2498-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 230022,
+        "roadway": 160372,
+        "roadmarks": 57712,
+        "trees": 5251
+      },
+      "trees": 82,
+      "orthoYear": 2023
+    },
+    "2498-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 313439,
+        "roadway": 132896,
+        "roadmarks": 2320,
+        "trees": 6084
+      },
+      "trees": 96,
+      "orthoYear": 2023
+    },
+    "2498-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 261206,
+        "roadway": 138844,
+        "roadmarks": 6972,
+        "trees": 4841
+      },
+      "trees": 73,
+      "orthoYear": 2023
+    },
+    "2498-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 265813,
+        "roadway": 152540,
+        "roadmarks": 20268,
+        "trees": 28199
+      },
+      "trees": 430,
+      "orthoYear": 2023
+    },
+    "2498-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 253161,
+        "roadway": 134732,
+        "roadmarks": 4060,
+        "trees": 2809
+      },
+      "trees": 43,
+      "orthoYear": 2023
+    },
+    "2498-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 327013,
+        "roadway": 135176,
+        "trees": 6440
+      },
+      "trees": 101,
+      "orthoYear": 2023
+    },
+    "2498-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 368337,
+        "roadway": 130272,
+        "trees": 341
+      },
+      "trees": 5,
+      "orthoYear": 2023
+    },
+    "2498-1129": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 253908,
+        "roadway": 129516,
+        "roadmarks": 8284,
+        "trees": 12319
+      },
+      "trees": 190,
+      "orthoYear": 2023
+    },
+    "2498-1130": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 272417,
+        "roadway": 127568,
+        "roadmarks": 320,
+        "trees": 4909
+      },
+      "trees": 73,
+      "orthoYear": 2023
+    },
+    "2499-1110": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 323315,
+        "roadway": 128108,
+        "roadmarks": 3100,
+        "trees": 15464
+      },
+      "trees": 250,
+      "orthoYear": 2023
+    },
+    "2499-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 260088,
+        "roadway": 149244,
+        "roadmarks": 18460,
+        "trees": 120781
+      },
+      "trees": 1945,
+      "orthoYear": 2023
+    },
+    "2499-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255092,
+        "roadway": 141104,
+        "roadmarks": 11508,
+        "trees": 67238
+      },
+      "trees": 1077,
+      "orthoYear": 2023
+    },
+    "2499-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 373640,
+        "roadway": 167388,
+        "roadmarks": 51204,
+        "trees": 82505
+      },
+      "trees": 1299,
+      "orthoYear": 2023
+    },
+    "2499-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 392966,
+        "roadway": 180916,
+        "roadmarks": 90148,
+        "trees": 127906
+      },
+      "trees": 2023,
+      "orthoYear": 2023
+    },
+    "2499-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 365298,
+        "roadway": 238576,
+        "roadmarks": 385068,
+        "trees": 94673
+      },
+      "trees": 1546,
+      "orthoYear": 2023
+    },
+    "2499-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 350952,
+        "roadway": 230012,
+        "roadmarks": 416592,
+        "trees": 112067
+      },
+      "trees": 1838,
+      "orthoYear": 2023
+    },
+    "2499-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 275460,
+        "roadway": 139380,
+        "roadmarks": 17580,
+        "trees": 162962
+      },
+      "trees": 2572,
+      "orthoYear": 2023
+    },
+    "2499-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 384053,
+        "roadway": 174164,
+        "roadmarks": 39108,
+        "trees": 74003
+      },
+      "trees": 1143,
+      "orthoYear": 2023
+    },
+    "2499-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 292398,
+        "roadway": 159812,
+        "roadmarks": 17480,
+        "trees": 58689
+      },
+      "trees": 927,
+      "orthoYear": 2023
+    },
+    "2499-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 276360,
+        "roadway": 145772,
+        "roadmarks": 10048,
+        "trees": 35391
+      },
+      "trees": 550,
+      "orthoYear": 2023
+    },
+    "2499-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255104,
+        "roadway": 144072,
+        "roadmarks": 15656,
+        "trees": 11831
+      },
+      "trees": 186,
+      "orthoYear": 2023
+    },
+    "2499-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 349749,
+        "roadway": 154784,
+        "roadmarks": 11480,
+        "trees": 55822
+      },
+      "trees": 864,
+      "orthoYear": 2023
+    },
+    "2499-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 364019,
+        "roadway": 132292,
+        "roadmarks": 392,
+        "trees": 16697
+      },
+      "trees": 254,
+      "orthoYear": 2023
+    },
+    "2499-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 379387,
+        "roadway": 130660,
+        "roadmarks": 11284,
+        "trees": 1181
+      },
+      "trees": 19,
+      "orthoYear": 2023
+    },
+    "2499-1129": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 325212,
+        "roadway": 125632,
+        "roadmarks": 6824,
+        "trees": 4786
+      },
+      "trees": 74,
+      "orthoYear": 2023
+    },
+    "2499-1130": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 295095,
+        "roadway": 125280,
+        "roadmarks": 484
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2500-1111": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 334719,
+        "roadway": 130068,
+        "roadmarks": 1292,
+        "trees": 18720
+      },
+      "trees": 304,
+      "orthoYear": 2023
+    },
+    "2500-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255954,
+        "roadway": 148420,
+        "roadmarks": 22124,
+        "trees": 30558
+      },
+      "trees": 491,
+      "orthoYear": 2023
+    },
+    "2500-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 352384,
+        "roadway": 175032,
+        "roadmarks": 62068,
+        "trees": 80590
+      },
+      "trees": 1284,
+      "orthoYear": 2023
+    },
+    "2500-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 324989,
+        "roadway": 154080,
+        "roadmarks": 38376,
+        "trees": 83784
+      },
+      "trees": 1331,
+      "orthoYear": 2023
+    },
+    "2500-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 345075,
+        "roadway": 186156,
+        "roadmarks": 167216,
+        "trees": 118899
+      },
+      "trees": 1947,
+      "orthoYear": 2023
+    },
+    "2500-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 394532,
+        "roadway": 256616,
+        "roadmarks": 446764,
+        "trees": 132229
+      },
+      "trees": 2123,
+      "orthoYear": 2023
+    },
+    "2500-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 281326,
+        "roadway": 147656,
+        "roadmarks": 40000,
+        "trees": 119494
+      },
+      "trees": 1891,
+      "orthoYear": 2023
+    },
+    "2500-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 336105,
+        "roadway": 188312,
+        "roadmarks": 53832,
+        "trees": 95588
+      },
+      "trees": 1509,
+      "orthoYear": 2023
+    },
+    "2500-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 374736,
+        "roadway": 186784,
+        "roadmarks": 53452,
+        "trees": 157827
+      },
+      "trees": 2525,
+      "orthoYear": 2023
+    },
+    "2500-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 315164,
+        "roadway": 174328,
+        "roadmarks": 36572,
+        "trees": 146915
+      },
+      "trees": 2345,
+      "orthoYear": 2023
+    },
+    "2500-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 245966,
+        "roadway": 135360,
+        "roadmarks": 13852,
+        "trees": 6982
+      },
+      "trees": 110,
+      "orthoYear": 2023
+    },
+    "2500-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 298754,
+        "roadway": 151184,
+        "roadmarks": 25624,
+        "trees": 22339
+      },
+      "trees": 353,
+      "orthoYear": 2023
+    },
+    "2500-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 276905,
+        "roadway": 144928,
+        "roadmarks": 24760,
+        "trees": 46290
+      },
+      "trees": 743,
+      "orthoYear": 2023
+    },
+    "2500-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 299546,
+        "roadway": 129616,
+        "roadmarks": 7612,
+        "trees": 249
+      },
+      "trees": 4,
+      "orthoYear": 2023
+    },
+    "2500-1129": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 313818
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2501-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 319274,
+        "roadway": 138448,
+        "roadmarks": 1704,
+        "trees": 2264
+      },
+      "trees": 35,
+      "orthoYear": 2023
+    },
+    "2501-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 362577,
+        "roadway": 145756,
+        "roadmarks": 14812,
+        "trees": 39545
+      },
+      "trees": 612,
+      "orthoYear": 2023
+    },
+    "2501-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 380702,
+        "roadway": 172812,
+        "roadmarks": 87204,
+        "trees": 121773
+      },
+      "trees": 1897,
+      "orthoYear": 2023
+    },
+    "2501-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 298463,
+        "roadway": 164396,
+        "roadmarks": 81184,
+        "trees": 110086
+      },
+      "trees": 1745,
+      "orthoYear": 2023
+    },
+    "2501-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 362493,
+        "roadway": 210360,
+        "roadmarks": 251416,
+        "trees": 279482
+      },
+      "trees": 4426,
+      "orthoYear": 2023
+    },
+    "2501-1121": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46045
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2501-1122": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 49078
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2501-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 101259,
+        "roadway": 140480,
+        "roadmarks": 23828,
+        "trees": 7540
+      },
+      "trees": 119,
+      "orthoYear": 2023
+    },
+    "2501-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 288498,
+        "roadway": 155080,
+        "roadmarks": 35984,
+        "trees": 175712
+      },
+      "trees": 2776,
+      "orthoYear": 2023
+    },
+    "2501-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 327838,
+        "roadway": 152248,
+        "roadmarks": 39672,
+        "trees": 111822
+      },
+      "trees": 1721,
+      "orthoYear": 2023
+    },
+    "2501-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 402209,
+        "roadway": 194804,
+        "roadmarks": 111952,
+        "trees": 124696
+      },
+      "trees": 1928,
+      "orthoYear": 2023
+    },
+    "2501-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 353719,
+        "roadway": 174824,
+        "roadmarks": 109608,
+        "trees": 93626
+      },
+      "trees": 1454,
+      "orthoYear": 2023
+    },
+    "2501-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 349746,
+        "roadway": 127264,
+        "roadmarks": 4288,
+        "trees": 11399
+      },
+      "trees": 177,
+      "orthoYear": 2023
+    },
+    "2502-1112": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 305173,
+        "roadway": 129660,
+        "trees": 4141
+      },
+      "trees": 64,
+      "orthoYear": 2023
+    },
+    "2502-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 379901,
+        "roadway": 172508,
+        "roadmarks": 63076,
+        "trees": 79604
+      },
+      "trees": 1232,
+      "orthoYear": 2023
+    },
+    "2502-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 330870,
+        "roadway": 159060,
+        "roadmarks": 53220,
+        "trees": 46101
+      },
+      "trees": 730,
+      "orthoYear": 2023
+    },
+    "2502-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 341530,
+        "roadway": 165172,
+        "roadmarks": 53684,
+        "trees": 187129
+      },
+      "trees": 2977,
+      "orthoYear": 2023
+    },
+    "2502-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 361919,
+        "roadway": 184664,
+        "roadmarks": 96200,
+        "trees": 277591
+      },
+      "trees": 4442,
+      "orthoYear": 2023
+    },
+    "2502-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 366187,
+        "roadway": 192104,
+        "roadmarks": 102244,
+        "trees": 225299
+      },
+      "trees": 3668,
+      "orthoYear": 2023
+    },
+    "2502-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 330579,
+        "roadway": 153308,
+        "roadmarks": 62564,
+        "trees": 172380
+      },
+      "trees": 2743,
+      "orthoYear": 2023
+    },
+    "2502-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 151972,
+        "roadway": 136264,
+        "roadmarks": 17772,
+        "trees": 26094
+      },
+      "trees": 404,
+      "orthoYear": 2023
+    },
+    "2502-1120": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 47871
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2502-1121": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46190
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2502-1122": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46418
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2502-1123": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46215
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2502-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 60966,
+        "trees": 4783
+      },
+      "trees": 76,
+      "orthoYear": 2023
+    },
+    "2502-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 135246,
+        "roadway": 143080,
+        "roadmarks": 28320,
+        "trees": 66311
+      },
+      "trees": 1038,
+      "orthoYear": 2023
+    },
+    "2502-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 127017,
+        "roadway": 129532,
+        "roadmarks": 11604,
+        "trees": 18152
+      },
+      "trees": 280,
+      "orthoYear": 2023
+    },
+    "2502-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 181755,
+        "roadway": 130864,
+        "roadmarks": 11196,
+        "trees": 28698
+      },
+      "trees": 443,
+      "orthoYear": 2023
+    },
+    "2502-1132": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 299733,
+        "trees": 202
+      },
+      "trees": 3,
+      "orthoYear": 2023
+    },
+    "2502-1133": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 272263,
+        "roadway": 130172,
+        "trees": 10277
+      },
+      "trees": 156,
+      "orthoYear": 2023
+    },
+    "2502-1134": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 329902,
+        "roadway": 125556,
+        "trees": 133
+      },
+      "trees": 2,
+      "orthoYear": 2023
+    },
+    "2502-1135": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 277277
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2503-1113": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 378822,
+        "roadway": 149780,
+        "roadmarks": 32776,
+        "trees": 44418
+      },
+      "trees": 690,
+      "orthoYear": 2023
+    },
+    "2503-1114": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 296705,
+        "roadway": 132188,
+        "roadmarks": 11112,
+        "trees": 25476
+      },
+      "trees": 400,
+      "orthoYear": 2023
+    },
+    "2503-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 353676,
+        "roadway": 163460,
+        "roadmarks": 34724,
+        "trees": 72522
+      },
+      "trees": 1136,
+      "orthoYear": 2023
+    },
+    "2503-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 358320,
+        "roadway": 197192,
+        "roadmarks": 136884,
+        "trees": 175875
+      },
+      "trees": 2833,
+      "orthoYear": 2023
+    },
+    "2503-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 378375,
+        "roadway": 202120,
+        "roadmarks": 114908,
+        "trees": 218223
+      },
+      "trees": 3563,
+      "orthoYear": 2023
+    },
+    "2503-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 309583,
+        "roadway": 156700,
+        "roadmarks": 43412,
+        "trees": 114590
+      },
+      "trees": 1823,
+      "orthoYear": 2023
+    },
+    "2503-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 359299,
+        "roadway": 160276,
+        "roadmarks": 46944,
+        "trees": 206084
+      },
+      "trees": 3230,
+      "orthoYear": 2023
+    },
+    "2503-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 290038,
+        "roadway": 153640,
+        "roadmarks": 37424,
+        "trees": 52857
+      },
+      "trees": 822,
+      "orthoYear": 2023
+    },
+    "2503-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 126383,
+        "roadway": 134420,
+        "roadmarks": 8052,
+        "trees": 23510
+      },
+      "trees": 361,
+      "orthoYear": 2023
+    },
+    "2503-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 107738,
+        "roadway": 127576,
+        "roadmarks": 992,
+        "trees": 15365
+      },
+      "trees": 241,
+      "orthoYear": 2023
+    },
+    "2503-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 58453,
+        "roadway": 126684,
+        "roadmarks": 364,
+        "trees": 2157
+      },
+      "trees": 33,
+      "orthoYear": 2023
+    },
+    "2503-1124": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 44779
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2503-1125": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 45932
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2503-1126": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46862
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2503-1127": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46863
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2503-1133": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 270457,
+        "roadway": 126060,
+        "trees": 908
+      },
+      "trees": 14,
+      "orthoYear": 2023
+    },
+    "2503-1134": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 274460,
+        "roadway": 133908,
+        "roadmarks": 7296,
+        "trees": 6658
+      },
+      "trees": 101,
+      "orthoYear": 2023
+    },
+    "2503-1135": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 290304,
+        "roadway": 128012,
+        "roadmarks": 7020,
+        "trees": 3489
+      },
+      "trees": 55,
+      "orthoYear": 2023
+    },
+    "2504-1115": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 407447,
+        "roadway": 149896,
+        "roadmarks": 21280,
+        "trees": 23212
+      },
+      "trees": 375,
+      "orthoYear": 2023
+    },
+    "2504-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 384011,
+        "roadway": 226016,
+        "roadmarks": 211876,
+        "trees": 148534
+      },
+      "trees": 2381,
+      "orthoYear": 2023
+    },
+    "2504-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 404468,
+        "roadway": 191960,
+        "roadmarks": 123928,
+        "trees": 145823
+      },
+      "trees": 2344,
+      "orthoYear": 2023
+    },
+    "2504-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 328684,
+        "roadway": 167204,
+        "roadmarks": 41124,
+        "trees": 122924
+      },
+      "trees": 1941,
+      "orthoYear": 2023
+    },
+    "2504-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 309651,
+        "roadway": 158768,
+        "roadmarks": 49096,
+        "trees": 206284
+      },
+      "trees": 3245,
+      "orthoYear": 2023
+    },
+    "2504-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 361131,
+        "roadway": 163704,
+        "roadmarks": 38200,
+        "trees": 161505
+      },
+      "trees": 2496,
+      "orthoYear": 2023
+    },
+    "2504-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 434095,
+        "roadway": 181084,
+        "roadmarks": 71616,
+        "trees": 132238
+      },
+      "trees": 2033,
+      "orthoYear": 2023
+    },
+    "2504-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 382931,
+        "roadway": 173716,
+        "roadmarks": 49764,
+        "trees": 126119
+      },
+      "trees": 1944,
+      "orthoYear": 2023
+    },
+    "2504-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 341093,
+        "roadway": 156664,
+        "roadmarks": 30604,
+        "trees": 124183
+      },
+      "trees": 1912,
+      "orthoYear": 2023
+    },
+    "2504-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 168576,
+        "roadway": 135176,
+        "roadmarks": 6140,
+        "trees": 62790
+      },
+      "trees": 970,
+      "orthoYear": 2023
+    },
+    "2504-1125": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 48643
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2504-1126": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 49663
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2504-1127": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 49758
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2504-1132": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 371786,
+        "roadway": 126304,
+        "roadmarks": 5096,
+        "trees": 4132
+      },
+      "trees": 62,
+      "orthoYear": 2023
+    },
+    "2504-1133": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 254488,
+        "roadway": 147956,
+        "roadmarks": 19868,
+        "trees": 38283
+      },
+      "trees": 592,
+      "orthoYear": 2023
+    },
+    "2504-1134": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 293507,
+        "roadway": 139472,
+        "roadmarks": 14596,
+        "trees": 13669
+      },
+      "trees": 206,
+      "orthoYear": 2023
+    },
+    "2504-1135": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 229034,
+        "roadway": 125236
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2505-1116": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 424969,
+        "roadway": 136228,
+        "roadmarks": 31196,
+        "trees": 38086
+      },
+      "trees": 602,
+      "orthoYear": 2023
+    },
+    "2505-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 381466,
+        "roadway": 175840,
+        "roadmarks": 95288,
+        "trees": 93170
+      },
+      "trees": 1519,
+      "orthoYear": 2023
+    },
+    "2505-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 296866,
+        "roadway": 158632,
+        "roadmarks": 35976,
+        "trees": 80438
+      },
+      "trees": 1289,
+      "orthoYear": 2023
+    },
+    "2505-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 213683,
+        "roadway": 139020,
+        "roadmarks": 9804,
+        "trees": 79818
+      },
+      "trees": 1265,
+      "orthoYear": 2023
+    },
+    "2505-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 237821,
+        "roadway": 143168,
+        "roadmarks": 10436,
+        "trees": 106735
+      },
+      "trees": 1678,
+      "orthoYear": 2023
+    },
+    "2505-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 277810,
+        "roadway": 153092,
+        "roadmarks": 10968,
+        "trees": 40442
+      },
+      "trees": 617,
+      "orthoYear": 2023
+    },
+    "2505-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 304779,
+        "roadway": 155996,
+        "roadmarks": 47264,
+        "trees": 42079
+      },
+      "trees": 646,
+      "orthoYear": 2023
+    },
+    "2505-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 277339,
+        "roadway": 152504,
+        "roadmarks": 31704,
+        "trees": 32206
+      },
+      "trees": 494,
+      "orthoYear": 2023
+    },
+    "2505-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 318612,
+        "roadway": 154664,
+        "roadmarks": 24052,
+        "trees": 92868
+      },
+      "trees": 1420,
+      "orthoYear": 2023
+    },
+    "2505-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 93939,
+        "roadway": 128808,
+        "roadmarks": 1676,
+        "trees": 30226
+      },
+      "trees": 463,
+      "orthoYear": 2023
+    },
+    "2505-1126": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 52415
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2505-1127": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 52627
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2505-1128": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 50848
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2505-1129": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 50846
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2505-1132": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 96255,
+        "roadway": 125252,
+        "roadmarks": 5724,
+        "trees": 2893
+      },
+      "trees": 44,
+      "orthoYear": 2023
+    },
+    "2505-1133": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 139216,
+        "roadway": 132060,
+        "roadmarks": 25712,
+        "trees": 14895
+      },
+      "trees": 224,
+      "orthoYear": 2023
+    },
+    "2505-1134": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 311814,
+        "roadway": 129040,
+        "roadmarks": 8440,
+        "trees": 5588
+      },
+      "trees": 84,
+      "orthoYear": 2023
+    },
+    "2506-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 361391,
+        "roadway": 141684,
+        "roadmarks": 34432,
+        "trees": 7253
+      },
+      "trees": 117,
+      "orthoYear": 2023
+    },
+    "2506-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 296730,
+        "roadway": 166612,
+        "roadmarks": 29792,
+        "trees": 37861
+      },
+      "trees": 593,
+      "orthoYear": 2023
+    },
+    "2506-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 285804,
+        "roadway": 147884,
+        "roadmarks": 13092,
+        "trees": 52042
+      },
+      "trees": 811,
+      "orthoYear": 2023
+    },
+    "2506-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 231139,
+        "roadway": 141240,
+        "roadmarks": 5512,
+        "trees": 35425
+      },
+      "trees": 547,
+      "orthoYear": 2023
+    },
+    "2506-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 232138,
+        "roadway": 143116,
+        "roadmarks": 7820,
+        "trees": 22683
+      },
+      "trees": 359,
+      "orthoYear": 2023
+    },
+    "2506-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 254672,
+        "roadway": 154376,
+        "roadmarks": 35692,
+        "trees": 34716
+      },
+      "trees": 538,
+      "orthoYear": 2023
+    },
+    "2506-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 274880,
+        "roadway": 146464,
+        "roadmarks": 22484,
+        "trees": 45050
+      },
+      "trees": 704,
+      "orthoYear": 2023
+    },
+    "2506-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 301885,
+        "roadway": 157964,
+        "roadmarks": 26952,
+        "trees": 32039
+      },
+      "trees": 498,
+      "orthoYear": 2023
+    },
+    "2506-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 322749,
+        "roadway": 158416,
+        "roadmarks": 30272,
+        "trees": 69961
+      },
+      "trees": 1076,
+      "orthoYear": 2023
+    },
+    "2506-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 211660,
+        "roadway": 139020,
+        "roadmarks": 9924,
+        "trees": 80649
+      },
+      "trees": 1230,
+      "orthoYear": 2023
+    },
+    "2506-1127": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 52670
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1128": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 51292
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1129": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 50946
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1131": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 51290
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1132": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 49753
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1133": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 46339
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2506-1134": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 60314
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2507-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 395032,
+        "roadway": 131660,
+        "roadmarks": 4692,
+        "trees": 3145
+      },
+      "trees": 50,
+      "orthoYear": 2023
+    },
+    "2507-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 215186,
+        "roadway": 146808,
+        "roadmarks": 14944,
+        "trees": 20859
+      },
+      "trees": 330,
+      "orthoYear": 2023
+    },
+    "2507-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 194578,
+        "roadway": 137024,
+        "roadmarks": 7792,
+        "trees": 34175
+      },
+      "trees": 546,
+      "orthoYear": 2023
+    },
+    "2507-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 191669,
+        "roadway": 133164,
+        "roadmarks": 2112,
+        "trees": 6656
+      },
+      "trees": 105,
+      "orthoYear": 2023
+    },
+    "2507-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 248034,
+        "roadway": 144056,
+        "roadmarks": 9024,
+        "trees": 19606
+      },
+      "trees": 307,
+      "orthoYear": 2023
+    },
+    "2507-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 226555,
+        "roadway": 143436,
+        "roadmarks": 18840,
+        "trees": 26375
+      },
+      "trees": 413,
+      "orthoYear": 2023
+    },
+    "2507-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 214233,
+        "roadway": 135696,
+        "roadmarks": 1584,
+        "trees": 13697
+      },
+      "trees": 214,
+      "orthoYear": 2023
+    },
+    "2507-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 207632,
+        "roadway": 135916,
+        "roadmarks": 17764,
+        "trees": 12239
+      },
+      "trees": 190,
+      "orthoYear": 2023
+    },
+    "2507-1125": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 236751,
+        "roadway": 134604,
+        "roadmarks": 7052,
+        "trees": 15436
+      },
+      "trees": 240,
+      "orthoYear": 2023
+    },
+    "2507-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 304685,
+        "roadway": 147760,
+        "roadmarks": 14804,
+        "trees": 28282
+      },
+      "trees": 435,
+      "orthoYear": 2023
+    },
+    "2507-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 229884,
+        "roadway": 137540,
+        "roadmarks": 7696,
+        "trees": 45875
+      },
+      "trees": 704,
+      "orthoYear": 2023
+    },
+    "2507-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 127185,
+        "roadway": 142608,
+        "roadmarks": 14308,
+        "trees": 25702
+      },
+      "trees": 393,
+      "orthoYear": 2023
+    },
+    "2507-1129": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 51220
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2507-1131": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 50811
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2507-1132": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 50597
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2507-1133": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 49692
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2508-1117": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 414131,
+        "roadway": 128248,
+        "roadmarks": 1584,
+        "trees": 308
+      },
+      "trees": 5,
+      "orthoYear": 2023
+    },
+    "2508-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 225174,
+        "roadway": 141804,
+        "roadmarks": 7960,
+        "trees": 42731
+      },
+      "trees": 691,
+      "orthoYear": 2023
+    },
+    "2508-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 282354,
+        "roadway": 148832,
+        "roadmarks": 12728,
+        "trees": 157565
+      },
+      "trees": 2467,
+      "orthoYear": 2023
+    },
+    "2508-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 234665,
+        "roadway": 158844,
+        "roadmarks": 16604,
+        "trees": 74738
+      },
+      "trees": 1187,
+      "orthoYear": 2023
+    },
+    "2508-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 247227,
+        "roadway": 147000,
+        "roadmarks": 11460,
+        "trees": 53363
+      },
+      "trees": 851,
+      "orthoYear": 2023
+    },
+    "2508-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 268006,
+        "roadway": 147600,
+        "roadmarks": 20924,
+        "trees": 26641
+      },
+      "trees": 419,
+      "orthoYear": 2023
+    },
+    "2508-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 203039,
+        "roadway": 141000,
+        "roadmarks": 5560,
+        "trees": 9844
+      },
+      "trees": 156,
+      "orthoYear": 2023
+    },
+    "2508-1124": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 306677,
+        "roadway": 128196,
+        "roadmarks": 3244,
+        "trees": 3775
+      },
+      "trees": 59,
+      "orthoYear": 2023
+    },
+    "2508-1125": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 300727
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2508-1126": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 275461,
+        "roadway": 125340,
+        "trees": 1981
+      },
+      "trees": 31,
+      "orthoYear": 2023
+    },
+    "2508-1127": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 291373,
+        "roadway": 133776,
+        "roadmarks": 1136,
+        "trees": 10140
+      },
+      "trees": 158,
+      "orthoYear": 2023
+    },
+    "2508-1128": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 321369,
+        "roadway": 140508,
+        "roadmarks": 13284,
+        "trees": 23984
+      },
+      "trees": 361,
+      "orthoYear": 2023
+    },
+    "2509-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 277433,
+        "roadway": 131772,
+        "roadmarks": 560,
+        "trees": 3434
+      },
+      "trees": 55,
+      "orthoYear": 2023
+    },
+    "2509-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 217519,
+        "roadway": 141496,
+        "roadmarks": 1940,
+        "trees": 93170
+      },
+      "trees": 1413,
+      "orthoYear": 2023
+    },
+    "2509-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 217487,
+        "roadway": 149324,
+        "roadmarks": 11660,
+        "trees": 16727
+      },
+      "trees": 260,
+      "orthoYear": 2023
+    },
+    "2509-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 258709,
+        "roadway": 155228,
+        "roadmarks": 45424,
+        "trees": 30642
+      },
+      "trees": 478,
+      "orthoYear": 2023
+    },
+    "2509-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 214730,
+        "roadway": 135368,
+        "roadmarks": 16856,
+        "trees": 5006
+      },
+      "trees": 79,
+      "orthoYear": 2023
+    },
+    "2509-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 302872,
+        "roadway": 128364,
+        "roadmarks": 5384,
+        "trees": 1206
+      },
+      "trees": 19,
+      "orthoYear": 2023
+    },
+    "2510-1118": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 322106,
+        "roadway": 126352,
+        "trees": 329
+      },
+      "trees": 5,
+      "orthoYear": 2023
+    },
+    "2510-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 305085,
+        "roadway": 134960,
+        "trees": 68
+      },
+      "trees": 1,
+      "orthoYear": 2023
+    },
+    "2510-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 255961,
+        "roadway": 141376,
+        "roadmarks": 2636,
+        "trees": 68
+      },
+      "trees": 1,
+      "orthoYear": 2023
+    },
+    "2510-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 225836,
+        "roadway": 142616,
+        "roadmarks": 14196,
+        "trees": 2963
+      },
+      "trees": 45,
+      "orthoYear": 2023
+    },
+    "2510-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 273305,
+        "roadway": 133804,
+        "trees": 3028
+      },
+      "trees": 48,
+      "orthoYear": 2023
+    },
+    "2510-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 332831,
+        "roadway": 125884
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2511-1119": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 313606,
+        "roadway": 129760,
+        "roadmarks": 144,
+        "trees": 933
+      },
+      "trees": 14,
+      "orthoYear": 2023
+    },
+    "2511-1120": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 370774,
+        "roadway": 131820,
+        "roadmarks": 144,
+        "trees": 4383
+      },
+      "trees": 66,
+      "orthoYear": 2023
+    },
+    "2511-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 366888,
+        "roadway": 133864,
+        "roadmarks": 2032
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2511-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 356292,
+        "roadway": 127116
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2511-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 345311,
+        "roadway": 130064
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2511-1124": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 289497
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2512-1120": {
+      "layers": [
+        "terrain",
+        "ortho"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 300381
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    },
+    "2512-1121": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "roadmarks",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 292063,
+        "roadway": 133296,
+        "roadmarks": 4156,
+        "trees": 5993
+      },
+      "trees": 92,
+      "orthoYear": 2023
+    },
+    "2512-1122": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway",
+        "trees"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 284850,
+        "roadway": 127688,
+        "trees": 467
+      },
+      "trees": 7,
+      "orthoYear": 2023
+    },
+    "2512-1123": {
+      "layers": [
+        "terrain",
+        "ortho",
+        "roadway"
+      ],
+      "bytes": {
+        "terrain": 126026,
+        "ortho": 286511,
+        "roadway": 126176
+      },
+      "trees": 0,
+      "orthoYear": 2023
+    }
+  }
+}
