@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import test from 'node:test';
+import nodeTest from 'node:test';
 import { fileURLToPath } from 'node:url';
 import jpeg from 'jpeg-js';
 import { FRAME, lv95ToWorld } from '../js/geneva-frame.js';
@@ -12,8 +12,11 @@ import { parseTerrain } from '../js/terrain-grid.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const CANTON = path.join(DIR, '..', 'data', 'canton');
-const index = JSON.parse(fs.readFileSync(path.join(CANTON, 'index.json'), 'utf8'));
-const tiles = Object.entries(index.tiles);
+// (the tiles are data the owner may keep out of git: without them there is nothing to check)
+const INDEX = path.join(CANTON, 'index.json');
+const index = fs.existsSync(INDEX) ? JSON.parse(fs.readFileSync(INDEX, 'utf8')) : null;
+const tiles = index ? Object.entries(index.tiles) : [];
+const test = index ? nodeTest : nodeTest.skip;
 const FILE = { terrain: 'terrain.bin', ortho: 'ortho.jpg', roadway: 'roadway.bin', roadmarks: 'roadmarks.bin', trees: 'trees.json' };
 
 // The world box of a tile "E-N" (see js/geneva-frame.js: x = E - E0, z = N0 - N)
