@@ -33,7 +33,7 @@ import {
   ISLAND_BOUNDS,
   CENTRAL_PARK_BOUNDS,
   getIslandBoundsAtZ,
-  MANHATTAN_COASTLINE,
+  CITY_OUTLINE,
   WATERFRONT_PIERS,
   BLOCKS,
   streetZ,
@@ -65,7 +65,7 @@ import {
   createRoadPaintMaterial,
   createTunnelShadeMaterial
 } from './tsl-materials.js';
-import { GEO } from './nyc-geodata.js';
+import { GEO } from './city-geodata.js';
 import { LANDMARK_EXCLUSIONS, LANDMARK_TREE_SITES } from './landmarks.js';
 import { genevaPoints, genevaBounds, genevaPolygonGeometry, genevaStrip, genevaRoadSegments, genevaGeometryGroups } from './geneva-geometry.js';
 import { buildTerrainMeshes, carveDepths, drapeOverlay, displaceGeometry, groundHeight, waterSurfaceHeight, deckHeight, deckHalfWidth, pierClear, inWater, TERRAIN } from './terrain.js';
@@ -877,7 +877,7 @@ function rectPolygon(minX, maxX, minZ, maxZ) {
 }
 
 /**
- * Clips polygon [{x, z}] (may be concave, e.g. MANHATTAN_COASTLINE) to the inside of a convex polygon (either winding).
+ * Clips polygon [{x, z}] (may be concave, e.g. CITY_OUTLINE) to the inside of a convex polygon (either winding).
  * The part inside must be connected.
  */
 function clipPolygonToConvex(pts, convex) {
@@ -2115,7 +2115,7 @@ function buildCityGrid(scene) {
   });
 
   // Slightly expanded perimeter polygon for the granite seawall & waterfront esplanade coping
-  const seawallPolygon = MANHATTAN_COASTLINE.map((p) => ({
+  const seawallPolygon = CITY_OUTLINE.map((p) => ({
     x: p.x + (p.x < -100 ? -6 : (p.x > 100 ? 6 : 0)),
     z: p.z + (p.z > 1350 ? 6 : (p.z < -1550 ? -6 : 0))
   }));
@@ -2124,7 +2124,7 @@ function buildCityGrid(scene) {
 
   // Unified Manhattan Roadway Asphalt Deck (Y = 0.0) following true Manhattan coastline
   const roadMat = createRoadSurfaceMaterial();
-  const roadMesh = createFlatPolygonMesh(MANHATTAN_COASTLINE, 0.0, roadMat, true);
+  const roadMesh = createFlatPolygonMesh(CITY_OUTLINE, 0.0, roadMat, true);
   group.add(roadMesh);
 
   // =========================================================================
@@ -2737,7 +2737,7 @@ function buildCityGrid(scene) {
     const maxX = pk.x + pk.w * 0.5;
     const minZ = pk.z - pk.d * 0.5;
     const maxZ = pk.z + pk.d * 0.5;
-    const slab = pk.clipToShore ? clipPolygonToConvex(MANHATTAN_COASTLINE, rectPolygon(minX, maxX, minZ, maxZ)) : rectPolygon(minX, maxX, minZ, maxZ);
+    const slab = pk.clipToShore ? clipPolygonToConvex(CITY_OUTLINE, rectPolygon(minX, maxX, minZ, maxZ)) : rectPolygon(minX, maxX, minZ, maxZ);
     addPavedPlaza(slab, 0, PARK_Y);
     addFootprint(pk.x, pk.z, pk.w, pk.d);
     const fi = 2.6; // outer sidewalk width
@@ -2945,10 +2945,10 @@ function buildCityGrid(scene) {
         }
       }
     }
-    // The esplanade around the tip along the deck edge (MANHATTAN_COASTLINE), from Battery Place round to Whitehall:
+    // The esplanade around the tip along the deck edge (CITY_OUTLINE), from Battery Place round to Whitehall:
     // o = outward normal (toward the harbor)
     const tip = [];
-    const C = MANHATTAN_COASTLINE;
+    const C = CITY_OUTLINE;
     const iStart = C.reduce((bi, p, i) => (p.z > C[bi].z ? i : bi), 0); // southernmost point
     const onTip = (p) => p.z > castleC.z - 260 && p.x < WH.x + 60 && p.x > castleC.x - 420;
     // walk both ways from the southernmost point while on the tip

@@ -1,4 +1,4 @@
-import { GEO } from './nyc-geodata.js';
+import { GEO } from './city-geodata.js';
 import { lonLatToWorld, lv95ToWorld } from './geneva-frame.js';
 
 // Geneva spatial adapter for mrdoob/slop-newyork's engine, after Slop Zürich (colorfield/slop-zurich) and the
@@ -12,7 +12,7 @@ const projectLonLat = (lon,lat) => lonLatToWorld(lon,lat);
 const [minX,minZ,maxX,maxZ] = GENEVA_DATA.meta.bounds;
 const ISLAND_BOUNDS = {minX,maxX,minZ,maxZ,sidewalkHeight:0.22,waterLevel:-2.2};
 const CUT_Z=minZ;
-const MANHATTAN_COASTLINE=toPts(GEO.manhattan);
+const CITY_OUTLINE=toPts(GEO.outline);
 const getIslandBoundsAtZ=()=>({westX:minX,eastX:maxX});
 // Geneva has an arbitrary mapped street network. Empty legacy grid registries prevent
 // the original corridor builder from inventing axis-aligned Manhattan streets.
@@ -204,7 +204,7 @@ defaultSpawn.x-=Math.cos(defaultSpawn.heading)*1.8;defaultSpawn.z+=Math.sin(defa
 const streetZ=(n=37)=>defaultSpawn.z+(37-Number(n))*25;
 // Teleport destinations: [id, name, short label, LV95 east, LV95 north, quarter, street to arrive on (or none: the
 // nearest), mapped landmark to face (LANDMARK_SITES, from its OSM footprint) or none]
-const NYC_LANDMARKS=[
+const CITY_LANDMARKS=[
  ['cornavin','Gare Cornavin','Cornavin',2499965,1118456,'Grottes et Saint-Gervais','Place de Cornavin','Gare Cornavin'],
  ['montblanc','Pont du Mont-Blanc · Rade','Mont-Blanc',2500468,1118058,'Pâquis','Pont du Mont-Blanc',null],
  ['jetdeau','Jet d’eau · Quai Gustave-Ador','Jet d’eau',2501050,1117990,'Eaux-Vives','Quai Gustave-Ador',null],
@@ -225,14 +225,14 @@ const NYC_LANDMARKS=[
  return {id,name,short,...(site?{x:site.x,z:site.z}:lv95ToWorld(E,N)),district,road,E,N};
 });
 const TELEPORT_LOCATIONS={};
-for(const lm of NYC_LANDMARKS){
+for(const lm of CITY_LANDMARKS){
  const p=arrivalAt(lv95ToWorld(lm.E,lm.N),lm.road);
  TELEPORT_LOCATIONS[lm.id]=Math.hypot(p.x-lm.x,p.z-lm.z)<400?p:arrivalAt(lm);
  const t=TELEPORT_LOCATIONS[lm.id];t.heading=Math.atan2(lm.x-t.x,lm.z-t.z);
 }
-for(const lm of NYC_LANDMARKS)if(!LANDMARK_SITES[lm.name])LANDMARK_SITES[lm.name]={x:lm.x,z:lm.z,w:60,d:60,h:20,ring:[]};
+for(const lm of CITY_LANDMARKS)if(!LANDMARK_SITES[lm.name])LANDMARK_SITES[lm.name]={x:lm.x,z:lm.z,w:60,d:60,h:20,ring:[]};
 function getLocationLabel(x,z){
- for(const lm of NYC_LANDMARKS)if(Math.hypot(x-lm.x,z-lm.z)<100)return lm.name;
+ for(const lm of CITY_LANDMARKS)if(Math.hypot(x-lm.x,z-lm.z)<100)return lm.name;
  const nearby=nearestRoads(x,z,100).filter(q=>q.road.raw);
  if(nearby.length>1&&nearby[1].dist<22)return `${nearby[0].road.name} & ${nearby[1].road.name}`;
  if(nearby.length)return nearby[0].road.name;
@@ -273,7 +273,7 @@ export {
   ALL_AVENUES,
   CENTRAL_PARK_BOUNDS,
   getIslandBoundsAtZ,
-  MANHATTAN_COASTLINE,
+  CITY_OUTLINE,
   getBroadwayX,
   BROADWAY_LINE,
   WATERFRONT_PIERS,
@@ -300,7 +300,7 @@ export {
   STREETS,
   ALL_STREETS,
   ROADS,
-  NYC_LANDMARKS,
+  CITY_LANDMARKS,
   LANDMARK_SITES,
   TELEPORT_LOCATIONS,
   ISLAND_BOUNDS,

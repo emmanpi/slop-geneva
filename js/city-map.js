@@ -1,12 +1,12 @@
-import { GEO } from './nyc-geodata.js';
+import { GEO } from './city-geodata.js';
 import {
   ROADS,
   BLOCKS,
-  NYC_LANDMARKS,
+  CITY_LANDMARKS,
   LANDMARK_SITES,
   ISLAND_BOUNDS,
   getIslandBoundsAtZ,
-  MANHATTAN_COASTLINE,
+  CITY_OUTLINE,
   WATERFRONT_PIERS,
   NJ_SHORELINE_POLYGON,
   BROOKLYN_POLYGONS,
@@ -31,11 +31,11 @@ import {
   nearestDrivingPoint
 } from './city-config.js';
 
-// js/nyc-map.js
+// js/city-map.js
 // Original live radar and full-screen cartographic atlas, with Geneva's mapped layers.
 // 1 unit = 1 metre; x east, z south. True north is up. Geometry is the same
 // OpenStreetMap snapshot used by the engine's irregular-city adapters, here Geneva.
-// NYCMapSystem remains the public class name to preserve upstream interfaces.
+// CityMapSystem remains the public class name to preserve upstream interfaces.
 
 const FONT = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const MIN_ZOOM = Math.min(0.06, 280 / (ISLAND_BOUNDS.maxX - ISLAND_BOUNDS.minX), 260 / (ISLAND_BOUNDS.maxZ - ISLAND_BOUNDS.minZ));
@@ -78,7 +78,7 @@ const MAP = {
 };
 
 // Landmarks modelled by landmarks.js on their real OpenStreetMap lots (outlined in amber)
-const MODELLED_LANDMARKS = (NYC_LANDMARKS || []).map(l => l.name);
+const MODELLED_LANDMARKS = (CITY_LANDMARKS || []).map(l => l.name);
 
 // Waterway and park labels in the world frame (js/geneva-frame.js); the quarters come from the mapped boundaries below.
 const AREA_LABELS = [
@@ -230,7 +230,7 @@ function mapLayers() {
 
   // Manhattan inside its bulkhead line, and its piers
   L.manhattan = new Path2D();
-  addRing(L.manhattan, MANHATTAN_COASTLINE);
+  addRing(L.manhattan, CITY_OUTLINE);
   L.piers = new Path2D();
   for (const p of WATERFRONT_PIERS) if (p.ring) addRing(L.piers, p.ring);
 
@@ -498,7 +498,7 @@ function drawWaypoint(ctx, x, y, r) {
 
 const overlaps = (boxes, b) => boxes.some((o) => b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]);
 
-class NYCMapSystem {
+class CityMapSystem {
   constructor({ controllerManager, cameraSystem, trafficSystem, allBlocks = [], onTeleport, onToggle }) {
     this.controllerManager = controllerManager;
     this.cameraSystem = cameraSystem;
@@ -549,7 +549,7 @@ class NYCMapSystem {
     this.searchPath = null;
     this.textWidths = new Map();
     // Start with Geneva's central landmark as the active GPS waypoint.
-    const ts = NYC_LANDMARKS.find((l) => l.id === 'pkin') || { x: 0, z: 0 };
+    const ts = CITY_LANDMARKS.find((l) => l.id === 'pkin') || { x: 0, z: 0 };
     this.waypoint = { x: ts.x, z: ts.z, name: ts.name || 'PKiN' };
 
     // Street names measured before the web font arrived would be spaced for the fallback font: measure & draw again
@@ -724,7 +724,7 @@ class NYCMapSystem {
     this.searchHighlight = q;
     this.searchPath = null;
     if (q.length > 0) {
-      const lmMatch = NYC_LANDMARKS.find((l) => l.name.toLowerCase().includes(q) || l.short.toLowerCase().includes(q));
+      const lmMatch = CITY_LANDMARKS.find((l) => l.name.toLowerCase().includes(q) || l.short.toLowerCase().includes(q));
       const roads = ROAD_LABELS.filter((l) => l.lower.includes(q) || l.raw.includes(q));
       if (roads.length) {
         this.searchPath = new Path2D();
@@ -1151,7 +1151,7 @@ class NYCMapSystem {
     }
 
     // Landmark blips
-    for (const lm of NYC_LANDMARKS) {
+    for (const lm of CITY_LANDMARKS) {
       const lx = toX(lm.x);
       const ly = toY(lm.z);
       if (Math.abs(lx) < w * 0.48 && Math.abs(ly) < h * 0.48) {
@@ -1282,7 +1282,7 @@ class NYCMapSystem {
     ctx.font = `700 11px ${FONT}`;
     const placed = [];
     const pins = [];
-    for (const lm of NYC_LANDMARKS) {
+    for (const lm of CITY_LANDMARKS) {
       const lx = toX(lm.x);
       const ly = toY(lm.z);
       if (Math.abs(lx) > w * 0.48 || Math.abs(ly) > h * 0.48) continue;
@@ -1392,4 +1392,4 @@ class NYCMapSystem {
   }
 }
 
-export { NYCMapSystem, getGenevaMapRoute };
+export { CityMapSystem, getGenevaMapRoute };

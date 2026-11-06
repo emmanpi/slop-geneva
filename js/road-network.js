@@ -8,7 +8,7 @@ import {
   nearestRoads,
   sidewalkAt
 } from './city-config.js';
-import { GEO } from './nyc-geodata.js';
+import { GEO } from './city-geodata.js';
 
 // js/road-network.js
 // Drivable road graph derived from the ground layout that city-grid.js actually builds: avenue corridors

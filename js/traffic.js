@@ -56,7 +56,7 @@ const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
 function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   const group = new THREE.Group();
-  group.name = 'ManhattanTrafficAndPedestrians';
+  group.name = 'GenevaTrafficAndPedestrians';
   let collisionListener = null;
   const collisionEvent = { a: null, b: null, kind: 'vehicle', x: 0, y: 0, z: 0, nx: 0, ny: 0, nz: 0, speed: 0 };
 

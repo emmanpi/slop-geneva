@@ -43,7 +43,7 @@ import {
   filteredPulse,
   WALL_KINDS
 } from './tsl-materials.js';
-import { GEO } from './nyc-geodata.js';
+import { GEO } from './city-geodata.js';
 import { fdrViaduct, pavedPlazaRects, parkTreeSites, sidewalkBlocks } from './city-grid.js';
 import { genevaPoints, genevaBounds, genevaPolygonGeometry, nearestGenevaRoad, genevaSpatialGroups, genevaGeometryGroups } from './geneva-geometry.js';
 import { LANDMARK_EXCLUSIONS, LANDMARK_SOURCE_EXCLUSIONS } from './landmarks.js';

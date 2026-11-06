@@ -28,7 +28,7 @@ import {
 } from 'three/tsl';
 import { cityUniforms } from './tsl-materials.js';
 import {
-  MANHATTAN_COASTLINE,
+  CITY_OUTLINE,
   NJ_SHORELINE_POLYGON,
   LONG_ISLAND_POLYGONS,
   BROOKLYN_POLYGONS,
@@ -395,7 +395,7 @@ const MANHATTAN_DIST_GRID = (() => {
   const minZ = -26000;
   const nx = 361;
   const nz = 561;
-  const shore = simplifyRing(MANHATTAN_COASTLINE, 6);
+  const shore = simplifyRing(CITY_OUTLINE, 6);
   const exact = (x, z) => distToPolygonEdges(shore, x, z);
   const k = 8;
   const cnx = Math.ceil((nx - 1) / k) + 1;
@@ -1088,8 +1088,8 @@ function buildLandGeometries() {
   const topIdx = [];
   const wallPos = [];
   const wallNrm = [];
-  const mb = polygonBounds(MANHATTAN_COASTLINE);
-  const onManhattanGrid = (x, z) => x > mb.minX && x < mb.maxX && z > mb.minZ && z < mb.maxZ && pointInPolygon(MANHATTAN_COASTLINE, x, z);
+  const mb = polygonBounds(CITY_OUTLINE);
+  const onManhattanGrid = (x, z) => x > mb.minX && x < mb.maxX && z > mb.minZ && z < mb.maxZ && pointInPolygon(CITY_OUTLINE, x, z);
 
   for (const land of LAND) {
     const pts = land.pts;
@@ -2764,7 +2764,7 @@ function buildDeck(B, spec, f, profile, mats, steel, opts) {
     if (!suspended && i % 3 === 0 && y0 > 1.2) {
       const p = at(t0, 0, 0);
       const l = landAt(p.x, p.z);
-      const manhattan = !l && pointInPolygon(MANHATTAN_COASTLINE, p.x, p.z);
+      const manhattan = !l && pointInPolygon(CITY_OUTLINE, p.x, p.z);
       const land = l ? l.id !== 'roosevelt' : manhattan;
       const feet = [-W * 0.38, W * 0.38];
       if (y0 < 5.5) B.block(mats.pier, at(t0, 0, (y0 - 2.2) * 0.5), dir, L / n * 3.05, Math.max(0.2, y0 - 2.2), W * 0.9);
@@ -2839,7 +2839,7 @@ function buildCables(B, spec, f, profile, mats, steel, o) {
 let bridgeSite = { sidewalks: [], colliders: [] };
 
 function onManhattan(p) {
-  return !landAt(p.x, p.z) && pointInPolygon(MANHATTAN_COASTLINE, p.x, p.z);
+  return !landAt(p.x, p.z) && pointInPolygon(CITY_OUTLINE, p.x, p.z);
 }
 
 function onManhattanBlock(p, r) {

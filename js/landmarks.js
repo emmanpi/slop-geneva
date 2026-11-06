@@ -9,7 +9,7 @@ export const LANDMARK_EXCLUSIONS = [];
 
 export function buildLandmarks(scene) {
   const group = new THREE.Group();
-  group.name = 'ManhattanLandmarks';
+  group.name = 'GenevaLandmarks';
   scene.add(group);
   return { group, colliders: [], exclusions: LANDMARK_EXCLUSIONS, update() {} };
 }
