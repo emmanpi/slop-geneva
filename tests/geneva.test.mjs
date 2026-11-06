@@ -206,3 +206,21 @@ test('the canton around the city: its orthophoto mosaic and the swissBUILDINGS3D
     assert.ok(tiles.some(([, tx, tz]) => Math.hypot(tx - x, tz - z) < 600), name);
   }
 });
+
+test('the buildings newer than swissBUILDINGS3D come from the cadastre, and hide only stored buildings', () => {
+  const recent = JSON.parse(fs.readFileSync(new URL('../data/geneva-recent-buildings.json', import.meta.url), 'utf8'));
+  const index = JSON.parse(fs.readFileSync(new URL('../data/swissbuildings3d/index.json', import.meta.url), 'utf8'));
+  const stored = new Set(index.tiles.map((t) => t.u));
+  assert.ok(recent.added.length > 50, 'recent buildings');
+  // the Vernets tower (2025, 27 storeys) on the site of the old barracks
+  const tower = recent.added.find((a) => a.egid === 295520862);
+  assert.ok(tower && tower.h > 80 && tower.year >= 2025, 'the Vernets tower');
+  for (const a of recent.added) {
+    assert.ok(a.ring.length >= 3 && a.h >= 3 && a.year >= recent.minYear, `building ${a.egid}`);
+    assert.ok(a.style === 3 || a.style === 4, 'a recent facade style');
+  }
+  for (const [u, ids] of Object.entries(recent.hidden)) {
+    assert.ok(stored.has(u), `${u} is a stored tile`);
+    assert.ok(ids.every((b) => Number.isInteger(b) && b >= 0));
+  }
+});

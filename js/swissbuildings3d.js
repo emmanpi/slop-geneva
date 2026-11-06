@@ -21,6 +21,8 @@ import { ecefToLv95 } from './swiss-projection.js';
 const INDEX_URL = new URL('../data/swissbuildings3d/index.json', import.meta.url);
 // Facade style & storey height of every building, from the RegBL (tools/build-geneva-facades.mjs)
 const FACADES_URL = new URL('../data/geneva-facades.json', import.meta.url);
+// The buildings newer than swissBUILDINGS3D, from the cadastre (tools/build-geneva-recent-buildings.mjs)
+const RECENT_URL = new URL('../data/geneva-recent-buildings.json', import.meta.url);
 // The styles, in the order of data/geneva-facades.json, then the churches and their bell towers (swissBUILDINGS3D's
 // OBJEKTART 'Sakrales Gebaeude' and 'Sakraler Turm', whatever the RegBL says)
 export const FACADE_STYLES = ['ancien', 'xixe', 'moderne', 'contemporain', 'bureaux', 'inconnu', 'sacre', 'clocher'];
@@ -309,6 +311,20 @@ export function bakeTile(gltf, tile, stats) {
     hide[i * 3] = inMesh.has(batchOf[i]) ? 1 : 0;
     hide[i * 3 + 1] = (c[0] + c[1]) / 2; hide[i * 3 + 2] = (c[2] + c[3]) / 2;
   }
+  // Older buildings standing where the cadastre has a newer one (tile.hidden: batch ids, from
+  // data/geneva-recent-buildings.json): folded to a point, the new one is extruded in their place (bakeFootprints)
+  let gone = 0;
+  if (tile.hidden?.length) {
+    const hidden = new Set(tile.hidden), first = new Map();
+    for (let i = 0; i < total; i++) {
+      const b = batchOf[i];
+      if (!hidden.has(b)) continue;
+      if (!first.has(b)) first.set(b, i);
+      const j = first.get(b);
+      positions[i * 3] = positions[j * 3]; positions[i * 3 + 1] = positions[j * 3 + 1]; positions[i * 3 + 2] = positions[j * 3 + 2];
+    }
+    gone = first.size;
+  }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4, true));
@@ -318,7 +334,79 @@ export function bakeTile(gltf, tile, stats) {
   geometry.setAttribute('aArchetype', new THREE.BufferAttribute(arch, 3));
   geometry.computeBoundingSphere();
   geometry.computeBoundingBox();
-  geometry.userData = { buildings: maxY.size, inPhotomesh: inMesh.size, calibration: dy, minY };
+  geometry.userData = { buildings: maxY.size - gone, hidden: gone, inPhotomesh: inMesh.size, calibration: dy, minY };
+  return geometry;
+}
+
+/**
+ * The buildings newer than swissBUILDINGS3D (data/geneva-recent-buildings.json `added`: cadastral footprints with their
+ * height, storeys and facade style), extruded from the ground (`ground(x, z)`) to their height with a flat roof, with
+ * the attributes bakeTile gives the 3D buildings: drawn in the same facade material (storeys, windows, lights at night).
+ */
+export function bakeFootprints(list, ground) {
+  const pos = [], col = [], abv = [], fac = [], hid = [], arc = [];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
+  let built = 0;
+  list.forEach((f, k) => {
+    const ring = f.ring.slice();
+    if (ring.length > 3 && ring[0][0] === ring.at(-1)[0] && ring[0][1] === ring.at(-1)[1]) ring.pop();
+    if (ring.length < 3) return;
+    const grounds = ring.map(([x, z]) => ground(x, z));
+    const foot = Math.min(...grounds) - 0.5;
+    const top = grounds.reduce((s, g) => s + g, 0) / grounds.length + f.h;
+    let cx = 0, cz = 0;
+    for (const [x, z] of ring) { cx += x; cz += z; }
+    cx /= ring.length; cz /= ring.length;
+    const seed = (f.egid || k) * 31 + 7;
+    const wall = facadeColor(seed, '', f.style).clone();
+    const roof = roofColor(seed, false).clone();
+    const storey = f.levels ? Math.min(4.5, Math.max(2.7, f.h / f.levels)) : 3.0;
+    const shop = /activités|commerce|rez/i.test(f.dest) ? 0.8 : 0.2;
+    const photomesh = insidePhotomesh(cx, cz) ? 1 : 0;
+    // one triangle, wound so that its normal points along `out` (x, y, z)
+    const tri = (p0, p1, p2, out, isRoof) => {
+      n.subVectors(p1, p0).cross(c.subVectors(p2, p0));
+      const pts = n.x * out[0] + n.y * out[1] + n.z * out[2] >= 0 ? [p0, p1, p2] : [p0, p2, p1];
+      const colour = isRoof ? roof : wall;
+      for (const p of pts) {
+        pos.push(p.x, p.y, p.z);
+        col.push(colour.r * 255, colour.g * 255, colour.b * 255, isRoof ? 255 : 0);
+        abv.push(p.y - foot);
+        fac.push(f.style, storey, top - foot);
+        hid.push(photomesh, cx, cz);
+        arc.push(1, shop, 0.12);
+      }
+    };
+    // walls: outward, away from the ring's inside (its orientation from the signed area)
+    let area = 0;
+    for (let i = 0; i < ring.length; i++) { const [x0, z0] = ring[i], [x1, z1] = ring[(i + 1) % ring.length]; area += x0 * z1 - x1 * z0; }
+    const sign = area > 0 ? 1 : -1;
+    const p = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    for (let i = 0; i < ring.length; i++) {
+      const [x0, z0] = ring[i], [x1, z1] = ring[(i + 1) % ring.length];
+      const out = [sign * (z1 - z0), 0, -sign * (x1 - x0)];
+      p[0].set(x0, foot, z0); p[1].set(x1, foot, z1); p[2].set(x1, top, z1); p[3].set(x0, top, z0);
+      tri(p[0], p[1], p[2], out, false);
+      tri(p[0], p[2], p[3], out, false);
+    }
+    // the flat roof
+    const contour = ring.map(([x, z]) => new THREE.Vector2(x, z));
+    for (const [i, j, l] of THREE.ShapeUtils.triangulateShape(contour, [])) {
+      a.set(ring[i][0], top, ring[i][1]); b.set(ring[j][0], top, ring[j][1]); c.set(ring[l][0], top, ring[l][1]);
+      tri(a.clone(), b.clone(), c.clone(), [0, 1, 0], true);
+    }
+    built++;
+  });
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(col), 4, true));
+  geometry.setAttribute('aGround', new THREE.Float32BufferAttribute(abv, 1));
+  geometry.setAttribute('aFacade', new THREE.Float32BufferAttribute(fac, 3));
+  geometry.setAttribute('aHide', new THREE.Float32BufferAttribute(hid, 3));
+  geometry.setAttribute('aArchetype', new THREE.Float32BufferAttribute(arc, 3));
+  geometry.computeBoundingSphere();
+  geometry.computeBoundingBox();
+  geometry.userData = { buildings: built };
   return geometry;
 }
 
@@ -517,6 +605,7 @@ export function streamSwissBuildings(scene, { center = { x: 0, z: 0 }, nearRadiu
   const done = (async () => {
     const index = await (await fetch(INDEX_URL)).json();
     const facades = await fetch(FACADES_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const recent = await fetch(RECENT_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const base = new URL(index.base, INDEX_URL);
     const tiles = index.tiles.map((t, i) => ({ ...t, seed: i * 977, d: Math.hypot(t.x - center.x, t.z - center.z) })).sort((a, b) => a.d - b.d);
     const near = tiles.filter((t) => t.d <= nearRadius).length || Math.min(tiles.length, 12);
@@ -532,7 +621,7 @@ export function streamSwissBuildings(scene, { center = { x: 0, z: 0 }, nearRadiu
         try {
           const tile = parseB3dm(await fetchBuffer(new URL(t.u, base)));
           const gltf = await loaderFor().parseAsync(tile.glb, '');
-          const geometry = bakeTile(gltf, { ...tile, seed: t.seed, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes }, stats);
+          const geometry = bakeTile(gltf, { ...tile, seed: t.seed, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes, hidden: recent?.hidden?.[t.u] }, stats);
           if (geometry) {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.name = t.u;
@@ -548,6 +637,16 @@ export function streamSwissBuildings(scene, { center = { x: 0, z: 0 }, nearRadiu
         settle();
       }
     };
+    // The buildings built since swisstopo's survey, in the tiles' material (they stand on the city's ground)
+    if (recent?.added?.length && groundHeight) {
+      const geometry = bakeFootprints(recent.added, groundHeight);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = 'RecentBuildings';
+      mesh.castShadow = mesh.receiveShadow = true;
+      group.add(mesh);
+      stats.buildings += geometry.userData.buildings;
+      console.info(`[swissbuildings3d] ${geometry.userData.buildings} buildings newer than the survey, from the cadastre`);
+    }
     await Promise.all(Array.from({ length: concurrency }, worker));
     group.userData = { terrain: 'absolute', city: 'Genève', source: `swisstopo swissBUILDINGS3D 3.0 (${index.release})`, tiles: loaded, failed: stats.failed, buildings: stats.buildings, calibration: median(stats.offsets) };
     console.info(`[swissbuildings3d] ${loaded}/${tiles.length} tiles, ${stats.buildings} buildings, height calibration ${median(stats.offsets)?.toFixed(2)} m`);
