@@ -224,10 +224,27 @@ function facadesStep() {
   // Every other building: the archetype most common among the measured buildings most like it (style, year, storeys, nearby)
   const likeness = (a, b) => (a.s === b.s ? 0 : 9) + ((a.year ?? 1950) - (b.year ?? 1950)) ** 2 / 625 + ((a.floors ?? 5) - (b.floors ?? 5)) ** 2 / 4 + ((a.E - b.E) ** 2 + (a.N - b.N) ** 2) / 250000;
   const hashOf = (r) => { const v = Math.sin(r.E * 12.9898 + r.N * 78.233) * 43758.5453; return v - Math.floor(v); };
+  // (the candidates: the measured buildings in the 1 km squares around it, widening until there are enough: the
+  // canton has ~80,000 buildings, comparing each with every measured one would take hours)
+  const SQ = 1000, squares = new Map();
+  for (const o of measured) {
+    const k = `${Math.floor(o.E / SQ)},${Math.floor(o.N / SQ)}`;
+    if (!squares.has(k)) squares.set(k, []);
+    squares.get(k).push(o);
+  }
+  const candidates = (r) => {
+    const i0 = Math.floor(r.E / SQ), j0 = Math.floor(r.N / SQ), out = [];
+    for (let ring = 1; ring <= 8; ring++) {
+      out.length = 0;
+      for (let i = i0 - ring; i <= i0 + ring; i++) for (let j = j0 - ring; j <= j0 + ring; j++) out.push(...(squares.get(`${i},${j}`) || []));
+      if (out.length >= 30) return out;
+    }
+    return out.length ? out : measured;
+  };
   for (const r of records) {
     if (r.m) continue;
     if (!measured.length) { r.a = 0; r.rgb = [200, 196, 186]; continue; }
-    const near = measured.map((o) => ({ o, d: likeness(r, o) })).sort((p, q) => p.d - q.d).slice(0, 9);
+    const near = candidates(r).map((o) => ({ o, d: likeness(r, o) })).sort((p, q) => p.d - q.d).slice(0, 9);
     const votes = new Map();
     for (const { o, d } of near) votes.set(o.a, (votes.get(o.a) || 0) + 1 / (d + 0.5));
     r.a = [...votes].sort((p, q) => q[1] - p[1])[0][0];

@@ -61,6 +61,7 @@ const BINS = 64, SIZE = 324;
 const acc = new Map();
 const lumOf = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 function add(key, r, g, b, above) {
+  key = String(key); // (the state restored on a resume has string keys: one histogram per building either way)
   let h = acc.get(key);
   if (!h) acc.set(key, (h = new Float64Array(SIZE)));
   const L = lumOf(r, g, b), bin = Math.min(BINS - 1, Math.floor((L / 256) * BINS));
