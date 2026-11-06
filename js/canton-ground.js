@@ -27,6 +27,7 @@ import { PHENO } from './phenology.js';
 const INDEX_URL = new URL('../data/canton/index.json', import.meta.url);
 const tileUrl = (key, file) => new URL(`../data/canton/${key}/${file}`, import.meta.url);
 const DETAIL_REACH = 1600; // m: street space, markings, trees
+const DETAIL_DROP = 3200; // m: beyond, a tile's details are released (rebuilt when the camera comes back)
 const FINE_REACH = 1500; // m: the 4 m mesh (16 m beyond)
 const groundReach = (y) => Math.min(5000, 2000 + Math.max(0, y) * 8); // m, like the canton's buildings (+ 500 m)
 const FILES = { terrain: 'terrain.bin', ortho: 'ortho.jpg', roadway: 'roadway.bin', roadmarks: 'roadmarks.bin', trees: 'trees.json' };
@@ -153,9 +154,17 @@ async function loadDetails(t, scene) {
       const field = createTreeField(scene, sites, treeShare);
       treeShare ??= { atlas: field.atlas, material: field.material };
       group.add(field.group);
+      group.userData.trees = field;
     }
   }
   return group;
+}
+
+// A tile's details released: their geometries (the shared materials stay) and its tree field
+function disposeDetails(g) {
+  g.userData.trees?.dispose();
+  g.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
+  g.removeFromParent();
 }
 
 // --- The tiles around the camera -------------------------------------------------------------------------------------------
@@ -253,7 +262,10 @@ export function buildCantonGround(scene) {
           .catch((error) => console.warn('[canton-ground] details', t.key, error.message))
           .finally(() => { t.detailsBusy = false; });
       }
-      if (t.details) t.details.visible = d < DETAIL_REACH + 400;
+      if (t.details) {
+        t.details.visible = d < DETAIL_REACH + 400;
+        if (d > DETAIL_DROP) { disposeDetails(t.details); t.details = null; stats.details--; }
+      }
     }
   }
 

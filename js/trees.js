@@ -1039,10 +1039,13 @@ function createTreeField(scene, sites, shared = null) {
 
   // Follow the view camera of every scene render (shadow cascades are orthographic and keep the view's levels)
   const viewPos = new V3();
+  // (a hidden or disposed field skips its update: the canton's tile fields come and go, js/canton-ground.js)
+  let disposed = false;
+  const shown = () => { for (let o = group; o; o = o.parent) if (!o.visible) return false; return true; };
   const prevBeforeRender = scene.onBeforeRender;
   scene.onBeforeRender = function (renderer, scn, camera, target) {
     prevBeforeRender.call(this, renderer, scn, camera, target);
-    if (camera.isOrthographicCamera === true || camera.isArrayCamera === true) return;
+    if (disposed || camera.isOrthographicCamera === true || camera.isArrayCamera === true || !shown()) return;
     update(viewPos.setFromMatrixPosition(camera.matrixWorld));
   };
 
@@ -1067,7 +1070,13 @@ function createTreeField(scene, sites, shared = null) {
     triangles: geos.map((v) => v.map((l) => l.map((g) => g && g.userData.triangles))),
     cards: geos.map((v) => v.map((l) => l.map((g) => g && g.userData.cards)))
   };
-  return { group, material, atlas, update, meshes: instanced, stats };
+  /** Releases the field's geometries (not a shared atlas or material) and takes it out of the scene */
+  function dispose() {
+    disposed = true;
+    group.removeFromParent();
+    for (const mesh of instanced) mesh.geometry.dispose();
+  }
+  return { group, material, atlas, update, dispose, meshes: instanced, stats };
 }
 
 export { createTreeField, createLeafAtlas, buildTreeGeometries, SPECIES as TREE_SPECIES };
