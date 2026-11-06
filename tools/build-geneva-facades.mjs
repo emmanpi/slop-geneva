@@ -19,6 +19,7 @@ import { FRAME } from '../js/geneva-frame.js';
 import { wgs84ToLv95 } from '../js/swiss-projection.js';
 import { GENEVA_DATA } from '../js/geneva-geodata.js';
 import { lv95ToWorld } from '../js/geneva-frame.js';
+import { STYLES, PERIOD, DEFAULT_STOREY, styleOf as styleOfBase } from './lib/facade-style.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(DIR, '..');
@@ -28,11 +29,6 @@ const SAMPLES = path.join(DIR, 'data', 'cache', 'facade_samples.json');
 const ARCHETYPES = 32;
 const log = (...a) => console.log('[geneva-facades]', ...a);
 
-// Facade styles (js/swissbuildings3d.js draws them in this order)
-export const STYLES = ['ancien', 'xixe', 'moderne', 'contemporain', 'bureaux', 'inconnu'];
-const S = Object.fromEntries(STYLES.map((s, i) => [s, i]));
-// Middle year of each RegBL construction period (GBAUP)
-const PERIOD = { 8011: 1890, 8012: 1932, 8013: 1953, 8014: 1965, 8015: 1975, 8016: 1983, 8017: 1988, 8018: 1993, 8019: 1998, 8020: 2003, 8021: 2008, 8022: 2013, 8023: 2019 };
 // The Vieille-Ville on its hill (LV95): the "before 1919" buildings there are the old town's, elsewhere mostly the
 // 19th-century city that replaced the fortifications (the Fazy ring, the Pâquis, Plainpalais, the Eaux-Vives)
 const VIEILLE_VILLE = [[2500020, 1117560], [2500200, 1117700], [2500560, 1117620], [2500680, 1117420], [2500520, 1117180], [2500200, 1117170], [2500030, 1117320]];
@@ -43,21 +39,7 @@ const inPoly = (poly, x, y) => {
   }
   return inside;
 };
-
-function styleOf(g, E, N) {
-  if (!g) return S.inconnu;
-  const year = g.year ?? PERIOD[g.period] ?? null;
-  if (g.klass === 1272) return S.ancien; // churches and temples: stone
-  if (year == null) return S.inconnu;
-  const office = g.klass === 1220 || g.klass === 1230 || g.klass === 1231;
-  if (year < 1919 && g.period === 8011 && g.year == null) return inPoly(VIEILLE_VILLE, E, N) ? S.ancien : S.xixe;
-  if (year < 1840) return S.ancien;
-  if (year < 1935) return S.xixe;
-  if (office && year >= 1960) return S.bureaux;
-  if (year < 1980) return S.moderne;
-  return office ? S.bureaux : S.contemporain;
-}
-const DEFAULT_STOREY = [3.1, 3.4, 2.9, 3.0, 3.6, 3.1];
+const styleOf = (g, E, N) => styleOfBase(g, E, N, (e, n) => inPoly(VIEILLE_VILLE, e, n));
 
 // --- RegBL buildings in the frame, on a 50 m grid -------------------------------------------------------------------------
 const [minE, minN, maxE, maxN] = FRAME.lv95;
