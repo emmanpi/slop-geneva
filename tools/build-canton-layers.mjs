@@ -10,7 +10,9 @@
 //
 // Resumable: a tile whose layers are all written leaves a tools/data/cache/canton/<E>-<N>/done marker; re-running skips
 // it. Concurrency 3 tiles, every child process retried with back-off; progress and ETA go to
-// tools/data/cache/canton_layers.log. data/canton/index.json is rewritten after every 10 tiles (and at the end).
+// tools/data/cache/canton_layers.log. data/canton/index.json is rewritten after every 10 tiles (and at the end), keeping
+// the tiles a previous run left there. A tile that still fails is absent from the index and the tool exits non-zero, so
+// a caller can simply run it again (a resumed pass rebuilds only the missing tiles).
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -26,6 +28,8 @@ const LOG = path.join(CACHE, 'canton_layers.log');
 const TILE = 1000; // m, one LV95 kilometre square
 const FETCH_MARGIN = 100; // m around a tile for the SITG / tree fetches
 const CONCURRENCY = 3;
+const INDEX = path.join(OUT, 'index.json');
+const LAYER_FILE = { terrain: 'terrain.bin', ortho: 'ortho.jpg', roadway: 'roadway.bin', roadmarks: 'roadmarks.bin', trees: 'trees.json' };
 
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(name);
@@ -154,7 +158,8 @@ async function buildTile(e, n) {
   if (only.includes('roadway')) {
     const out = path.join(tileDir, 'roadway.bin');
     await runRetry('build-geneva-roadway.mjs', ['--extent', extent, '--cache-suffix', suffix, '--out', out]);
-    const h = new Int32Array(fs.readFileSync(out).buffer.slice(0, 40));
+    const b = fs.readFileSync(out);
+    const h = new Int32Array(b.buffer.slice(b.byteOffset, b.byteOffset + 6 * 4)); // (not b.buffer alone: small files live in a pool)
     if (h[2] === 0 && h[4] === 0) fs.rmSync(out); // nothing in the tile: absent from `layers`
     else { tile.bytes.roadway = fs.statSync(out).size; tile.layers.push('roadway'); }
   }
@@ -162,8 +167,9 @@ async function buildTile(e, n) {
   if (only.includes('roadmarks')) {
     const out = path.join(tileDir, 'roadmarks.bin');
     await runRetry('build-geneva-roadmarks.mjs', ['--extent', extent, '--cache-suffix', suffix, '--out', out]);
-    const h = new Int32Array(fs.readFileSync(out).buffer.slice(0, 24));
-    if (h[4] === 0) fs.rmSync(out); // nothing in the tile
+    const b = fs.readFileSync(out);
+    const h = new Int32Array(b.buffer.slice(b.byteOffset, b.byteOffset + 6 * 4)); // (not b.buffer alone: small files live in a pool)
+    if (h[4] === 0 && h[5] === 0) fs.rmSync(out); // nothing in the tile
     else { tile.bytes.roadmarks = fs.statSync(out).size; tile.layers.push('roadmarks'); }
   }
 
@@ -181,16 +187,41 @@ async function buildTile(e, n) {
   return tile;
 }
 
+// A resumed run must keep the tiles it skips in index.json. Read the existing index, and fall back to the files on disk
+// for a tile whose layers were written before a crash but whose index entry was lost (crash before the first rewrite).
+const previousTiles = (() => {
+  try { return JSON.parse(fs.readFileSync(INDEX, 'utf8')).tiles ?? {}; } catch { return {}; }
+})();
+function tileFromDisk(e, n) {
+  const dir = path.join(OUT, `${e}-${n}`);
+  if (!fs.existsSync(dir)) return null;
+  const tile = { layers: [], bytes: {}, trees: 0, orthoYear: null };
+  for (const [layer, file] of Object.entries(LAYER_FILE)) {
+    const p = path.join(dir, file);
+    if (!fs.existsSync(p)) continue;
+    tile.layers.push(layer);
+    tile.bytes[layer] = fs.statSync(p).size;
+  }
+  if (tile.layers.includes('trees')) tile.trees = JSON.parse(fs.readFileSync(path.join(dir, 'trees.json'), 'utf8')).length;
+  const meta = path.join(dir, 'ortho.json');
+  if (tile.layers.includes('ortho') && fs.existsSync(meta)) tile.orthoYear = Object.values(JSON.parse(fs.readFileSync(meta, 'utf8')).tiles ?? {})[0] ?? null;
+  return tile.layers.length ? tile : null;
+}
+
 // --- The run ------------------------------------------------------------------------------------------------------------
 const index = { source: 'swisstopo swissALTI3D & SWISSIMAGE 10 cm; SITG (État de Genève) CAD_DOMROUTIER_OBJETS_NIV0, OTC_MARQUAGE_LIGNE/SURFACE, Inventaire cantonal des arbres isolés', fetched: new Date().toISOString().slice(0, 10), tileSize: TILE, tiles: {} };
 if (area) index.area = area;
 const tilesMap = {};
+// keep the tiles an earlier run left in data/canton/index.json (their done markers are reused below)
+const planned = new Set(tiles.map(([e, n]) => `${e}-${n}`));
+for (const [key, t] of Object.entries(previousTiles)) if (planned.has(key)) tilesMap[key] = t;
 const started = Date.now();
-let done = 0, skipped = 0;
+let done = 0, skipped = 0, failed = 0;
+const failedKeys = [];
 const writeIndex = () => {
   index.tiles = Object.fromEntries(Object.entries(tilesMap).sort((a, b) => a[0].localeCompare(b[0])));
   fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify(index, null, 2));
+  fs.writeFileSync(INDEX, JSON.stringify(index, null, 2));
 };
 
 await new Promise((resolve, reject) => {
@@ -201,9 +232,16 @@ await new Promise((resolve, reject) => {
       const key = `${e}-${n}`;
       try {
         const t = await buildTile(e, n);
-        if (t === null) { skipped++; log(`[canton-layers] ${key} already done (skipped)`); }
-        else { tilesMap[key] = t; done++; }
+        if (t === null) {
+          skipped++;
+          const kept = previousTiles[key] ?? tileFromDisk(e, n);
+          if (kept) tilesMap[key] = kept;
+          log(`[canton-layers] ${key} already done (skipped)`);
+        } else { tilesMap[key] = t; done++; }
       } catch (error) {
+        failed++;
+        failedKeys.push(key);
+        if (previousTiles[key]) tilesMap[key] = previousTiles[key];
         log(`[canton-layers] ${key} FAILED: ${error.stack || error.message}`);
       }
       const built = done + skipped, total = build.length;
@@ -220,3 +258,9 @@ writeIndex();
 const size = Object.values(tilesMap).reduce((s, t) => s + Object.values(t.bytes).reduce((a, b) => a + b, 0), 0);
 log(`[canton-layers] wrote ${Object.keys(tilesMap).length} tiles, ${(size / 1048576).toFixed(1)} MB total -> ${path.join('data', 'canton', 'index.json')}`);
 log(`[canton-layers] DONE in ${((Date.now() - started) / 1000).toFixed(0)}s`);
+// a tile that exhausted its retries is absent from the index: fail the run so its caller retries (the done markers
+// make a second pass cheap, it only rebuilds the missing tiles)
+if (failed) {
+  log(`[canton-layers] ${failed} tile(s) FAILED: ${failedKeys.join(' ')}`);
+  process.exitCode = 1;
+}
