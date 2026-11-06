@@ -3,6 +3,13 @@
 Executor: an autonomous coding agent (opencode, `opencode-go/deepseek-v4-pro`) working alone for many hours.
 Owner review: the result is a branch, reviewed and merged by a human. Read this whole file before doing anything.
 
+**Two phases, two sessions.** Your prompt says which one you are in:
+- **Phase A — test on one commune (Thônex), then stop.** Write all the tools, run the whole pipeline on Thônex only,
+  produce `data/geneva-canton-facades.json` for Thônex's tiles, write the log, end your session. **Do not launch the
+  canton-wide run.** The owner looks at Thônex in the browser and decides.
+- **Phase B — the whole canton.** Only when the prompt says so: fix what the owner asked after Phase A, then run the
+  canton-wide pipeline (detached, below).
+
 ## Goal
 
 The browser already streams the swissBUILDINGS3D buildings of the whole canton of Geneva around the camera
@@ -57,6 +64,25 @@ writes it):
    (field `url_telechargement`). `tools/sample-photomesh-facades.mjs` already measures walls from these tiles for the
    city centre (its `--all` mode streams tiles: download, measure, delete, resumable). Reuse its measuring code.
 
+## Area option (Phase A)
+
+Every tool takes `--area <BFS commune number>` and then works on that commune only. The commune's outline:
+`https://api3.geo.admin.ch/rest/services/api/MapServer/ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill/<BFS>?geometryFormat=geojson&sr=2056`
+(swissBOUNDARIES3D, LV95 rings). **Thônex is 6640** (LV95 bbox E 2502914-2506283, N 1114868-1118564). Measured
+beforehand: **179** canton tiles have their centre in Thônex, **467** photomesh tiles intersect it (~3 GB, minutes to an
+hour), **3,276** cadastral footprints. With `--area`:
+- footprints: those intersecting the commune (plus a 100 m margin);
+- canton tiles: those whose centre lies in the commune;
+- photomesh tiles: those intersecting the commune;
+- `data/geneva-canton-facades.json` holds only these tiles (`"area": { "bfs": 6640, "name": "Thônex" }` in it); the
+  browser draws the other canton tiles as before;
+- the checks of step 5 apply to the area's tiles only when the file has an `area`.
+
+Phase A is done when: `node tools/run-canton-facades.sh --area 6640` (or the steps by hand) has produced the file for
+the 179 tiles, `npm test` passes, the work is committed, and `docs/plans/canton-facades.log.md` gives the numbers (see
+the last rule). To look at it, the owner runs the app (`npm run serve`) and flies over Thônex (world x ≈ 4600,
+z ≈ 1300: `__slopgeneva.mode('helicopter'); __slopgeneva.teleportXZ(4600, 1300)` in the console).
+
 ## Steps
 
 Work in a git worktree on a branch, never on `main` (it may already exist: then just work in it):
@@ -66,7 +92,8 @@ git worktree add ../slop-gva-canton-facades -b canton-facades
 cd ../slop-gva-canton-facades && npm install
 ```
 
-**Your session will not last the 10-15 hours of step 3.** So the job is a resumable pipeline that finishes on its own:
+**Phase B: your session will not last the 10-15 hours of step 3.** So the job is a resumable pipeline that finishes on
+its own (in Phase A the same script runs with `--area 6640`, in the foreground, and takes minutes to an hour):
 write the tools of steps 1-5, test each on a small sample (`--limit N` options: a few tiles, a few photomesh tiles),
 then write `tools/run-canton-facades.sh` that runs steps 1 → 2 → 3 → 4 → `npm test` in order (each step skipping work
 already done, so the script can be re-run after any crash), appending everything to `tools/data/cache/canton_facades.log`,
