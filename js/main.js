@@ -129,25 +129,24 @@ async function initApp() {
   const fireworks = buildFireworks(scene);
   const quays = buildQuays(scene);
   markInit('jetDeau');
-  // The SITG photomesh over its test areas streams in while the city loads
-  // The Photomesh button: off unloads the photos and lets the engine's own city fill their areas (remembered here,
-  // or ?photomesh=0)
+  // The SITG photomesh over its two test areas: an experiment, off by default and kept out of the city's loading (its
+  // tiles download only once switched on). The Photomesh button switches it (remembered once clicked, or ?photomesh=1)
   {
-    let on = true;
-    try { if (localStorage.getItem('slopgeneva.photomesh') === '0') on = false; } catch { /* private window */ }
+    let on = false;
+    try { if (localStorage.getItem('slopgeneva.photomesh.v2') === '1') on = true; } catch { /* private window */ }
     const q = new URLSearchParams(location.search).get('photomesh');
     if (q === '0' || q === '1') on = q === '1';
     photomeshOn.value = on ? 1 : 0;
   }
   const photomesh = buildPhotomesh(scene);
   const photomeshBtn = document.getElementById('btn-photomesh');
-  function setPhotomesh(on) {
+  function setPhotomesh(on, remember = false) {
     photomesh.setEnabled(on);
     photomeshBtn?.setAttribute('aria-pressed', String(on));
     photomeshBtn?.classList.toggle('active', on);
-    try { localStorage.setItem('slopgeneva.photomesh', on ? '1' : '0'); } catch { /* private window */ }
+    if (remember) try { localStorage.setItem('slopgeneva.photomesh.v2', on ? '1' : '0'); } catch { /* private window */ }
   }
-  photomeshBtn?.addEventListener('click', () => setPhotomesh(!photomesh.enabled));
+  photomeshBtn?.addEventListener('click', () => setPhotomesh(!photomesh.enabled, true));
   setPhotomesh(photomeshOn.value > 0.5);
   const boroughs = buildBoroughs(scene, { sidewalks: cityGrid.sidewalks });
   markInit('boroughs');

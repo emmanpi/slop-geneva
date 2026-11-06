@@ -157,7 +157,10 @@ export function buildPhotomesh(scene) {
       console.warn('[photomesh]', tile.loFile, error);
     }
   }
-  const done = Promise.all(PHOTOMESH_AREAS.map(async ([name]) => {
+  // The areas' tile indexes are fetched the first time the photomesh is switched on (it is off by default: an
+  // experiment, kept out of the city's loading)
+  let done = null;
+  const loadIndexes = () => (done ??= Promise.all(PHOTOMESH_AREAS.map(async ([name]) => {
     const base = new URL(`../data/photomesh/${name}/`, import.meta.url);
     const index = await (await fetch(new URL('index.json', base))).json();
     const mine = index.tiles.map((t) => ({ name: t.file, base, file: t.file, loFile: t.lo || t.file, min: t.min, max: t.max, lo: null, hi: null, wantHi: false, busy: false }));
@@ -165,7 +168,9 @@ export function buildPhotomesh(scene) {
     if (enabled) await Promise.all(mine.map(loadCoarse));
     stats.tiles = tiles.length;
     console.info(`[photomesh] ${name}: ${index.tiles.length} tiles`);
-  }));
+  })).catch((error) => console.warn('[photomesh] no tile index:', error)));
+  group.visible = enabled;
+  if (enabled) loadIndexes();
 
   /** Shows (loading the coarse tiles again) or unloads the photomesh; the engine's city fills its areas when off */
   function setEnabled(on) {
@@ -182,7 +187,8 @@ export function buildPhotomesh(scene) {
         if (t.lo) { release(t.lo); t.lo = null; }
       }
       stats.full = 0;
-    } else for (const t of tiles) loadCoarse(t);
+    } else if (!done) loadIndexes();
+    else for (const t of tiles) loadCoarse(t);
   }
 
   async function loadFull(tile) {
@@ -233,5 +239,5 @@ export function buildPhotomesh(scene) {
     stats.loading = loading;
   }
 
-  return { group, done, update, setEnabled, get enabled() { return enabled; } };
+  return { group, get done() { return done || Promise.resolve(); }, update, setEnabled, get enabled() { return enabled; } };
 }
