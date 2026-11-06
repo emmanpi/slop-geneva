@@ -43,7 +43,7 @@ import {
   blockAt,
   EAST_RIVER_BRIDGES,
   CUT_Z,
-  BERLIN_DATA,
+  GENEVA_DATA,
   nearestRoads,
   pointInPoly,
   waterAt
@@ -66,8 +66,8 @@ import {
   createTunnelShadeMaterial
 } from './tsl-materials.js';
 import { GEO } from './nyc-geodata.js';
-import { LANDMARK_EXCLUSIONS, BERGHAIN_TREE_SITES } from './landmarks.js';
-import { berlinPoints, berlinBounds, berlinPolygonGeometry, berlinStrip, berlinRoadSegments, berlinGeometryGroups } from './berlin-geometry.js';
+import { LANDMARK_EXCLUSIONS, LANDMARK_TREE_SITES } from './landmarks.js';
+import { genevaPoints, genevaBounds, genevaPolygonGeometry, genevaStrip, genevaRoadSegments, genevaGeometryGroups } from './geneva-geometry.js';
 import { buildTerrainMeshes, carveDepths, drapeOverlay, displaceGeometry, groundHeight, waterSurfaceHeight, deckHeight, deckHalfWidth, pierClear, inWater, TERRAIN } from './terrain.js';
 import { ROADWAY } from './roadway.js';
 
@@ -78,7 +78,7 @@ let parkLampSites;
 let pavedPlazaRects;
 let sidewalkBlocks;
 let fdrViaduct;
-let berlinStreetSites = [];
+let genevaStreetSites = [];
 
 // Inside the photographed frame, a ground material takes the SWISSIMAGE orthophoto's colour (the real sand of
 // Plainpalais, the real asphalt, lawns and paving), with a fine grain so that it doesn't look flat up close; its own
@@ -182,7 +182,7 @@ function buildSurveyedRoadway({ collect, roadMat, islandMat, curbMat, surveyedSe
   let triangles = 0, kerbMetres = 0;
   // (non-indexed with a uv, like the OSM strips, so that they merge)
   const lay = (ring, holes, y, lift) => {
-    const flat = berlinPolygonGeometry(ring, holes, y);
+    const flat = genevaPolygonGeometry(ring, holes, y);
     const draped = drapeOverlay(flat, { maxEdge: 6, lift });
     flat.dispose();
     const g = offDecks(draped);
@@ -201,9 +201,9 @@ function buildSurveyedRoadway({ collect, roadMat, islandMat, curbMat, surveyedSe
     `${(kerbMetres / 1000).toFixed(1)} km of kerbs, ${Math.round(triangles / 1000)}k triangles (SITG); ${surveyedSegments} OSM segments replaced`);
 }
 
-function buildBerlinCityGrid(scene) {
+function buildGenevaCityGrid(scene) {
   const group = new THREE.Group();
-  group.name = 'BerlinMitteCityGrid';
+  group.name = 'GenevaCityGrid';
   const roadMat = createRoadSurfaceMaterial();
   const sidewalkMat = createSidewalkMaterial();
   const curbMat = createCurbMaterial();
@@ -229,19 +229,19 @@ function buildBerlinCityGrid(scene) {
   };
   const footprints = [], sidewalks = [], colliders = [];
   parkTreeSites = []; parkLampSites = []; pavedPlazaRects = []; sidewalkBlocks = [];
-  centralParkClearings = null; fdrViaduct = null; berlinStreetSites = [];
+  centralParkClearings = null; fdrViaduct = null; genevaStreetSites = [];
 
   // The ground is the terrain model itself (swissALTI3D), carved a few metres under the rivers and the lake so that
   // their surfaces (the lowest ground around, see terrain.js) show over a dark bed.
-  const water = (BERLIN_DATA.water || []).filter(w => w.ring?.length >= 6);
+  const water = (GENEVA_DATA.water || []).filter(w => w.ring?.length >= 6);
   const carveStrips = []; // roads and paths at ground level: the drawn terrain sinks a little under them (terrain.js)
   for (const feature of water) {
-    const ring = berlinPoints(feature.ring), holes = (feature.holes || []).map(berlinPoints);
+    const ring = genevaPoints(feature.ring), holes = (feature.holes || []).map(genevaPoints);
     // The lake is level; the Rhône and the Arve fall a few metres across the city and follow their surface
     let lo = Infinity, hi = -Infinity;
     for (const p of ring) { const h = waterSurfaceHeight(p.x, p.z); lo = Math.min(lo, h); hi = Math.max(hi, h); }
-    collect(hi - lo < 0.4 ? berlinPolygonGeometry(ring, holes, lo + 0.04)
-      : drapeOverlay(berlinPolygonGeometry(ring, holes, 0), { surface: 'water', maxEdge: 12, lift: 0.04 }), waterMat, { world: true });
+    collect(hi - lo < 0.4 ? genevaPolygonGeometry(ring, holes, lo + 0.04)
+      : drapeOverlay(genevaPolygonGeometry(ring, holes, 0), { surface: 'water', maxEdge: 12, lift: 0.04 }), waterMat, { world: true });
     // Quay walls: from below the water line up to the bank, every <= 4 m so that both ends follow the terrain
     for (const edge of [ring, ...holes]) for (let i = 0; i < edge.length; i++) {
       const a = edge[i], b = edge[(i + 1) % edge.length];
@@ -264,29 +264,29 @@ function buildBerlinCityGrid(scene) {
       }
     }
   }
-  for (const park of BERLIN_DATA.parks || []) {
+  for (const park of GENEVA_DATA.parks || []) {
     if (!park.ring || park.ring.length < 6) continue;
-    const ring = berlinPoints(park.ring), holes = (park.holes || []).map(berlinPoints);
+    const ring = genevaPoints(park.ring), holes = (park.holes || []).map(genevaPoints);
     const paved = ['square', 'pedestrian', 'plaza'].includes(park.kind);
-    const geometry = berlinPolygonGeometry(ring, holes, paved ? 0.055 : 0.045);
+    const geometry = genevaPolygonGeometry(ring, holes, paved ? 0.055 : 0.045);
     if (paved) setPavingStyle(geometry, 2);
     collect(geometry, paved ? pavingMat : lawnMat);
-    if (paved) pavedPlazaRects.push(berlinBounds(ring));
+    if (paved) pavedPlazaRects.push(genevaBounds(ring));
   }
 
   // Tempelhofer Feld retains the former airport's mapped runway and apron
   // surfaces. These are park ground geometry, not new traffic corridors.
-  for (const feature of BERLIN_DATA.aeroways || []) {
+  for (const feature of GENEVA_DATA.aeroways || []) {
     if (feature.ring?.length >= 6) {
-      collect(berlinPolygonGeometry(berlinPoints(feature.ring), (feature.holes || []).map(berlinPoints), 0.065), roadMat);
+      collect(genevaPolygonGeometry(genevaPoints(feature.ring), (feature.holes || []).map(genevaPoints), 0.065), roadMat);
     } else if (feature.pts?.length >= 4) {
-      const points = berlinPoints(feature.pts);
+      const points = genevaPoints(feature.pts);
       const halfWidth = Math.max(2, feature.width || (feature.kind === 'runway' ? 45 : 15)) / 2;
-      for (let i = 1; i < points.length; i++) collect(berlinStrip(points[i - 1], points[i], halfWidth, 0.065), roadMat);
+      for (let i = 1; i < points.length; i++) collect(genevaStrip(points[i - 1], points[i], halfWidth, 0.065), roadMat);
     }
   }
 
-  const roadSegments = berlinRoadSegments();
+  const roadSegments = genevaRoadSegments();
   const carriagewayKinds = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link',
     'secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'residential', 'unclassified', 'service', 'living_street']);
   const curbedKinds = new Set(['trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link',
@@ -391,7 +391,7 @@ function buildBerlinCityGrid(scene) {
   };
   let clippedPedestrianPieces = 0, clippedSidewalkPieces = 0, curbRuns = 0;
   const paintStrip = (s, offset, halfWidth = 0.075, duty = 0.5, period = 8) => {
-    const g = berlinStrip(s.a, s.b, halfWidth, s.bridge ? 0.081 : 0.071, offset);
+    const g = genevaStrip(s.a, s.b, halfWidth, s.bridge ? 0.081 : 0.071, offset);
     if (!g) return;
     const p = g.getAttribute('position'), paints = [], sides = [], colors = [];
     for (let i = 0; i < p.count; i++) {
@@ -431,7 +431,7 @@ function buildBerlinCityGrid(scene) {
       const half = Math.max(0.75, width * 0.5);
       const pieces = outsideRoads(stripPoints(s, half), nearbyCarriageways(s.a, s.b, half), s);
       for (const piece of pieces) {
-        const geometry = berlinPolygonGeometry(piece, [], 0.055);
+        const geometry = genevaPolygonGeometry(piece, [], 0.055);
         setPavingStyle(geometry, s.road.kind === 'cycleway' ? 3 : 2); // cycle tracks: asphalt
         collect(geometry, pavingMat);
         clippedPedestrianPieces++;
@@ -444,14 +444,14 @@ function buildBerlinCityGrid(scene) {
       for (const side of [-1, 1]) {
         const shoulder = stripPoints(s, 1.4, side * (width / 2 + 1.4));
         for (const piece of outsideRoads(shoulder, neighbors, s)) {
-          collect(berlinPolygonGeometry(piece, [], 0.025), sidewalkMat);
+          collect(genevaPolygonGeometry(piece, [], 0.025), sidewalkMat);
           clippedSidewalkPieces++;
         }
       }
     }
     const nx = -s.uz, nz = s.ux;
     if (!fromSurvey) {
-      collect(berlinStrip(s.a, s.b, width / 2, y), roadMat);
+      collect(genevaStrip(s.a, s.b, width / 2, y), roadMat);
       if (width >= 7 && !s.road.oneway && s.road.kind !== 'service') paintStrip(s, 0, 0.075, 0.45);
       if (width >= 12) {
         for (const side of [-1, 1]) paintStrip(s, side * width * 0.24, 0.065, 0.45);
@@ -480,7 +480,7 @@ function buildBerlinCityGrid(scene) {
         const key = `${Math.round(x / 14)}/${Math.round(z / 14)}`;
         if (streetSiteKeys.has(key)) continue;
         streetSiteKeys.add(key);
-        berlinStreetSites.push({ x, z, nx: -nx * side, nz: -nz * side, ux: s.ux, uz: s.uz, name: s.road.name || '', road: s.road });
+        genevaStreetSites.push({ x, z, nx: -nx * side, nz: -nz * side, ux: s.ux, uz: s.uz, name: s.road.name || '', road: s.road });
       }
     }
   }
@@ -571,7 +571,7 @@ function buildBerlinCityGrid(scene) {
       }
     }
   }
-  for (const tree of BERLIN_DATA.trees || []) {
+  for (const tree of GENEVA_DATA.trees || []) {
     const h = Math.abs(Math.sin(tree.x * 1.9 + tree.z * 8.1));
     // Inventory trees: their genus picks the crown shape and the seasonal calendar (js/phenology.js)
     const pheno = tree.g ?? 0;
@@ -595,17 +595,17 @@ function buildBerlinCityGrid(scene) {
     }
     return false;
   };
-  // Photo-referenced trees and undergrowth around Berghain use the original
+  // Photo-referenced trees and undergrowth around the landmarks (none in Geneva) use the original
   // tree geometry, instancing and LOD. Keep mapped trees in preference to extras.
-  for (const tree of BERGHAIN_TREE_SITES) {
+  for (const tree of LANDMARK_TREE_SITES) {
     if (nearbyTree(tree.x, tree.z, tree.isShrub ? 1.25 : 5)) continue;
     parkTreeSites.push(tree); indexTree(tree);
   }
   const landmarkTrees = parkTreeSites.length - mappedTreeCount;
   const hash = (x, z, seed) => { const n = Math.sin(x * 12.9898 + z * 78.233 + seed) * 43758.5453; return n - Math.floor(n); };
-  for (const park of BERLIN_DATA.parks || []) {
+  for (const park of GENEVA_DATA.parks || []) {
     if (!['wood', 'forest'].includes(park.kind) && park.name !== 'Viktoriapark') continue;
-    const ring = berlinPoints(park.ring), holes = (park.holes || []).map(berlinPoints), bounds = berlinBounds(ring);
+    const ring = genevaPoints(park.ring), holes = (park.holes || []).map(genevaPoints), bounds = genevaBounds(ring);
     for (let gx = Math.ceil(bounds.minX / 14); gx <= Math.floor(bounds.maxX / 14); gx++) {
       for (let gz = Math.ceil(bounds.minZ / 14); gz <= Math.floor(bounds.maxZ / 14); gz++) {
         const x = gx * 14 + (hash(gx, gz, 1) - 0.5) * 10, z = gz * 14 + (hash(gx, gz, 2) - 0.5) * 10;
@@ -647,7 +647,7 @@ function buildBerlinCityGrid(scene) {
   // including wet asphalt, animated water and anti-aliased dash paint.
   for (const [material, geometries] of collections) {
     let firstMesh;
-    for (const cell of berlinGeometryGroups(geometries)) for (let i = 0; i < cell.length; i += 300) {
+    for (const cell of genevaGeometryGroups(geometries)) for (let i = 0; i < cell.length; i += 300) {
       const chunk = cell.slice(i, i + 300).map(g => {
         if (!g.index) return g;
         const expanded = g.toNonIndexed(); g.dispose(); return expanded;
@@ -663,7 +663,7 @@ function buildBerlinCityGrid(scene) {
       group.add(mesh);
     }
   }
-  group.userData = { terrain: 'absolute', city: BERLIN_DATA.meta.city, source: 'OpenStreetMap, swisstopo swissALTI3D', roads: roadSegments.length, bridgeSegments: bridgeSlabs.length, bridgePiers, bridgeParapets, mappedTrees: mappedTreeCount, landmarkTrees, proceduralWoodlandTrees: parkTreeSites.length - mappedTreeCount - landmarkTrees,
+  group.userData = { terrain: 'absolute', city: GENEVA_DATA.meta.city, source: 'OpenStreetMap, swisstopo swissALTI3D', roads: roadSegments.length, bridgeSegments: bridgeSlabs.length, bridgePiers, bridgeParapets, mappedTrees: mappedTreeCount, landmarkTrees, proceduralWoodlandTrees: parkTreeSites.length - mappedTreeCount - landmarkTrees,
     clippedPedestrianPieces, clippedSidewalkPieces, curbRuns, junctionClippedCurbs: true, junctionClippedSidewalks: true };
   scene.add(group);
   return { group, sidewalks, footprints, highwayLanes: [], colliders };
@@ -2079,7 +2079,7 @@ function buildWaterfrontPiers(group) {
 }
 
 function buildCityGrid(scene) {
-  if (BERLIN_DATA) return buildBerlinCityGrid(scene);
+  if (GENEVA_DATA) return buildGenevaCityGrid(scene);
   const group = new THREE.Group();
   group.name = 'ManhattanCityGrid';
 
@@ -4148,5 +4148,5 @@ export {
   pavedPlazaRects,
   sidewalkBlocks,
   fdrViaduct,
-  berlinStreetSites
+  genevaStreetSites
 };

@@ -51,10 +51,10 @@ import {
   streetZ
 } from './city-config.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { BERLIN_DATA, ISLAND_BOUNDS, waterAt } from './city-config.js';
+import { GENEVA_DATA, ISLAND_BOUNDS, waterAt } from './city-config.js';
 
 // Retain the upstream surrounding-city renderer as an isolated module factory.
-// Its New York raster initializers must not execute against Berlin's data.
+// Its New York raster initializers must not execute against Geneva's data.
 function legacyNewYorkBoroughModule() {
 
 // js/boroughs.js
@@ -3399,14 +3399,14 @@ function buildBoroughs(scene, { sidewalks = [] } = {}) {
 function ridgeHeightAt() { return 0; }
 function boroughLandAt(x, z) {
   if (waterAt(x, z)) return null;
-  return { id: 'berlin', name: 'Genève', top: 0, bounds: ISLAND_BOUNDS };
+  return { id: 'geneva', name: 'Genève', top: 0, bounds: ISLAND_BOUNDS };
 }
 function buildBoroughs(scene) {
   // The irregular city uses the complete mapped area in city-grid/buildings. Do not
   // fabricate New York borough skylines or islands outside that survey.
   const group = new THREE.Group();
-  group.name = 'BerlinBoundaryContext';
-  group.userData = { city: BERLIN_DATA.meta.city, coverage: BERLIN_DATA.meta.lv95 || BERLIN_DATA.meta.geographicBounds, boundaryContext: 'mapped survey' };
+  group.name = 'GenevaBoundaryContext';
+  group.userData = { city: GENEVA_DATA.meta.city, coverage: GENEVA_DATA.meta.lv95 || GENEVA_DATA.meta.geographicBounds, boundaryContext: 'mapped survey' };
   scene.add(group);
   return { group, ridgeHeightAt, landAt: boroughLandAt, colliders: [], update() {} };
 }

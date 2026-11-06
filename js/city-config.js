@@ -5,11 +5,11 @@ import { lonLatToWorld, lv95ToWorld } from './geneva-frame.js';
 // irregular-city data path of the Slop Berlin, Warsaw and Utrecht forks. Legacy export names are retained as API
 // aliases; all visible geography is Geneva.
 // 1 unit = 1 metre, x = LV95 east, z = LV95 south (grid north up), origin on the Rhône by Bel-Air (js/geneva-frame.js).
-const BERLIN_DATA = GEO.berlin;
+const GENEVA_DATA = GEO.geneva;
 const toPts = (flat) => { const out=[]; for(let i=0;i<flat.length;i+=2)out.push({x:flat[i],z:flat[i+1]});return out; };
 // Exact WGS84 -> LV95 (js/swiss-projection.js)
 const projectLonLat = (lon,lat) => lonLatToWorld(lon,lat);
-const [minX,minZ,maxX,maxZ] = BERLIN_DATA.meta.bounds;
+const [minX,minZ,maxX,maxZ] = GENEVA_DATA.meta.bounds;
 const ISLAND_BOUNDS = {minX,maxX,minZ,maxZ,sidewalkHeight:0.22,waterLevel:-2.2};
 const CUT_Z=minZ;
 const MANHATTAN_COASTLINE=toPts(GEO.manhattan);
@@ -24,19 +24,19 @@ const ROOSEVELT_ISLAND_POLYGON=[],GOVERNORS_ISLAND_POLYGON=[],NJ_SHORELINE_POLYG
 const LIBERTY_STATUE_POS={x:0,z:0};
 // The legacy park bounds describe a raised Central Park lawn: Geneva has none.
 const CENTRAL_PARK_BOUNDS={minX:-99999,maxX:-99998,minZ:-99999,maxZ:-99998};
-const ROADS=BERLIN_DATA.roads.filter(r=>!r.tunnel).map(r=>({...r,raw:r.name,name:r.name||`Unnamed ${r.kind}`,w:r.width,dir:r.oneway?(r.reverse?-1:1):0,highway:/motorway|trunk/.test(r.kind),pts:toPts(r.pts)}));
+const ROADS=GENEVA_DATA.roads.filter(r=>!r.tunnel).map(r=>({...r,raw:r.name,name:r.name||`Unnamed ${r.kind}`,w:r.width,dir:r.oneway?(r.reverse?-1:1):0,highway:/motorway|trunk/.test(r.kind),pts:toPts(r.pts)}));
 const DRIVABLE=new Set(['motorway','motorway_link','trunk','trunk_link','primary','primary_link','secondary','secondary_link','tertiary','tertiary_link','residential','unclassified','living_street']);
 const ROAD_DRIVING=ROADS.filter(r=>DRIVABLE.has(r.kind));
-const BERLIN_AREAS=(BERLIN_DATA.meta.areas||[]).map(a=>({...a,polygons:(a.polygons||[]).map(p=>({
+const GENEVA_AREAS=(GENEVA_DATA.meta.areas||[]).map(a=>({...a,polygons:(a.polygons||[]).map(p=>({
  poly:toPts(p.ring),holes:(p.holes||[]).map(toPts)
 }))}));
 // Quarters (Quartiere) from the official city boundaries mapped in OSM; bounding boxes keep the polygon tests rare.
-for(const a of BERLIN_AREAS){
+for(const a of GENEVA_AREAS){
  a.minX=Infinity;a.maxX=-Infinity;a.minZ=Infinity;a.maxZ=-Infinity;
  for(const p of a.polygons)for(const q of p.poly){a.minX=Math.min(a.minX,q.x);a.maxX=Math.max(a.maxX,q.x);a.minZ=Math.min(a.minZ,q.z);a.maxZ=Math.max(a.maxZ,q.z);}
 }
 function districtAt(x,z){
- for(const a of BERLIN_AREAS){
+ for(const a of GENEVA_AREAS){
   if(x<a.minX||x>a.maxX||z<a.minZ||z>a.maxZ)continue;
   if(a.polygons.some(p=>pointInPoly(p.poly,x,z)&&!p.holes.some(h=>pointInPoly(h,x,z))))return a.id;
  }
@@ -52,7 +52,7 @@ function makeBlock(b,id,park=0){
  a*=.5;cx=a?cx/(6*a):(minX+maxX)/2;cz=a?cz/(6*a):(minZ+maxZ)/2;
  return {id,osmId:b.id,poly,holes,rects:[],frames:null,park,parkName:park?b.name:'',rect:false,area:Math.abs(a),minX,maxX,minZ,maxZ,cx,cz,median:false,district:districtAt(cx,cz)};
 }
-const BLOCKS=[...BERLIN_DATA.buildings.filter(b=>!b.part).map((b,i)=>makeBlock(b,i)),...BERLIN_DATA.parks.map((b,i)=>makeBlock(b,'park:'+i,1))];
+const BLOCKS=[...GENEVA_DATA.buildings.filter(b=>!b.part).map((b,i)=>makeBlock(b,i)),...GENEVA_DATA.parks.map((b,i)=>makeBlock(b,'park:'+i,1))];
 const LANDMARK_BLOCKS=new Set();
 const LANDMARK_SITES=GEO.landmarks;
 function getBlockBounds(col,row){return BLOCKS[Number.isInteger(col)?col:0]||{minX:0,maxX:0,minZ:0,maxZ:0,cx:0,cz:0,width:0,depth:0};}
@@ -152,7 +152,7 @@ function blocksInRect(minX, maxX, minZ, maxZ) {
 }
 
 
-const WATER_POLYGONS=BERLIN_DATA.water.map(w=>{const poly=toPts(w.ring);return {...w,poly,inner:(w.holes||[]).map(toPts),minX:Math.min(...poly.map(p=>p.x)),maxX:Math.max(...poly.map(p=>p.x)),minZ:Math.min(...poly.map(p=>p.z)),maxZ:Math.max(...poly.map(p=>p.z))};});
+const WATER_POLYGONS=GENEVA_DATA.water.map(w=>{const poly=toPts(w.ring);return {...w,poly,inner:(w.holes||[]).map(toPts),minX:Math.min(...poly.map(p=>p.x)),maxX:Math.max(...poly.map(p=>p.x)),minZ:Math.min(...poly.map(p=>p.z)),maxZ:Math.max(...poly.map(p=>p.z))};});
 function waterAtExact(x,z){return WATER_POLYGONS.some(w=>x>=w.minX&&x<=w.maxX&&z>=w.minZ&&z<=w.maxZ&&pointInPoly(w.poly,x,z)&&!w.inner.some(h=>pointInPoly(h,x,z)));}
 // The lake, the Rhône and the Arve are mapped water polygons, and traffic calls waterAt many times per frame.
 // A 4 m grid (scanline even-odd fill) answers inside/outside; only cells crossed by a shoreline use the exact test.
@@ -238,7 +238,7 @@ function getLocationLabel(x,z){
  if(nearby.length)return nearby[0].road.name;
  if(waterAt(x,z))return x>420&&z<300?'Léman · Rade de Genève':x>-1300&&z>500?'Arve · Genève':'Rhône · Genève';
  const district=districtAt(x,z);
- const name=BERLIN_AREAS.find(a=>a.id===district)?.name||district.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
+ const name=GENEVA_AREAS.find(a=>a.id===district)?.name||district.split('_').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
  return name+' · Genève';
 }
 // Keyboard shortcuts are ignored while typing into a form field (e.g. the map's street search box)
@@ -268,7 +268,7 @@ function walkSignal(time, isAvenue) {
   return t < walk;
 }
 export {
-  BERLIN_DATA, BERLIN_AREAS, toPts, projectLonLat, pointInPoly, waterAt, waterAtExact, nearestDrivingPoint, defaultSpawn, sidewalkAt,
+  GENEVA_DATA, GENEVA_AREAS, toPts, projectLonLat, pointInPoly, waterAt, waterAtExact, nearestDrivingPoint, defaultSpawn, sidewalkAt,
   AVENUES,
   ALL_AVENUES,
   CENTRAL_PARK_BOUNDS,

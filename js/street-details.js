@@ -13,14 +13,14 @@ import {
   CENTRAL_PARK_BOUNDS as CPB,
   BLOCKS,
   LANDMARK_SITES,
-  BERLIN_DATA,
+  GENEVA_DATA,
   waterAt
 } from './city-config.js';
 import { cityUniforms, createSteamMaterial, createTreeGrateMaterial, createGodRayMaterial } from './tsl-materials.js';
 import { createTreeField } from './trees.js';
-import { pavedPlazaRects, centralParkClearings, parkTreeSites, sidewalkBlocks, parkLampSites, berlinStreetSites } from './city-grid.js';
+import { pavedPlazaRects, centralParkClearings, parkTreeSites, sidewalkBlocks, parkLampSites, genevaStreetSites } from './city-grid.js';
 import { bryantParkLawn } from './landmarks.js';
-import { nearestBerlinRoad } from './berlin-geometry.js';
+import { nearestGenevaRoad } from './geneva-geometry.js';
 import { STREETLIGHTS } from './streetlights.js';
 import { surfaceHeight } from './terrain.js';
 
@@ -38,13 +38,13 @@ function createStreetSignBladeTexture(label) {
   c.width = 256;
   c.height = 64;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = BERLIN_DATA ? '#eeeeeb' : '#0d6b3f';
+  ctx.fillStyle = GENEVA_DATA ? '#eeeeeb' : '#0d6b3f';
   ctx.fillRect(0, 0, 256, 64);
-  ctx.strokeStyle = BERLIN_DATA ? '#242829' : '#ffffff';
+  ctx.strokeStyle = GENEVA_DATA ? '#242829' : '#ffffff';
   ctx.lineWidth = 5;
   ctx.strokeRect(4, 4, 248, 56);
-  ctx.fillStyle = BERLIN_DATA ? '#242829' : '#ffffff';
-  ctx.font = `${BERLIN_DATA ? 600 : 800} ${label.length > 22 ? 19 : label.length > 16 ? 23 : 30}px Inter, Arial, sans-serif`;
+  ctx.fillStyle = GENEVA_DATA ? '#242829' : '#ffffff';
+  ctx.font = `${GENEVA_DATA ? 600 : 800} ${label.length > 22 ? 19 : label.length > 16 ? 23 : 30}px Inter, Arial, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, 128, 34);
@@ -183,7 +183,7 @@ function createSwissWalkMaterial(clock, isAvenue, figures) {
 
 function buildStreetDetails(scene) {
   const group = new THREE.Group();
-  group.name = BERLIN_DATA ? 'BerlinStreetDetails' : 'ManhattanStreetDetails';
+  group.name = GENEVA_DATA ? 'GenevaStreetDetails' : 'ManhattanStreetDetails';
 
   const dummy = new THREE.Object3D();
   const unitBox = new THREE.BoxGeometry(1, 1, 1);
@@ -217,7 +217,7 @@ function buildStreetDetails(scene) {
   const pedGlobeGlow = new THREE.MeshBasicNodeMaterial();
   pedGlobeGlow.colorNode = mix(color(0xd4d2c8), color(0xffe4b0).mul(1.95), smoothstep(0.4, 1.1, cityUniforms.uInteriorGlow));
   const streetBladeMat = new THREE.MeshStandardNodeMaterial({
-    map: createStreetSignBladeTexture(BERLIN_DATA ? 'GENÈVE · VIEILLE-VILLE' : '5TH AVE · 42 ST'),
+    map: createStreetSignBladeTexture(GENEVA_DATA ? 'GENÈVE · VIEILLE-VILLE' : '5TH AVE · 42 ST'),
     roughness: 0.32
   });
 
@@ -449,7 +449,7 @@ function buildStreetDetails(scene) {
   //    Placed directly along the true curb edges of every city block (BLOCKS)
   //    and verified with blockAt(x, z) so no pole ever stands in any roadway.
   // =========================================================================
-  const allBlocks = BERLIN_DATA ? [] : BLOCKS || [];
+  const allBlocks = GENEVA_DATA ? [] : BLOCKS || [];
   const detailZMin = streetZ(61);
   const detailZMax = streetZ(14);
 
@@ -692,8 +692,8 @@ function buildStreetDetails(scene) {
   overheadGroup.name = 'GenevaOverheadLines';
   overheadGroup.userData.terrain = 'absolute';
 
-  const berlinSignMatrices = new Map();
-  if (BERLIN_DATA) {
+  const genevaSignMatrices = new Map();
+  if (GENEVA_DATA) {
     const expansionStreetSigns = new Set(['Schlesische Straße', 'Skalitzer Straße', 'Kreuzbergstraße', 'Kottbusser Damm',
       'Oranienstraße', 'Bergmannstraße', 'Karl-Marx-Allee', 'Frankfurter Allee', 'Warschauer Straße', 'Boxhagener Straße',
       'Spandauer Damm', 'Otto-Suhr-Allee', 'Bismarckstraße', 'Kantstraße', 'Tauentzienstraße', 'Kurfürstendamm', 'Straße des 17. Juni']);
@@ -701,12 +701,12 @@ function buildStreetDetails(scene) {
       dummy.position.set(x, y, z); dummy.rotation.set(0, yaw, 0); dummy.scale.set(sx, sy, sz);
       dummy.updateMatrix(); list.push(dummy.matrix.clone());
     };
-    for (let i = 0; i < berlinStreetSites.length; i++) {
-      const s = berlinStreetSites[i];
+    for (let i = 0; i < genevaStreetSites.length; i++) {
+      const s = genevaStreetSites[i];
       if (waterAt(s.x, s.z) && !s.road.bridge) continue;
       const block = blockAt(s.x, s.z);
       if (block && !block.sidewalk && !block.id?.toString().startsWith('sidewalk') && block.source && !block.park) continue;
-      const sign = s.name && i % 4 === 0 && (berlinSignMatrices.has(s.name) || berlinSignMatrices.size < 70 || expansionStreetSigns.has(s.name));
+      const sign = s.name && i % 4 === 0 && (genevaSignMatrices.has(s.name) || genevaSignMatrices.size < 70 || expansionStreetSigns.has(s.name));
       if (STREETLIGHTS) {
         // (Geneva's own lamps below): only the street name sign, on a post of its own
         if (!sign) continue;
@@ -720,12 +720,12 @@ function buildStreetDetails(scene) {
       }
       addPole(s.x, s.z, 0.11);
       if (sign) {
-        if (!berlinSignMatrices.has(s.name)) berlinSignMatrices.set(s.name, []);
-        setMatrix(berlinSignMatrices.get(s.name), s.x, 3.25, s.z, 1.8, 0.33, 0.055, -Math.atan2(s.uz, s.ux));
+        if (!genevaSignMatrices.has(s.name)) genevaSignMatrices.set(s.name, []);
+        setMatrix(genevaSignMatrices.get(s.name), s.x, 3.25, s.z, 1.8, 0.33, 0.055, -Math.atan2(s.uz, s.ux));
       }
     }
     if (STREETLIGHTS) buildGenevaLighting();
-    const sitgPoles = BERLIN_DATA.signalPoles || [], sitgHeads = BERLIN_DATA.signalHeads || [];
+    const sitgPoles = GENEVA_DATA.signalPoles || [], sitgHeads = GENEVA_DATA.signalHeads || [];
     // Signals as surveyed by the canton (tools/build-geneva-geodata.mjs): each pole where it stands, a cantilever's arm
     // over the carriageway, and its heads around it facing the traffic (or the crossing) they control. Heads facing
     // the same way stand side by side; a cantilever repeats its first vehicle head at the end of its arm.
@@ -779,8 +779,8 @@ function buildStreetDetails(scene) {
       }
     }
     const signalKeys = new Set();
-    for (const signal of sitgPoles.length ? [] : BERLIN_DATA.signals || []) {
-      const road = nearestBerlinRoad(signal.x, signal.z, 28);
+    for (const signal of sitgPoles.length ? [] : GENEVA_DATA.signals || []) {
+      const road = nearestGenevaRoad(signal.x, signal.z, 28);
       if (!road) continue;
       const nx = -road.uz, nz = road.ux;
       const side = ((signal.x - road.x) * nx + (signal.z - road.z) * nz) < 0 ? -1 : 1;
@@ -852,7 +852,7 @@ function buildStreetDetails(scene) {
   addMatrixArrayInstanced(lampLensGeo, lampBulbGlow, lampHeadMatrices, false);
   addMatrixArrayInstanced(pedLampPostGeo, poleMetalMat, pedPostMatrices);
   addMatrixArrayInstanced(pedGlobeGeo, pedGlobeGlow, pedPostMatrices, false);
-  for (const [name, matrices] of berlinSignMatrices) {
+  for (const [name, matrices] of genevaSignMatrices) {
     const mat = new THREE.MeshStandardNodeMaterial({ map: createStreetSignBladeTexture(name), roughness: 0.6 });
     addMatrixArrayInstanced(unitBox, mat, matrices);
   }
@@ -862,7 +862,7 @@ function buildStreetDetails(scene) {
   // =========================================================================
   const godRayMat = createGodRayMaterial();
   const godRayGeo = new THREE.PlaneGeometry(54, 92);
-  const canyonShafts = BERLIN_DATA ? berlinStreetSites.filter(s => /Rue du Rhône|Rue de la Confédération|Rue du Marché|Rue de la Croix-d'Or|Rue du Mont-Blanc/.test(s.name)).filter((s, i) => i % 9 === 0).slice(0, 8).map(s => ({ x: s.x, y: 24, z: s.z, rotY: Math.atan2(s.ux, s.uz), rotZ: -0.44 })) : [
+  const canyonShafts = GENEVA_DATA ? genevaStreetSites.filter(s => /Rue du Rhône|Rue de la Confédération|Rue du Marché|Rue de la Croix-d'Or|Rue du Mont-Blanc/.test(s.name)).filter((s, i) => i % 9 === 0).slice(0, 8).map(s => ({ x: s.x, y: 24, z: s.z, rotY: Math.atan2(s.ux, s.uz), rotZ: -0.44 })) : [
     { x: 0,    y: 42, z: 180,  rotY: 0.32,  rotZ: -0.46 }, // 34th St & 5th Ave (Empire State Canyon)
     { x: 0,    y: 44, z: 0,    rotY: 0.28,  rotZ: -0.44 }, // 42nd St & 5th Ave (NYPL / Bryant Park)
     { x: 165,  y: 46, z: 0,    rotY: 0.25,  rotZ: -0.45 }, // 42nd St & Park/Lexington (Grand Central & Chrysler)
@@ -882,7 +882,7 @@ function buildStreetDetails(scene) {
   // 3. CON EDISON ORANGE/WHITE STRIPED STEAM STACKS, NYCDOT SAWHORSE BARRICADES
   //    & BILLOWING WIND-DRIFTED VOLUMETRIC STEAM CLOUD TRAILS (REFERENCE PHOTO!)
   // =========================================================================
-  const steamLocations = BERLIN_DATA ? [] : [
+  const steamLocations = GENEVA_DATA ? [] : [
     { x: 6.4,   z: 96,   windX: -1.0, windZ: -0.18 }, // 5th Ave & 37th St (Buffer zone clear of green bike lane!)
     { x: -7.5,  z: 148,  windX: 0.95, windZ: -0.22 }, // 5th Ave near 34th St (Empire State Building)
     { x: 6.4,   z: 48,   windX: -1.0, windZ: 0.15  }, // 5th Ave & 40th St (NYPL / Bryant Park)
@@ -1036,7 +1036,7 @@ function buildStreetDetails(scene) {
   });
   const subwayGlobeMat = new THREE.MeshBasicNodeMaterial({ color: 0x55ff88 });
 
-  const subwayLocations = BERLIN_DATA ? [] : [
+  const subwayLocations = GENEVA_DATA ? [] : [
     [-16.5, 162],  // 34th St - Herald Sq / 5th Ave
     [16.5, 162],
     [-16.5, 16],   // 42nd St - Bryant Park / 5th Ave
@@ -1109,7 +1109,7 @@ function buildStreetDetails(scene) {
     roughness: 0.6
   });
 
-  const cartLocations = BERLIN_DATA ? berlinStreetSites.filter(s => /Rue du Rhône|Rue du Mont-Blanc|Rue des Pâquis|Rue de Carouge|Rue de Lausanne/.test(s.name)).filter((s, i) => i % 13 === 0).slice(0, 12).map(s => [s.x, s.z]) : [
+  const cartLocations = GENEVA_DATA ? genevaStreetSites.filter(s => /Rue du Rhône|Rue du Mont-Blanc|Rue des Pâquis|Rue de Carouge|Rue de Lausanne/.test(s.name)).filter((s, i) => i % 13 === 0).slice(0, 12).map(s => [s.x, s.z]) : [
     [-17, 152],   // Empire State corner
     [-17, 25],    // NYPL / Bryant Park
     [-127, 25],   // 6th Ave & 42nd
@@ -1147,8 +1147,8 @@ function buildStreetDetails(scene) {
   // =========================================================================
   const hydrantPositions = [];
   const mailboxPositions = [];
-  if (BERLIN_DATA) for (let i = 5; i < berlinStreetSites.length; i += 23) {
-    const s = berlinStreetSites[i];
+  if (GENEVA_DATA) for (let i = 5; i < genevaStreetSites.length; i += 23) {
+    const s = genevaStreetSites[i];
     if (!waterAt(s.x, s.z)) mailboxPositions.push([s.x - s.ux * 2, s.z - s.uz * 2]);
   }
   for (const ave of AVENUES) {
@@ -1176,7 +1176,7 @@ function buildStreetDetails(scene) {
   hydrantInst.instanceMatrix.needsUpdate = true;
   if (hydrantPositions.length) group.add(hydrantInst);
 
-  const uspsMat = new THREE.MeshStandardNodeMaterial({ color: BERLIN_DATA ? 0xe4b92e : 0x183c7a, roughness: 0.45, metalness: 0.35 });
+  const uspsMat = new THREE.MeshStandardNodeMaterial({ color: GENEVA_DATA ? 0xe4b92e : 0x183c7a, roughness: 0.45, metalness: 0.35 });
   const mailboxInst = new THREE.InstancedMesh(new THREE.BoxGeometry(0.65, 1.25, 0.65), uspsMat, Math.max(1, mailboxPositions.length));
   mailboxInst.count = mailboxPositions.length;
   mailboxPositions.forEach(([mx, mz], i) => {
@@ -1199,7 +1199,7 @@ function buildStreetDetails(scene) {
 
   // A. Bryant Park: double allées of London planes on the raised terraces along the Great Lawn's north & south sides
   //    and its west end, framing the lawn the library's terrace looks out over (the lawn as fitted by landmarks.js)
-  const bpl = BERLIN_DATA ? null : bryantParkLawn;
+  const bpl = GENEVA_DATA ? null : bryantParkLawn;
   if (bpl) {
     const ty = bpl.top - 0.2;
     for (let tx = bpl.minX - 6; tx <= bpl.maxX + 6; tx += 6.5) {
@@ -1214,7 +1214,7 @@ function buildStreetDetails(scene) {
   }
 
   // B. Central Park (59th to 110th St, 5th Ave to Central Park West; city-config.js CENTRAL_PARK_BOUNDS), on the lawn
-  const cp = BERLIN_DATA ? { minX: 1, maxX: -1, minZ: 1, maxZ: -1 } : CPB;
+  const cp = GENEVA_DATA ? { minX: 1, maxX: -1, minZ: 1, maxZ: -1 } : CPB;
   // B1. Central Park South (59th St) dense woodland border
   for (let tx = cp.minX + 8; tx <= cp.maxX - 8; tx += 9.5) {
     treePositions.push({ x: tx, y: CP_LAWN_Y, z: cp.maxZ - 5, scale: 0.95, species: 0 });

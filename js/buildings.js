@@ -32,7 +32,7 @@ import {
   avenueX,
   getBroadwayX,
   EAST_RIVER_BRIDGES,
-  BERLIN_DATA,
+  GENEVA_DATA,
   districtAt
 } from './city-config.js';
 import {
@@ -45,7 +45,7 @@ import {
 } from './tsl-materials.js';
 import { GEO } from './nyc-geodata.js';
 import { fdrViaduct, pavedPlazaRects, parkTreeSites, sidewalkBlocks } from './city-grid.js';
-import { berlinPoints, berlinBounds, berlinPolygonGeometry, nearestBerlinRoad, berlinSpatialGroups, berlinGeometryGroups } from './berlin-geometry.js';
+import { genevaPoints, genevaBounds, genevaPolygonGeometry, nearestGenevaRoad, genevaSpatialGroups, genevaGeometryGroups } from './geneva-geometry.js';
 import { LANDMARK_EXCLUSIONS, LANDMARK_SOURCE_EXCLUSIONS } from './landmarks.js';
 
 // js/buildings.js
@@ -262,7 +262,7 @@ function carve(r, holes, axis = 'x') {
 // `bag`: 3D BAG meshes already supply the facades and roofs, so only colliders and street-level details are built here.
 function buildCityBlocks(scene, { bag = false } = {}) {
   const group = new THREE.Group();
-  group.name = BERLIN_DATA ? 'BerlinMitteCityBlocks' : 'ManhattanCityBlocks';
+  group.name = GENEVA_DATA ? 'GenevaCityBlocks' : 'ManhattanCityBlocks';
   const colliders = [];
 
   // Frame of the lots being populated. Irregular blocks come with frontage frames (city-config.js BLOCKS: lots laid
@@ -328,8 +328,8 @@ function buildCityBlocks(scene, { bag = false } = {}) {
     }],
     // 1: Historic Warm Red/Terracotta Brick (Garment District / Chelsea / SoHo / Upper West Side)
     [createPreWarBuildingMaterial, {
-      stoneColor: BERLIN_DATA ? 0xc8b49b : 0xa45a45,
-      trimColor: BERLIN_DATA ? 0xe4dac5 : 0xcab9a0,
+      stoneColor: GENEVA_DATA ? 0xc8b49b : 0xa45a45,
+      trimColor: GENEVA_DATA ? 0xe4dac5 : 0xcab9a0,
       windowGlassColor: 0x16222e,
       windowWidth: 2.4,
       floorHeight: 3.5,
@@ -339,8 +339,8 @@ function buildCityBlocks(scene, { bag = false } = {}) {
     }],
     // 2: Classic NYC Brownstone & Dark Masonry (Cross-street rowhouses, Village & Harlem)
     [createPreWarBuildingMaterial, {
-      stoneColor: BERLIN_DATA ? 0xb1b4a1 : 0x765443,
-      trimColor: BERLIN_DATA ? 0xd7d9c9 : 0x503a2e,
+      stoneColor: GENEVA_DATA ? 0xb1b4a1 : 0x765443,
+      trimColor: GENEVA_DATA ? 0xd7d9c9 : 0x503a2e,
       windowGlassColor: 0x151e26,
       windowWidth: 2.2,
       floorHeight: 3.4,
@@ -1995,10 +1995,10 @@ function buildCityBlocks(scene, { bag = false } = {}) {
     for (let k = 0; k < n; k++) out.push([x0, x1, z0 + k * (s + gap), z0 + k * (s + gap) + s]);
     return out;
   }
-  if (BERLIN_DATA) {
+  if (GENEVA_DATA) {
     // Exact OSM rings drive the original facade shaders and detail-streaming
     // pools. Thin, oriented facade boxes preserve courtyard openings and the
-    // angled street walls of Mitte without Manhattan's synthetic block layouts.
+    // angled street walls of Geneva without Manhattan's synthetic block layouts.
     const roofBuckets = [[], [], []];
     const roofMaterials = [0x655c51, 0x857369, 0x676b68].map(c => {
       const m = new THREE.MeshStandardNodeMaterial({ color: c, roughness: 0.9 });
@@ -2009,11 +2009,11 @@ function buildCityBlocks(scene, { bag = false } = {}) {
       const b = pts[(i + 1) % pts.length]; return sum + a.x * b.z - b.x * a.z;
     }, 0) / 2;
     let built = 0;
-    for (const source of BERLIN_DATA.buildings || []) {
+    for (const source of GENEVA_DATA.buildings || []) {
       if ((LANDMARK_SOURCE_EXCLUSIONS.has(source.id) || LANDMARK_SOURCE_EXCLUSIONS.has(source.osmId))) continue;
       if (!source.ring || source.ring.length < 6) continue;
-      const poly = berlinPoints(source.ring), holes = (source.holes || []).map(berlinPoints);
-      const bounds = berlinBounds(poly);
+      const poly = genevaPoints(source.ring), holes = (source.holes || []).map(genevaPoints);
+      const bounds = genevaBounds(poly);
       const cx = (bounds.minX + bounds.maxX) / 2, cz = (bounds.minZ + bounds.maxZ) / 2;
       if (cx < ISLAND_BOUNDS.minX - 100 || cx > ISLAND_BOUNDS.maxX + 100 || cz < ISLAND_BOUNDS.minZ - 100 || cz > ISLAND_BOUNDS.maxZ + 100) continue;
       if (LANDMARK_EXCLUSIONS.some(r => cx > r.minX && cx < r.maxX && cz > r.minZ && cz < r.maxZ)) continue;
@@ -2048,7 +2048,7 @@ function buildCityBlocks(scene, { bag = false } = {}) {
           // courtyard normals point into the hole instead.
           const normalSign = ringIndex ? -direction : direction;
           const nx = dz / length * normalSign, nz = -dx / length * normalSign;
-          const road = !updated && ringIndex === 0 && length > 6 && base < 0.5 ? nearestBerlinRoad(x + nx * 3, z + nz * 3, 35) : null;
+          const road = !updated && ringIndex === 0 && length > 6 && base < 0.5 ? nearestGenevaRoad(x + nx * 3, z + nz * 3, 35) : null;
           const shop = !updated && road && road.distance < road.width / 2 + 13 && !['church', 'cathedral', 'school', 'university', 'civic'].includes(source.kind);
           const face = ringIndex ? WALL_KINDS.rear : shop ? WALL_KINDS.shop : WALL_KINDS.entry;
           if (!bag) buckets[matIndex].push({ x, y: base + (eave - base) / 2 + 0.02, z, w: length + 0.06, h: eave - base, d: thickness,
@@ -2076,7 +2076,7 @@ function buildCityBlocks(scene, { bag = false } = {}) {
           }
         }
       }
-      let roof = bag ? null : berlinPolygonGeometry(poly, holes, eave + 0.035);
+      let roof = bag ? null : genevaPolygonGeometry(poly, holes, eave + 0.035);
       if (pitched && !bag) {
         // Hipped/gabled roof on a mapped quadrilateral, preserving every eave
         // corner; no guessed Manhattan towers or rooftop water tanks.
@@ -2104,7 +2104,7 @@ function buildCityBlocks(scene, { bag = false } = {}) {
     }
     for (let materialIndex = 0; materialIndex < roofBuckets.length; materialIndex++) {
       let firstMesh;
-      for (const cell of berlinGeometryGroups(roofBuckets[materialIndex])) for (let i = 0; i < cell.length; i += 250) {
+      for (const cell of genevaGeometryGroups(roofBuckets[materialIndex])) for (let i = 0; i < cell.length; i += 250) {
         const pieces = cell.slice(i, i + 250).map(g => {
           if (!g.index) return g;
           const expanded = g.toNonIndexed(); g.dispose(); return expanded;
@@ -2116,9 +2116,9 @@ function buildCityBlocks(scene, { bag = false } = {}) {
         pieces.forEach(g => g.dispose());
       }
     }
-    group.userData = { city: 'Berlin', buildings: built, originalFacadeShaders: true, originalDetailStreaming: true };
+    group.userData = { city: 'Genève', buildings: built, originalFacadeShaders: true, originalDetailStreaming: true };
   }
-  for (const b of BERLIN_DATA ? [] : BLOCKS) {
+  for (const b of GENEVA_DATA ? [] : BLOCKS) {
     if (b.park > 0.6 || b.median) continue;
     minLot = b.frames ? 12 : 15;
     for (const [th, px, pz, rects] of b.frames || [[0, 0, 0, b.rects]]) {
@@ -2237,7 +2237,7 @@ function buildCityBlocks(scene, { bag = false } = {}) {
   buckets.forEach((items, matIdx) => {
     if (items.length === 0) return;
     let firstMesh;
-    for (const cell of BERLIN_DATA ? berlinSpatialGroups(items) : [items]) {
+    for (const cell of GENEVA_DATA ? genevaSpatialGroups(items) : [items]) {
       const inst = createFacadeBoxes(materials[matIdx], cell);
       inst.castShadow = true;
       inst.receiveShadow = true;

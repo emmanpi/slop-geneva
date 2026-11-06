@@ -275,7 +275,7 @@ async function initApp() {
 
   // Island-wide static geometry: chunk & distance-cull the small props, shadow stand-ins for the big casters
   // (scene-culling.js)
-  const cullingRoots = ['BerlinMitteCityGrid', 'BerlinMitteCityBlocks', 'BerlinStreetDetails', 'ManhattanLandmarks', 'BerlinBoundaryContext']
+  const cullingRoots = ['GenevaCityGrid', 'GenevaCityBlocks', 'GenevaStreetDetails', 'ManhattanLandmarks', 'GenevaBoundaryContext']
     .map((name) => scene.getObjectByName(name))
     .filter(Boolean);
   setupSceneCulling(scene, cullingRoots, lightingSystem.sunLight.shadow);

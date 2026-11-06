@@ -1,4 +1,4 @@
-// tools/build-geneva-geodata.mjs — writes js/geneva-geodata.js for the engine's irregular-city data path (GEO.berlin)
+// tools/build-geneva-geodata.mjs — writes js/geneva-geodata.js for the engine's irregular-city data path (GEO.geneva)
 // Sources (see package.json "data" scripts):
 //   tools/data/cache/osm_geneva.json        OpenStreetMap, query tools/data/q_geneva.overpassql
 //   tools/data/cache/osm_geneva_areas.json  OpenStreetMap quartiers & communes, query tools/data/q_geneva_areas.overpassql
