@@ -412,35 +412,78 @@ export function buildTrams(scene) {
   }
 
   // One oriented box per section, for collisions (refreshed every frame; parked far away when unused)
-  const bodies = Array.from({ length: TRAM_COUNT * TRAM_SECTIONS }, () => ({
+  const bodies = Array.from({ length: TRAM_COUNT * TRAM_SECTIONS }, (_, i) => ({
+    slot: Math.floor(i / TRAM_SECTIONS), // (the tram it belongs to)
     x: 1e6, z: 1e6, prevX: 1e6, prevZ: 1e6, y: 0, sin: 0, cos: 1, halfW: HALF_WIDTH, halfL: SECTION / 2, mass: TRAM_MASS, vx: 0, vz: 0, angularVel: 0, tram: true
   }));
 
+  // The traffic and the trams' sections binned in LOOK_CELL squares once a frame (indexObstacles): a tram looks at the
+  // 3 x 3 cells around its front instead of every vehicle and section in town
+  const LOOK = 50; // m along each axis around the front
+  const LOOK_CELL = LOOK;
+  const vehicleCells = new Map(), bodyCells = new Map(), cellPool = [];
+  const lookKey = (ix, iz) => (ix + 32768) * 65536 + (iz + 32768);
+  function bin(cells, o) {
+    const key = lookKey(Math.floor(o.x / LOOK_CELL), Math.floor(o.z / LOOK_CELL));
+    let list = cells.get(key);
+    if (!list) cells.set(key, (list = cellPool.pop() || []));
+    list.push(o);
+  }
+  function clearCells(cells) {
+    for (const list of cells.values()) {
+      list.length = 0;
+      cellPool.push(list);
+    }
+    cells.clear();
+  }
+  function indexObstacles(obstacles) {
+    clearCells(vehicleCells);
+    clearCells(bodyCells);
+    for (const list of obstacles.vehicles || []) for (const v of list) if (v.edge) bin(vehicleCells, v);
+    for (const o of trams) for (let n = 0; n < TRAM_SECTIONS; n++) bin(bodyCells, bodies[o.slot * TRAM_SECTIONS + n]);
+  }
+
   // Distance to the nearest obstacle on the track ahead of the tram's front (straight-line look-ahead): the player,
   // the traffic (`obstacles`: lists of { x, z } and the player's position) and the other trams' sections
-  function obstacleAhead(t, obstacles) {
-    const f = pointAt(t.way, t.s, {}), fx = f.dx, fz = f.dz;
-    let nearest = Infinity;
-    const test = (p, reach = 0) => {
-      const dx = p.x - f.x, dz = p.z - f.z;
-      if (Math.abs(dx) > 50 || Math.abs(dz) > 50) return;
-      const ahead = dx * fx + dz * fz - reach;
-      if (ahead > 0 && ahead < 45 && Math.abs(dz * fx - dx * fz) < CLEARANCE && ahead < nearest) nearest = ahead;
-    };
-    for (const list of obstacles.vehicles || []) for (const v of list) if (v.edge) test(v);
-    if (obstacles.player) test(obstacles.player);
-    const traffic = nearest;
-    nearest = Infinity;
-    for (const o of trams) {
-      if (o === t) continue;
-      for (let n = 0; n < TRAM_SECTIONS; n++) test(bodies[o.slot * TRAM_SECTIONS + n], SECTION / 2 + HEADWAY - STOP_SHORT);
+  const front = {}, found = { traffic: Infinity, tram: Infinity };
+  let fX = 0, fZ = 0, fDx = 0, fDz = 0, nearest = Infinity;
+  function test(p, reach) {
+    const dx = p.x - fX, dz = p.z - fZ;
+    if (Math.abs(dx) > LOOK || Math.abs(dz) > LOOK) return;
+    const ahead = dx * fDx + dz * fDz - reach;
+    if (ahead > 0 && ahead < 45 && Math.abs(dz * fDx - dx * fDz) < CLEARANCE && ahead < nearest) nearest = ahead;
+  }
+  function testCells(cells, reach, skipSlot) {
+    const ix = Math.floor(fX / LOOK_CELL), iz = Math.floor(fZ / LOOK_CELL);
+    for (let i = ix - 1; i <= ix + 1; i++) {
+      for (let k = iz - 1; k <= iz + 1; k++) {
+        const list = cells.get(lookKey(i, k));
+        if (!list) continue;
+        for (let j = 0; j < list.length; j++) {
+          const o = list[j];
+          if (skipSlot >= 0 && o.slot === skipSlot) continue;
+          test(o, reach);
+        }
+      }
     }
-    return { traffic, tram: nearest };
+  }
+  function obstacleAhead(t, obstacles) {
+    const f = pointAt(t.way, t.s, front);
+    fX = f.x; fZ = f.z; fDx = f.dx; fDz = f.dz;
+    nearest = Infinity;
+    testCells(vehicleCells, 0, -1);
+    if (obstacles.player) test(obstacles.player, 0);
+    found.traffic = nearest;
+    nearest = Infinity;
+    testCells(bodyCells, SECTION / 2 + HEADWAY - STOP_SHORT, t.slot);
+    found.tram = nearest;
+    return found;
   }
 
   function update(dt, obstacles = {}) {
     const now = simClock.seconds;
     dispatch(now);
+    indexObstacles(obstacles);
     for (const t of trams) {
       const { r } = t;
       // Next stop: brake for it, wait there for the departure time

@@ -608,11 +608,45 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
 
   // The trams' sections (trams.js), solid bodies the traffic brakes behind and bounces off
   let tramBodies = [];
+  // The sections in service binned in TRAM_CELL squares, rebuilt once a frame (indexTramBodies): a vehicle only looks
+  // at the 3 x 3 cells around it instead of every section of every tram (~300, two passes per vehicle)
+  const TRAM_CELL = LOOKAHEAD + 10; // tramGap looks this far along each axis: the neighbouring cells cover it
+  const tramCells = new Map();
+  const tramCellPool = [];
+  const nearTram = [];
+  const tramCellKey = (ix, iz) => (ix + 32768) * 65536 + (iz + 32768);
+  function indexTramBodies() {
+    for (const list of tramCells.values()) {
+      list.length = 0;
+      tramCellPool.push(list);
+    }
+    tramCells.clear();
+    for (const b of tramBodies) {
+      if (b.x >= 1e5) continue; // (out of service: parked at 1e6)
+      const key = tramCellKey(Math.floor(b.x / TRAM_CELL), Math.floor(b.z / TRAM_CELL));
+      let list = tramCells.get(key);
+      if (!list) tramCells.set(key, (list = tramCellPool.pop() || []));
+      list.push(b);
+    }
+  }
+  // The sections within a cell of (x, z), in the shared nearTram array
+  function tramBodiesNear(x, z) {
+    nearTram.length = 0;
+    if (!tramCells.size) return nearTram;
+    const ix = Math.floor(x / TRAM_CELL), iz = Math.floor(z / TRAM_CELL);
+    for (let i = ix - 1; i <= ix + 1; i++) {
+      for (let k = iz - 1; k <= iz + 1; k++) {
+        const list = tramCells.get(tramCellKey(i, k));
+        if (list) for (let j = 0; j < list.length; j++) nearTram.push(list[j]);
+      }
+    }
+    return nearTram;
+  }
   // Gap to the nearest tram section ahead in v's lane (v._tramSpeed: how fast it moves v's way)
   function tramGap(v) {
     let gap = Infinity;
     const fx = Math.sin(v.yaw), fz = Math.cos(v.yaw);
-    for (const b of tramBodies) {
+    for (const b of tramBodiesNear(v.x, v.z)) {
       const dx = b.x - v.x, dz = b.z - v.z;
       if (Math.abs(dx) > LOOKAHEAD + 10 || Math.abs(dz) > LOOKAHEAD + 10) continue;
       const ahead = dx * fx + dz * fz;
@@ -1350,7 +1384,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   function collideWithTrams() {
     for (const v of vehicles) {
       if (!v.edge) continue;
-      for (const b of tramBodies) {
+      for (const b of tramBodiesNear(v.x, v.z)) {
         const reach = v.half + b.halfL + b.halfW;
         if (Math.abs(v.x - b.x) > reach || Math.abs(v.z - b.z) > reach) continue;
         readTrafficBody(v, contactA);
@@ -1873,6 +1907,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     policeDrawn = 0;
     visibleBuses = 0;
     bikeShown.fill(0);
+    indexTramBodies();
     for (let i = 0; i < vehicles.length; i++) {
       const v = vehicles[i];
       if (!v.edge) continue;

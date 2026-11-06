@@ -16,22 +16,27 @@ function productionFunction(name, context) {
 }
 
 for (const [hasView, inView, draw] of [[true, false, false], [true, true, true], [false, false, true]]) {
-  test(`pedestrian gait always advances; pose generation follows drawing (${hasView}, ${inView})`, () => {
-    let args, drawn = 0;
+  test(`pedestrian gait advances (hidden: every few frames, with the time gone by); pose generation follows drawing (${hasView}, ${inView})`, () => {
+    let args, drawn = 0, updates = 0;
     const ped = { x: 10, z: 20, ux: 0, uz: 1, dir: 1, dodge: 0, dodgeTarget: 0, diveStart: -Infinity,
-      rig: { update(...values) { args = values; } } };
+      rig: { update(...values) { args = values; updates++; } } };
     const renderPed = productionFunction('renderPed', {
       hasView, visible: () => inView, pedGround: () => 0, focusX: 0, focusZ: 0, clock: 0, PEDESTRIAN_DIVE_DURATION: 2.5,
+      frame: 0, HIDDEN_GAIT_EVERY: 4,
       pedCrowd: { add(rig) { assert.equal(rig, ped.rig); drawn++; } }
     });
-    renderPed(ped, 1 / 60);
-    assert.equal(args[0], 1 / 60);
+    // pedestrian i takes its turn on frames where (i + frame) % 4 === 0: i = 1..3 skip it for a hidden one
+    for (const i of [1, 2, 3]) renderPed(ped, 1 / 60, i);
+    assert.equal(updates, draw ? 3 : 0);
+    renderPed(ped, 1 / 60, 4);
+    assert.equal(updates, draw ? 4 : 1);
+    assert.ok(Math.abs(args[0] - (draw ? 1 / 60 : 4 / 60)) < 1e-12);
     assert.equal(args[1], ped.x);
     assert.equal(args[2], ped.z);
     assert.equal(args[5], ped);
     assert.equal(args[7], draw);
     assert.equal(args[8], -1);
-    assert.equal(drawn, draw ? 1 : 0);
+    assert.equal(drawn, draw ? 4 : 0);
   });
 }
 
@@ -41,16 +46,17 @@ test('hidden pedestrians finish their dive without drawing or changing the escap
     diveStart: 9.5, diveHeading: Math.PI / 2, rig: { update(...values) { args = values; } } };
   const context = {
     hasView: true, visible: () => false, pedGround: () => 0, focusX: 0, focusZ: 0,
-    clock: 10, PEDESTRIAN_DIVE_DURATION: 2.5,
+    clock: 10, PEDESTRIAN_DIVE_DURATION: 2.5, frame: 0, HIDDEN_GAIT_EVERY: 4,
     pedCrowd: { add() { assert.fail('hidden pedestrians must not be drawn'); } }
   };
   const renderPed = productionFunction('renderPed', context);
-  renderPed(ped, 1 / 60);
+  ped.rig.diving = true; // (set by the rig while it dives: hidden divers update every frame, whatever their turn)
+  renderPed(ped, 1 / 60, 1);
   assert.equal(args[3], ped.diveHeading);
   assert.equal(args[7], false);
   assert.equal(args[8], 0.5);
   context.clock = 12;
-  renderPed(ped, 1 / 60);
+  renderPed(ped, 1 / 60, 1);
   assert.equal(args[3], 0);
   assert.equal(args[7], false);
   assert.equal(args[8], -1);

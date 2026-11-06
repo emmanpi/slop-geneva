@@ -6,6 +6,7 @@ import { PersonCrowd, PersonRig, PEDESTRIAN_DIVE_DURATION } from './pedestrians.
 // Local pedestrian population: connected walks, curb queues, conversations and player avoidance.
 // Traffic supplies crossing permissions and view checks; this system owns the crowd and its animation.
 const NUM_PEDS = 1000;
+const HIDDEN_GAIT_EVERY = 4; // frames between gait updates of a hidden pedestrian
 const PED_RADIUS = 320;
 const NEAR_RADIUS = 350;
 const PED_SPAWN_DISTANCE = 150;
@@ -19,6 +20,7 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
   let hasView = false;
   let pedRange = 0;
   let pedCursor = 0;
+  let frame = 0; // (hidden rigs take turns, see renderPed)
 
   for (const n of network.nodes) {
     n.walkers = []; // pedestrians on its crosswalks
@@ -544,14 +546,20 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
     return surface + (t > 2 && t < p.len - 2 ? CROSSWALK_Y : SIDEWALK_Y);
   }
 
-  // Every rig's gait advances every frame; only those the camera may see (or whose shadow it may see) solve their
-  // bone transforms and are drawn, the far ones with the light LOD.
-  function renderPed(p, dt) {
+  // The rigs the camera may see (or whose shadow it may see) advance their gait every frame, solve their bone
+  // transforms and are drawn, the far ones with the light LOD. The hidden ones (most of the 1000) advance theirs every
+  // HIDDEN_GAIT_EVERY frames in turn, with the time gone by: they keep walking on, ready to be seen, for a fraction of
+  // the cost (the gait of all of them every frame was ~1 ms). Divers, and those just getting up, keep every frame.
+  function renderPed(p, dt, i) {
     const draw = !hasView || visible(p.x, p.z, 7);
-    const partner = p.conversation && (p.conversation.a === p ? p.conversation.b : p.conversation.a);
-    const sideStep = p.dodgeTarget - p.dodge;
     const diveTime = clock - p.diveStart;
     const diving = diveTime < PEDESTRIAN_DIVE_DURATION;
+    p.gaitDt = (p.gaitDt || 0) + dt;
+    if (!draw && !diving && !p.rig.diving && (i + frame) % HIDDEN_GAIT_EVERY !== 0) return;
+    dt = p.gaitDt;
+    p.gaitDt = 0;
+    const partner = p.conversation && (p.conversation.a === p ? p.conversation.b : p.conversation.a);
+    const sideStep = p.dodgeTarget - p.dodge;
     const heading = diving ? p.diveHeading : partner ? Math.atan2(partner.x - p.x, partner.z - p.z)
       : Math.abs(sideStep) > 0.01 ? Math.atan2(p.uz * Math.sign(sideStep), -p.ux * Math.sign(sideStep))
       : Math.atan2(p.ux * p.dir, p.uz * p.dir);
@@ -588,11 +596,12 @@ function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCr
     meet(dt);
     gatherCurbs();
     pedCrowd.begin();
+    frame++;
     for (let i = 0; i < NUM_PEDS; i++) {
       const p = peds[i];
       if (!p.placed) continue;
       walk(p, dt);
-      renderPed(p, dt);
+      renderPed(p, dt, i);
     }
     pedCrowd.end();
   }
