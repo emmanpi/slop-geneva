@@ -346,6 +346,55 @@ function warnAlphaTestedCasters(scene) {
   if (found.size) console.warn('[perf] alpha-tested shadow casters (use alphaTestNode, see js/perf.js):', Object.fromEntries(found));
 }
 
+// One frame's draws, by pass (scene, shadow0, shadow1...), top-level layer and object: what fills each pass.
+// Resolves after the next frame: { passes: { label: { draws, ktris, layers: { name: draws }, top: [...] } } }
+function drawBreakdown() {
+  return new Promise((resolve) => {
+    const passes = new Map();
+    const original = renderer.renderObject;
+    const rootOf = (o) => {
+      let p = o;
+      while (p.parent && p.parent !== mainScene) p = p.parent;
+      return p.parent === mainScene ? layerName(p, mainScene.children.indexOf(p)) : '(detached)';
+    };
+    const frame = renderer.info.frame + 1; // exactly one whole frame
+    renderer.renderObject = function (object, scene, camera, geometry, material, group, ...rest) {
+      if (renderer.info.frame !== frame) return original.call(this, object, scene, camera, geometry, material, group, ...rest);
+      const label = passLabel(scene, camera, renderer.getRenderTarget());
+      let p = passes.get(label);
+      if (!p) passes.set(label, (p = { draws: 0, tris: 0, layers: new Map(), objects: new Map() }));
+      const geo = geometry || object.geometry;
+      const count = geo && (geo.index ? geo.index.count : geo.attributes.position ? geo.attributes.position.count : 0);
+      const n = object.isInstancedMesh ? object.count : 1;
+      const tris = object.isMesh && count ? (Math.min(count, geo.drawRange.count) / 3) * n : 0;
+      p.draws++;
+      p.tris += tris;
+      const root = rootOf(object);
+      p.layers.set(root, (p.layers.get(root) || 0) + 1);
+      const src = object.material && !Array.isArray(object.material) ? object.material : material;
+      const key = `${root} / ${object.parent && object.parent !== mainScene ? (object.parent.name || object.parent.type) + ' > ' : ''}${object.name || object.type}${object.isInstancedMesh ? ' (inst)' : ''} / mat ${(src && src.name) || (src && src.type) || ''} / geo ${(geo && geo.name) || (geo && geo.type) || ''}`;
+      const o = p.objects.get(key) || { draws: 0, tris: 0 };
+      o.draws++;
+      o.tris += tris;
+      p.objects.set(key, o);
+      return original.call(this, object, scene, camera, geometry, material, group, ...rest);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+      renderer.renderObject = original;
+      const out = {};
+      for (const [label, p] of passes) {
+        out[label] = {
+          draws: p.draws,
+          ktris: Math.round(p.tris / 1000),
+          layers: Object.fromEntries([...p.layers].sort((a, b) => b[1] - a[1])),
+          top: [...p.objects].sort((a, b) => b[1].draws - a[1].draws).slice(0, 80).map(([k, v]) => `${v.draws} draws ${Math.round(v.tris / 1000)}k  ${k}`)
+        };
+      }
+      resolve(out);
+    })));
+  });
+}
+
 // --- Set-up -------------------------------------------------------------------------------------------------------
 /** Renderer options from the quality settings, and timestamp queries when profiling */
 function rendererOptions() {
@@ -370,6 +419,7 @@ function attach({ renderer: r, scene, camera, sceneTarget, extra = {} }) {
     get hidden() { return [...hidden]; },
     layers: () => layers().map((l) => l.name),
     inventory,
+    drawBreakdown,
     setSystem(name, on) { if (on) off.delete(name); else off.add(name); },
     setLayer(pattern, visible) { if (visible) hidden.delete(pattern); else hidden.add(pattern); applyHidden(); },
     reset() { for (const k of [...off]) off.delete(k); hidden.clear(); applyHidden(); },

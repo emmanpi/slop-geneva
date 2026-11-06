@@ -44,6 +44,8 @@ function spawnPosition(lateral, forward, y) {
   return new THREE.Vector3(SPAWN_X + lateral * cs + forward * sn, y, SPAWN_Z - lateral * sn + forward * cs);
 }
 const groundCollider = { type: 'ground' };
+// Parked players (the modes not in use) are drawn within this distance of the camera (m), see cullParked()
+const PARKED_VIEW = 250;
 
 const CAR_DRIVE = {
   speed: 36, reverseSpeed: 10.5, acceleration: 4.5,
@@ -540,6 +542,19 @@ class ThirdPersonControllerManager {
 
   getActiveEntity() {
     return this.entities[this.activeMode];
+  }
+
+  /**
+   * The players not in use stay parked where they were left: hidden beyond PARKED_VIEW m of the camera, where they are
+   * a few pixels tall but still cost a draw per part in the view and both shadow cascades (the cargo bike alone has
+   * ~140 parts). Per frame, after the camera moved.
+   */
+  cullParked(cameraPosition) {
+    for (const [mode, ent] of Object.entries(this.entities)) {
+      ent._parts ??= [ent.mesh, ent.helmet, ...(ent.riderCrowd?.meshes || []), ...(ent.crowd?.meshes || [])].filter(Boolean);
+      const show = mode === this.activeMode || ent.position.distanceToSquared(cameraPosition) < PARKED_VIEW * PARKED_VIEW;
+      for (const o of ent._parts) o.visible = show;
+    }
   }
 
   teleportActiveTo(x, z, heading = Math.PI, savedAltitude = null) {

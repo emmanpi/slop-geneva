@@ -166,7 +166,8 @@ function setupSceneCulling(scene, roots, shadow = null) {
   for (const mesh of chunkable) {
     // unlit (glowing) props, like signal lenses & lamp bulbs, read from much further away at night
     const glow = mesh.material.isMeshBasicNodeMaterial || mesh.material.type === 'MeshBasicNodeMaterial' ? 3 : 1;
-    const cullDist = Math.max(CULL_MIN, instanceSize(mesh) * CULL_PER_METRE * glow);
+    const size = instanceSize(mesh);
+    const cullDist = Math.max(CULL_MIN, size * CULL_PER_METRE * glow);
     if (cullDist > CULL_MAX) {
       largeMeshes.push(mesh);
       continue;
@@ -174,7 +175,7 @@ function setupSceneCulling(scene, roots, shadow = null) {
     const cell = Math.min(600, Math.max(250, cullDist * 0.5));
     for (const chunk of replaceWithChunks(mesh, cell)) {
       const sphere = chunk.boundingSphere.clone().applyMatrix4(chunk.matrixWorld);
-      culled.push({ mesh: chunk, x: sphere.center.x, y: sphere.center.y, z: sphere.center.z, r: sphere.radius, d: cullDist });
+      culled.push({ mesh: chunk, x: sphere.center.x, y: sphere.center.y, z: sphere.center.z, r: sphere.radius, d: cullDist, size, name: mesh.name || mesh.geometry.name || mesh.material.name || '' });
     }
   }
 
@@ -331,4 +332,60 @@ function updateSceneCulling(cameraPosition) {
   }
 }
 
-export { setupSceneCulling, updateSceneCulling, SHADOW_PROXY_LAYER };
+// Small shadow casters stay out of the far sun cascade: at street level it spans ~80-300 m of the view, where a
+// post's, a car's or a person's shadow is a few pixels, yet each caster costs a draw there (~250-450 draws a frame).
+// They go on NEAR_SHADOW_LAYER alone, which the view camera and the near cascade render and the far one does not.
+// Objects added later (streamed buildings, photomesh tiles) stay on layer 0, casting in both cascades.
+const NEAR_SHADOW_LAYER = 4;
+const NEAR_SHADOW_SIZE = 6; // m, typical size (see instanceSize) under which a caster is near-only
+
+// Typical size of a mesh or of its instances (an instanced mesh with none yet: its geometry's)
+function objectSize(o) {
+  if (o.isInstancedMesh && o.count > 0) return instanceSize(o);
+  const geo = o.geometry;
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  geo.boundingBox.getSize(_size);
+  const m = o.matrixWorld.elements;
+  const d = [
+    Math.hypot(m[0], m[1], m[2]) * _size.x,
+    Math.hypot(m[4], m[5], m[6]) * _size.y,
+    Math.hypot(m[8], m[9], m[10]) * _size.z
+  ].sort((p, q) => p - q);
+  return Math.sqrt(d[1] * d[2]);
+}
+
+/**
+ * Puts the scene's small shadow casters on NEAR_SHADOW_LAYER (see above). `camera` is the view camera, `shadow` the
+ * SunLightShadow. Run once the city and the players are built, before the shaders are precompiled.
+ */
+function setupNearShadows(scene, camera, shadow) {
+  if (!shadow || typeof shadow.getCamera !== 'function') return 0;
+  camera.layers.enable(NEAR_SHADOW_LAYER);
+  shadow.getCamera(0).layers.enable(NEAR_SHADOW_LAYER);
+  scene.updateMatrixWorld(true);
+  let near = 0;
+  scene.traverse((o) => {
+    // (only default-layer meshes: the shadow stand-ins and anything already on other layers keep theirs)
+    if (!o.isMesh || !o.castShadow || o.layers.mask !== 1 || !o.geometry) return;
+    if (objectSize(o) >= NEAR_SHADOW_SIZE) return;
+    o.layers.set(NEAR_SHADOW_LAYER);
+    near++;
+  });
+  return near;
+}
+
+// The chunked props by source mesh: size (m), cull distance (m), chunks, instances, shadow casting (?perf=1 report)
+function cullingReport() {
+  const bySource = new Map();
+  for (const c of state.culled) {
+    const k = `${c.name}|${c.size.toFixed(2)}|${Math.round(c.d)}`;
+    const r = bySource.get(k) || { name: c.name, size: +c.size.toFixed(2), cull: Math.round(c.d), chunks: 0, instances: 0, castShadow: c.mesh.castShadow, visible: 0 };
+    r.chunks++;
+    r.instances += c.mesh.count;
+    if (c.mesh.visible) r.visible++;
+    bySource.set(k, r);
+  }
+  return [...bySource.values()].sort((a, b) => b.visible - a.visible);
+}
+
+export { setupSceneCulling, setupNearShadows, updateSceneCulling, cullingReport, SHADOW_PROXY_LAYER, NEAR_SHADOW_LAYER };

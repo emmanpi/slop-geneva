@@ -2654,6 +2654,9 @@ function buildCityBlocks(scene, { bag = false } = {}) {
 
     shedInst.count = shedCount;
     flagRange(shedInst.instanceMatrix, shedCount);
+
+    // An InstancedMesh with no instances still costs a draw in the view and each shadow cascade
+    for (const inst of [corniceInst, legsInst, barrelInst, coneInst, hvacInst, awningInst, shedInst, ...signInsts]) inst.visible = inst.count > 0;
   }
 
   function smoothFade(d, start, end) {

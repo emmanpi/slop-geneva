@@ -38,7 +38,7 @@ import { GamepadControls } from './gamepad-controls.js';
 import { CameraSystem, CAMERA_PRESETS } from './cameras.js';
 import { LightingSystem } from './lighting.js';
 import { NYCMapSystem } from './nyc-map.js';
-import { setupSceneCulling, updateSceneCulling } from './scene-culling.js';
+import { setupSceneCulling, setupNearShadows, updateSceneCulling, cullingReport } from './scene-culling.js';
 import { CityAudioSystem } from './audio-system.js';
 import { perf } from './perf.js';
 
@@ -277,6 +277,9 @@ async function initApp() {
     .map((name) => scene.getObjectByName(name))
     .filter(Boolean);
   setupSceneCulling(scene, cullingRoots, lightingSystem.sunLight.shadow);
+  // Small casters (props, vehicles, people, the players) shade the near sun cascade only
+  const nearCasters = setupNearShadows(scene, cameraSystem.camera, lightingSystem.sunLight.shadow);
+  console.info(`[shadows] ${nearCasters} small casters in the near cascade only`);
 
   // Initialize static world matrices once, including the chunks and shadow proxies created above.
   // Crowd, tree and building-detail animation changes instance/pose buffers, not Object3D transforms.
@@ -860,6 +863,7 @@ async function initApp() {
     gamepadControls.update(dt);
     controllerManager.update(dt, elapsed);
     cameraSystem.update(dt, elapsed);
+    if (warmedUp) controllerManager.cullParked(cameraSystem.camera.position); // (the warm-up frame compiles them all)
     streetDetails.signalClock.value = elapsed;
     if (perf.run('traffic')) {
       trafficSystem.update(
@@ -967,7 +971,7 @@ async function initApp() {
           },
           info() { return renderer.info ? { calls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles } : null; },
         };
-        perf.attach({ renderer, scene, camera: cameraSystem.camera, sceneTarget: scenePass.renderTarget });
+        perf.attach({ renderer, scene, camera: cameraSystem.camera, sceneTarget: scenePass.renderTarget, extra: { cullingReport } });
         initTimings = null;
         if (loadingOverlay) loadingOverlay.classList.add('hidden');
         audioSystem.ready = true;
