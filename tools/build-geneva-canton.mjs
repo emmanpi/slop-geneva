@@ -2,16 +2,18 @@
 //  - data/geneva-canton-ortho.jpg (+ .json): a SWISSIMAGE mosaic over the surroundings' mid ring (±12.1 km around the
 //    frame: the whole canton, the Petit-Lac, the Salève's foot), from swisstopo's WMTS at 5 m, resampled to 4096 px
 //    (~5.9 m per pixel). The relief beyond the city wears it.
-//  - data/geneva-canton-buildings.json: the swissBUILDINGS3D 3.0 3D Tiles leaves over the same ring outside the frame
-//    ([uri, x, z] with the tile centres in world coordinates). The browser streams them from 3d.geo.admin.ch around
-//    the camera (CORS open), nothing is stored here.
+//  - data/geneva-canton-boundary.json: the canton's outline (swisstopo swissBOUNDARIES3D: the canton and the Céligny
+//    exclaves), LV95 and world coordinates
+//  - data/geneva-canton-buildings.json: the swissBUILDINGS3D 3.0 3D Tiles leaves over the same ring and over the whole
+//    canton (Chancy, Céligny, Jussy... beyond the ring), outside the frame ([uri, x, z] with the tile centres in world
+//    coordinates). The browser streams them from 3d.geo.admin.ch around the camera (CORS open), nothing is stored here.
 // usage: node tools/build-geneva-canton.mjs [--ortho] [--buildings]   (both by default)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import jpeg from 'jpeg-js';
 import { FRAME, lonLatToWorld } from '../js/geneva-frame.js';
-import { lv95ToWgs84 } from '../js/swiss-projection.js';
+import { lv95ToWgs84, wgs84ToLv95 } from '../js/swiss-projection.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(DIR, '..', 'data');
@@ -103,7 +105,38 @@ if (all || args.includes('--buildings')) {
   const corners = [[BOX[0], BOX[1]], [BOX[2], BOX[1]], [BOX[0], BOX[3]], [BOX[2], BOX[3]]].map(([e, n]) => lv95ToWgs84(e, n));
   const W = Math.min(...corners.map((c) => c.lon)), E = Math.max(...corners.map((c) => c.lon));
   const S = Math.min(...corners.map((c) => c.lat)), N = Math.max(...corners.map((c) => c.lat));
-  const overlaps = (r) => deg(r[2]) >= W && deg(r[0]) <= E && deg(r[3]) >= S && deg(r[1]) <= N;
+  // The canton's outline (swissBOUNDARIES3D; its rings in LV95)
+  const boundary = (await getJson('https://api3.geo.admin.ch/rest/services/api/MapServer/ch.swisstopo.swissboundaries3d-kanton-flaeche.fill/25?geometryFormat=geojson&sr=2056')).feature.geometry;
+  const rings = (boundary.type === 'MultiPolygon' ? boundary.coordinates : [boundary.coordinates]).map((poly) => poly[0].map(([e, n]) => [Math.round(e), Math.round(n)]));
+  fs.writeFileSync(path.join(DATA, 'geneva-canton-boundary.json'), JSON.stringify({
+    source: 'swisstopo swissBOUNDARIES3D (canton de Genève, with the Céligny exclaves)',
+    lv95: rings,
+    world: rings.map((r) => r.map(([e, n]) => [e - FRAME.E0, FRAME.N0 - n]))
+  }));
+  const inside = (e, n) => rings.some((r) => {
+    let c = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      if ((r[i][1] > n) !== (r[j][1] > n) && e < ((r[j][0] - r[i][0]) * (n - r[i][1])) / (r[j][1] - r[i][1]) + r[i][0]) c = !c;
+    }
+    return c;
+  });
+  const nearBoundary = (e, n, d) => rings.some((r) => r.some(([x, y], i) => {
+    const [x2, y2] = r[(i + 1) % r.length], dx = x2 - x, dy = y2 - y;
+    const t = Math.max(0, Math.min(1, ((e - x) * dx + (n - y) * dy) / (dx * dx + dy * dy || 1)));
+    return Math.hypot(e - x - t * dx, n - y - t * dy) < d;
+  }));
+  const MARGIN = 400; // m: tiles straddling the border
+  const cantonBox = rings.flat().reduce((b, [e, n]) => [Math.min(b[0], e), Math.min(b[1], n), Math.max(b[2], e), Math.max(b[3], n)], [Infinity, Infinity, -Infinity, -Infinity]);
+  const cc = [[cantonBox[0] - MARGIN, cantonBox[1] - MARGIN], [cantonBox[2] + MARGIN, cantonBox[3] + MARGIN]].map(([e, n]) => lv95ToWgs84(e, n));
+  const inRing = (r) => deg(r[2]) >= W && deg(r[0]) <= E && deg(r[3]) >= S && deg(r[1]) <= N;
+  const inCantonBox = (r) => deg(r[2]) >= cc[0].lon && deg(r[0]) <= cc[1].lon && deg(r[3]) >= cc[0].lat && deg(r[1]) <= cc[1].lat;
+  const overlaps = (r) => inRing(r) || inCantonBox(r);
+  // A leaf is kept within the ring, or over the canton (or close to its border)
+  const wanted = (r) => {
+    if (inRing(r)) return true;
+    const { E: e, N: n } = wgs84ToLv95(deg((r[0] + r[2]) / 2), deg((r[1] + r[3]) / 2));
+    return inside(e, n) || nearBoundary(e, n, MARGIN);
+  };
   const releases = [];
   (function collect(node) {
     if (node.content?.uri) releases.push(node.content.uri);
@@ -125,7 +158,7 @@ if (all || args.includes('--buildings')) {
     } else if (uri) {
       const u = new URL(uri, url).href.slice(releaseDir.length);
       const c = lonLatToWorld(deg((region[0] + region[2]) / 2), deg((region[1] + region[3]) / 2));
-      if (!stored.has(u)) tiles.push([u, Math.round(c.x), Math.round(c.z)]);
+      if (!stored.has(u) && wanted(region)) tiles.push([u, Math.round(c.x), Math.round(c.z)]);
     }
     await Promise.all((node.children || []).map((c) => visit(c, url)));
   }
@@ -135,5 +168,5 @@ if (all || args.includes('--buildings')) {
     source: 'swisstopo swissBUILDINGS3D 3.0 (3D Tiles), streamed by the browser', origin: releaseDir, release: release.split('/')[0],
     fetched: new Date().toISOString().slice(0, 10), tiles
   }));
-  log(`${tiles.length} swissBUILDINGS3D tiles around the frame (release ${release.split('/')[0]})`);
+  log(`${tiles.length} swissBUILDINGS3D tiles around the frame and over the canton (release ${release.split('/')[0]})`);
 }

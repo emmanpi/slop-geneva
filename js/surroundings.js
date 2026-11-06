@@ -146,8 +146,10 @@ export async function buildSurroundings(scene) {
   group.add(...ringMeshes(mid, frame, groundHeight, materials, 15));
   group.add(...ringMeshes(far, midBox, (x, z) => gridHeight(mid, x, z), materials, 40));
   scene.add(group);
-  // The ground beyond the city as drawn (the mid ring, with the curvature): js/canton.js stands its buildings on it
-  surroundingsHeight = (x, z) => gridHeight(mid, x, z) - curvatureDrop(x, z, CITY_RADIUS);
+  // The ground beyond the city as drawn (the mid ring, the far one beyond it: Chancy, Céligny; with the curvature):
+  // js/canton.js stands its buildings on it
+  const inMid = (x, z) => x >= mid.minX && x <= mid.maxX && z >= mid.minZ && z <= mid.maxZ;
+  surroundingsHeight = (x, z) => gridHeight(inMid(x, z) ? mid : far, x, z) - curvatureDrop(x, z, CITY_RADIUS);
   return group;
 }
 
