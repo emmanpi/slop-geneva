@@ -80,9 +80,17 @@ export function polygons(e) {
 }
 // Clips a ring to the frame (plus a margin): the lake, the woods and some parks reach far beyond the mapped city
 export function clipToFrame(ring, margin = 20) {
-  const edges = [[1, 0, -(MIN_X - margin)], [-1, 0, MAX_X + margin], [0, 1, -(MIN_Z - margin)], [0, -1, MAX_Z + margin]];
+  return clipRing(ring, [MIN_X - margin, MIN_Z - margin, MAX_X + margin, MAX_Z + margin]);
+}
+
+// The four half-planes of an axis-aligned box [minX, minZ, maxX, maxZ] (a, b, c for a·x + b·z + c >= 0)
+export const boxEdges = (box) => [[1, 0, -box[0]], [-1, 0, box[2]], [0, 1, -box[1]], [0, -1, box[3]]];
+
+// Clips a closed ring (first point not repeated) to a box with Sutherland-Hodgman; [] when nothing survives.
+// Concave rings that stick out in several places are joined by a bridge edge along the box (fine for the masks).
+export function clipRing(ring, box) {
   let out = ring;
-  for (const [a, b, c] of edges) {
+  for (const [a, b, c] of boxEdges(box)) {
     const input = out; out = [];
     for (let i = 0; i < input.length; i++) {
       const p = input[i], q = input[(i + 1) % input.length];
@@ -93,4 +101,31 @@ export function clipToFrame(ring, margin = 20) {
     if (out.length < 3) return [];
   }
   return out;
+}
+
+// Clips an open polyline to a box, returning the pieces inside it ([ [ [x,z], ... ], ... ]). A run that leaves and
+// re-enters the box through the same half-plane is split into two pieces (no bridge across the outside).
+export function clipPolyline(pts, box) {
+  let segs = [pts];
+  for (const [a, b, c] of boxEdges(box)) {
+    const next = [];
+    for (const seg of segs) {
+      const out = [];
+      for (let i = 0; i < seg.length; i++) {
+        const p = seg[i], dp = a * p[0] + b * p[1] + c;
+        if (dp >= 0) { out.push(p); continue; }
+        if (i > 0) {
+          const q = seg[i - 1], dq = a * q[0] + b * q[1] + c;
+          if (dq >= 0) { const t = dq / (dq - dp); out.push([q[0] + (p[0] - q[0]) * t, q[1] + (p[1] - q[1]) * t]); }
+        }
+        if (i < seg.length - 1) {
+          const q = seg[i + 1], dq = a * q[0] + b * q[1] + c;
+          if (dq >= 0) { const t = dp / (dp - dq); out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]); }
+        }
+      }
+      if (out.length >= 2) next.push(out);
+    }
+    segs = next;
+  }
+  return segs;
 }

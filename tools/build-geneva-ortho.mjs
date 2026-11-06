@@ -3,23 +3,25 @@
 // column 0 its west edge (x = minX), so the browser samples it at uv = ((x - minX) / W, (z - minZ) / H)
 // (js/orthophoto.js). Each tile's cloud-optimised GeoTIFF is read at its 0.4 m overview with HTTP range requests and
 // box-filtered down to 1 m.
-// usage: node tools/build-geneva-ortho.mjs [out.jpg]
+// usage: node tools/build-geneva-ortho.mjs [--extent minE,minN,maxE,maxN] [--out out.jpg] [--trees trees.json]
+//   [--cache-suffix dir] [--download]   (out.jpg as the last positional argument still works)
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { fromUrl } from 'geotiff';
 import jpeg from 'jpeg-js';
 import { FRAME } from '../js/geneva-frame.js';
 import { lv95ToWgs84 } from '../js/swiss-projection.js';
+import { DIR, parseArgs, parseExtent, cacheFile } from './args.mjs';
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = process.argv[2] || path.join(DIR, '..', 'data', 'geneva-ortho.jpg');
+const args = parseArgs(process.argv.slice(2));
+const extent = parseExtent(args.extent);
+const OUT = args.out || args.positional[0] || path.join(DIR, '..', 'data', 'geneva-ortho.jpg');
 const STAC = 'https://data.geo.admin.ch/api/stac/v1/collections/ch.swisstopo.swissimage-dop10/items';
 const RES = 1; // metres per output pixel
 const OVERVIEW_RES = 0.4; // the COG overview read (0.1 m full resolution / 4)
 const log = (...a) => console.log('[geneva-ortho]', ...a);
 
-const [minE, minN, maxE, maxN] = FRAME.lv95;
+const [minE, minN, maxE, maxN] = extent ?? FRAME.lv95;
 const W = Math.round((maxE - minE) / RES), H = Math.round((maxN - minN) / RES);
 
 // --- Newest 10 cm tile of each square kilometre ----------------------------------------------------------------------------
@@ -45,8 +47,8 @@ for (let url = `${STAC}?bbox=${bbox}&limit=100`; url;) {
 log(`${latest.size} tiles:`, [...latest].map(([k, t]) => `${k}@${t.year}`).join(' '));
 
 // --- Mosaic (cached raw in tools/data/cache/ortho_raw.rgba: the tree removal below can be re-run without downloading) ----
-const RAW = path.join(DIR, 'data', 'cache', 'ortho_raw.rgba');
-const cached = fs.existsSync(RAW) && fs.statSync(RAW).size === W * H * 4 && !process.argv.includes('--download');
+const RAW = cacheFile(args.cacheSuffix, 'ortho_raw.rgba');
+const cached = fs.existsSync(RAW) && fs.statSync(RAW).size === W * H * 4 && !args.download;
 const rgba = cached ? fs.readFileSync(RAW) : Buffer.alloc(W * H * 4, 0);
 if (cached) log(`raw mosaic from ${RAW} (--download to fetch it again)`);
 else {
@@ -106,7 +108,7 @@ fs.writeFileSync(RAW, rgba);
 // them. Every crown of the cantonal inventory (tools/fetch-geneva-trees.mjs, its surveyed diameter, a margin for the
 // lean of the aerial view) is filled from the ground around it by push-pull interpolation: a mask-weighted image
 // pyramid, then each level's holes blended from the coarser one.
-const TREES = path.join(DIR, 'data', 'cache', 'geneva_trees.json');
+const TREES = args.trees || path.join(DIR, 'data', 'cache', 'geneva_trees.json');
 let removed = 0;
 if (fs.existsSync(TREES)) {
   const weight = new Float32Array(W * H).fill(1);
@@ -174,9 +176,10 @@ if (fs.existsSync(TREES)) {
 }
 
 const { data } = jpeg.encode({ data: rgba, width: W, height: H }, 82);
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, data);
 fs.writeFileSync(OUT.replace(/\.jpg$/, '.json'), JSON.stringify({
-  source: 'swisstopo SWISSIMAGE 10 cm', lv95: FRAME.lv95, resolution: RES, width: W, height: H,
+  source: 'swisstopo SWISSIMAGE 10 cm', lv95: extent ?? FRAME.lv95, resolution: RES, width: W, height: H,
   tiles: Object.fromEntries([...latest].map(([key, t]) => [key, t.year])), treesRemoved: removed, fetched: new Date().toISOString().slice(0, 10)
 }));
 log(`wrote ${OUT}: ${W}x${H} @ ${RES} m, ${(data.length / 1048576).toFixed(1)} MB`);

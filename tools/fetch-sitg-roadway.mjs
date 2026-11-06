@@ -10,20 +10,21 @@
 //   TPG_MATS, TPG_HAUBANS, TPG_SUSPENSIONS, TPG_LIGNES_CONTACT  the tram & trolleybus overhead lines
 //   LCE_PLACES_AMARRAGE          the mooring places on the lake (build-geneva-moorings.mjs)
 // Features keep their attributes and their LV95 geometry (points: E, N; lines: paths [[E, N], ...]).
-// The ArcGIS services refuse large envelopes, so the frame is read in 500 m tiles, each paged.
-// usage: node tools/fetch-sitg-roadway.mjs [LAYER ...]
+// The ArcGIS services refuse large envelopes, so the extent is read in 500 m tiles, each paged.
+// Optional arguments (see tools/args.mjs): --extent minE,minN,maxE,maxN, --cache-suffix <dir>.
+// usage: node tools/fetch-sitg-roadway.mjs [LAYER ...] [--extent ...] [--cache-suffix ...]
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { FRAME } from '../js/geneva-frame.js';
+import { CACHE, parseArgs, parseExtent, cacheFile } from './args.mjs';
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
-const CACHE = path.join(DIR, 'data', 'cache');
 const SERVICES = 'https://vector.sitg.ge.ch/arcgis/rest/services';
 const LAYERS = ['OTC_SL_EQUIPEMENT_BOITEFEUX', 'OTC_SL_RESEAU_MAT', 'OTC_SL_EQUIPEMENT_CARREFOUR', 'OTC_MARQUAGE_LIGNE', 'OTC_MARQUAGE_SURFACE', 'CAD_DOMROUTIER_OBJETS_NIV0',
   'TPG_MATS', 'TPG_HAUBANS', 'TPG_SUSPENSIONS', 'TPG_LIGNES_CONTACT', 'LCE_PLACES_AMARRAGE'];
 const TILE = 500, PAGE = 1000;
-const [minE, minN, maxE, maxN] = FRAME.lv95;
+const args = parseArgs(process.argv.slice(2));
+const [minE, minN, maxE, maxN] = parseExtent(args.extent) ?? FRAME.lv95;
+const layers = args.positional.length ? args.positional : LAYERS;
 const log = (...a) => console.log('[sitg-roadway]', ...a);
 const r2 = (v) => Math.round(v * 100) / 100;
 
@@ -41,7 +42,7 @@ async function query(layer, params) {
   }
 }
 
-for (const layer of process.argv.length > 2 ? process.argv.slice(2) : LAYERS) {
+for (const layer of layers) {
   const seen = new Set();
   const features = [];
   for (let e = minE; e < maxE; e += TILE) {
@@ -64,7 +65,8 @@ for (const layer of process.argv.length > 2 ? process.argv.slice(2) : LAYERS) {
       }
     }
   }
-  const out = path.join(CACHE, `sitg_${layer.toLowerCase()}.json`);
+  const out = cacheFile(args.cacheSuffix, `sitg_${layer.toLowerCase()}.json`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify({ layer, source: 'SITG (État de Genève), Office cantonal des transports', fetched: new Date().toISOString().slice(0, 10), features }));
   log(`${layer}: ${features.length} features -> ${path.relative(process.cwd(), out)}`);
 }

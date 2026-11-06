@@ -10,18 +10,24 @@
 // Int16 [x, z] per point, in cm from its tile's centre.
 // Codes: colour in the low 3 bits (0 white, 1 yellow, 2 blue, 3 red surface, 4 green surface, 5 ochre surface), the
 // width of a line above them (0: 15 cm, traffic & crossings; 1: 12 cm, cycling; 2: 10 cm, parking).
-// usage: node tools/build-geneva-roadmarks.mjs
+// Optional arguments (see tools/args.mjs): --extent minE,minN,maxE,maxN, --out <path>, --cache-suffix <dir>.
+// With --extent (a 1 km canton tile): every marking is clipped to the tile (+ 50 m).
+// usage: node tools/build-geneva-roadmarks.mjs [--extent ...] [--out ...] [--cache-suffix ...]
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { lv95ToWorld } from '../js/geneva-frame.js';
+import { FRAME, lv95ToWorld } from '../js/geneva-frame.js';
+import { DIR, parseArgs, parseExtent, cacheFile } from './args.mjs';
+import { clipRing, clipPolyline } from './osm-geometry.mjs';
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
+const args = parseArgs(process.argv.slice(2));
 const CACHE = path.join(DIR, 'data', 'cache');
-const OUT = path.join(DIR, '..', 'data', 'geneva-roadmarks.bin');
-const TILE = 256, MAX_PIECE = 60;
+const OUT = args.out || path.join(DIR, '..', 'data', 'geneva-roadmarks.bin');
+const TILE = 256, MAX_PIECE = 60, CLIP = 50;
 const log = (...a) => console.log('[geneva-roadmarks]', ...a);
-const read = (name) => JSON.parse(fs.readFileSync(path.join(CACHE, `sitg_${name}.json`), 'utf8')).features;
+const read = (name) => JSON.parse(fs.readFileSync(cacheFile(args.cacheSuffix, `sitg_${name}.json`), 'utf8')).features;
+// The canton tile in world coordinates, expanded by CLIP so markings crossing its edges are clipped, not dropped
+const extent = parseExtent(args.extent);
+const BOX = extent ? [extent[0] - FRAME.E0 - CLIP, FRAME.N0 - extent[3] - CLIP, extent[2] - FRAME.E0 + CLIP, FRAME.N0 - extent[1] + CLIP] : null;
 
 // Swiss practice (OSR art. 72-79): white for the traffic and white parking; yellow for the pedestrian crossings,
 // public transport, cycling and yellow parking; blue for the blue zone
@@ -84,10 +90,12 @@ for (const f of read('otc_marquage_ligne')) {
     const closed = pts.length > 3 && Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]) < 0.01;
     if (closed && area(pts) / length(pts) < 0.35) {
       const ring = rdpRing(pts, 0.015).slice(0, -1);
-      if (ring.length >= 3) { shapes.push({ code, flags: 1, pts: ring }); fills++; }
+      const kept = BOX ? clipRing(ring, BOX) : ring;
+      if (kept.length >= 3) { shapes.push({ code, flags: 1, pts: kept }); fills++; }
       continue;
     }
-    for (const piece of pieces(rdp(pts, 0.02))) { shapes.push({ code, flags: 0, pts: piece }); strokes++; }
+    const parts = BOX ? clipPolyline(rdp(pts, 0.02), BOX) : [rdp(pts, 0.02)];
+    for (const seg of parts) for (const piece of pieces(seg)) { shapes.push({ code, flags: 0, pts: piece }); strokes++; }
   }
 }
 for (const f of read('otc_marquage_surface')) {
@@ -95,10 +103,11 @@ for (const f of read('otc_marquage_surface')) {
   // (ArcGIS rings: outer rings clockwise, holes anticlockwise in E-N; a hole follows its outer ring)
   for (const raw of f.rings || []) {
     const ring = rdpRing(raw.map(toWorld), 0.03).slice(0, -1);
-    if (ring.length < 3) continue;
+    const kept = BOX ? clipRing(ring, BOX) : ring;
+    if (kept.length < 3) continue;
     let s = 0; for (let i = 0, j = raw.length - 1; i < raw.length; j = i++) s += (raw[i][0] - raw[j][0]) * (raw[i][1] + raw[j][1]);
     const hole = s < 0 && shapes.length && shapes[shapes.length - 1].code === code && shapes[shapes.length - 1].flags & 1;
-    shapes.push({ code, flags: hole ? 2 : 1, pts: ring }); if (!hole) surfaces++;
+    shapes.push({ code, flags: hole ? 2 : 1, pts: kept }); if (!hole) surfaces++;
   }
 }
 
@@ -141,6 +150,7 @@ for (const s of ordered) {
     buf.writeInt16LE(Math.max(-32767, Math.min(32767, qz)), o); o += 2;
   }
 }
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, buf);
 log(`${strokes} line pieces, ${fills} painted shapes, ${surfaces} coloured surfaces, ${nPts} points in ${tileRows.length} tiles` +
   `${clipped ? ` (${clipped} points clipped)` : ''} -> ${path.relative(process.cwd(), OUT)} (${(size / 1e6).toFixed(1)} MB)`);
