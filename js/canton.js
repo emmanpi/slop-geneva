@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { loadSwissTile } from './swissbuildings3d.js';
+import { loadSwissTile, bakeFootprints } from './swissbuildings3d.js';
 import { surroundingsHeight } from './surroundings.js';
 
 // The canton's buildings beyond the mapped city: swissBUILDINGS3D 3.0 tiles (data/geneva-canton-buildings.json, from
@@ -12,6 +12,9 @@ import { surroundingsHeight } from './surroundings.js';
 
 const INDEX_URL = new URL('../data/geneva-canton-buildings.json', import.meta.url);
 const FACADES_URL = new URL('../data/geneva-canton-facades.json', import.meta.url);
+// The buildings newer than swissBUILDINGS3D (tools/build-geneva-recent-buildings.mjs): each canton tile hides the older
+// 3D buildings they replaced and brings the new ones standing near it, extruded from the cadastre
+const RECENT_URL = new URL('../data/geneva-recent-buildings.json', import.meta.url);
 const MAX_TILES = 1400, CONCURRENCY = 6;
 
 export function buildCanton(scene) {
@@ -24,6 +27,13 @@ export function buildCanton(scene) {
   let tiles = [], origin = '', facades = null;
   const bake = { offsets: [], ground: null };
   fetch(FACADES_URL).then((r) => (r.ok ? r.json() : null)).then((f) => { facades = f; }).catch(() => {});
+  let recent = null; // { hidden: { uri: [batch ids] }, byTile: Map(uri -> [footprints]) }
+  const recentReady = fetch(RECENT_URL).then((r) => (r.ok ? r.json() : null)).then((data) => {
+    if (!data) return;
+    const byTile = new Map();
+    for (const a of data.added) if (a.tile) (byTile.get(a.tile) || byTile.set(a.tile, []).get(a.tile)).push(a);
+    recent = { hidden: data.hidden, byTile };
+  }).catch(() => {});
   fetch(INDEX_URL).then((r) => (r.ok ? r.json() : null)).then((index) => {
     if (!index) return;
     origin = index.origin;
@@ -31,18 +41,30 @@ export function buildCanton(scene) {
     stats.tiles = tiles.length;
   }).catch((error) => console.warn('[canton] no tile index:', error));
 
+  // a tile's geometries (its own and its recent buildings'), the shared material stays
+  const dispose = (mesh) => mesh.traverse((o) => o.geometry?.dispose());
   let loading = 0, next = 0;
   async function load(t) {
     t.busy = true;
     loading++;
     try {
-      const mesh = await loadSwissTile(origin + t.u, { seed: t.seed, stats: bake, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes });
+      await recentReady; // (a tile baked before the list would keep the buildings it replaces)
+      const mesh = await loadSwissTile(origin + t.u, { seed: t.seed, stats: bake, facades: facades?.tiles?.[t.u], archetypes: facades?.archetypes, hidden: recent?.hidden?.[t.u] });
+      // its recent buildings, on the same ground, in the same material
+      const added = recent?.byTile.get(t.u);
+      if (mesh && added?.length && bake.ground) {
+        const extra = new THREE.Mesh(bakeFootprints(added, bake.ground), mesh.material);
+        extra.name = 'RecentBuildings';
+        extra.castShadow = extra.receiveShadow = true;
+        extra.matrixAutoUpdate = false;
+        mesh.add(extra);
+      }
       if (mesh && t.want) {
         mesh.name = t.u;
         mesh.matrixAutoUpdate = false;
         t.mesh = mesh;
         group.add(mesh);
-      } else if (mesh) mesh.geometry.dispose();
+      } else if (mesh) dispose(mesh);
     } catch (error) {
       stats.failed++;
       if (stats.failed <= 3) console.warn('[canton]', t.u, error);
@@ -73,7 +95,7 @@ export function buildCanton(scene) {
       if (d < reach) order.push([d, t]);
       else if (t.mesh && d > reach * 1.25 + 200) {
         group.remove(t.mesh);
-        t.mesh.geometry.dispose();
+        dispose(t.mesh);
         t.mesh = null;
         t.want = false;
       }
@@ -82,7 +104,7 @@ export function buildCanton(scene) {
     let kept = 0;
     for (const [, t] of order) {
       if (kept++ >= MAX_TILES) {
-        if (t.mesh) { group.remove(t.mesh); t.mesh.geometry.dispose(); t.mesh = null; }
+        if (t.mesh) { group.remove(t.mesh); dispose(t.mesh); t.mesh = null; }
         t.want = false;
         continue;
       }

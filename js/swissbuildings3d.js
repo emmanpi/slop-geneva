@@ -638,8 +638,9 @@ export function streamSwissBuildings(scene, { center = { x: 0, z: 0 }, nearRadiu
       }
     };
     // The buildings built since swisstopo's survey, in the tiles' material (they stand on the city's ground)
-    if (recent?.added?.length && groundHeight) {
-      const geometry = bakeFootprints(recent.added, groundHeight);
+    const cityRecent = recent?.added?.filter((a) => !a.tile) || []; // (the canton's come with its tiles: js/canton.js)
+    if (cityRecent.length && groundHeight) {
+      const geometry = bakeFootprints(cityRecent, groundHeight);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.name = 'RecentBuildings';
       mesh.castShadow = mesh.receiveShadow = true;
