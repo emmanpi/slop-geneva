@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import { texture, uv } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { parseTerrain, gridHeight } from './terrain-grid.js';
-import { setOuterGround, drapeOverlay } from './terrain.js';
+import { setOuterGround, drapeOverlay, TERRAIN } from './terrain.js';
 import { surroundingsHeight, setFineGround, curvature } from './surroundings.js';
 import { FRAME } from './geneva-frame.js';
 import { parseRoadway } from './roadway.js';
@@ -32,6 +32,10 @@ const groundReach = (y) => Math.min(5000, 2000 + Math.max(0, y) * 8); // m, like
 const FILES = { terrain: 'terrain.bin', ortho: 'ortho.jpg', roadway: 'roadway.bin', roadmarks: 'roadmarks.bin', trees: 'trees.json' };
 
 const tiles = new Map(); // "E-N" -> tile
+// The city draws its own ground: a tile straddling its edge leaves out what lies on the city's terrain grid
+const inCity = (x, z) => x >= TERRAIN.minX && x <= TERRAIN.maxX && z >= TERRAIN.minZ && z <= TERRAIN.maxZ;
+const centre = (pts) => { let x = 0, z = 0; for (const p of pts) { x += p.x; z += p.z; } return { x: x / pts.length, z: z / pts.length }; };
+const outsideCity = (pts) => { const c = centre(pts); return !inCity(c.x, c.z); };
 let indexReady = null;
 const keyAt = (x, z) => `${Math.floor((x + FRAME.E0) / 1000)}-${Math.floor((FRAME.N0 - z) / 1000)}`;
 
@@ -70,6 +74,7 @@ function terrainGeometry(t, step) {
   for (let j = 0; j < n - 1; j++) {
     for (let i = 0; i < n - 1; i++) {
       const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
+      if (inCity(pos[a * 3], pos[a * 3 + 2]) && inCity(pos[d * 3], pos[d * 3 + 2])) continue; // (the city's own ground)
       index.push(a, c, d, a, d, b); // (the diagonal of terrain-grid.js: (i, j) to (i + 1, j + 1))
     }
   }
@@ -115,15 +120,16 @@ async function loadDetails(t, scene) {
     const rw = parseRoadway(await fetchBuffer(tileUrl(t.key, FILES.roadway)));
     if (rw) {
       const lay = (c, y) => { const flat = genevaPolygonGeometry(c.ring, c.holes, y); const g = drapeOverlay(flat, { maxEdge: 6, lift: 0.05 }); flat.dispose(); return g; };
-      mergeInto(group, rw.carriageways.map((c) => lay(c, 0.06)), m.road);
-      mergeInto(group, rw.islands.map((c) => lay(c, KERB_TOP - 0.06)), m.island);
-      mergeInto(group, rw.kerbs.map((line) => kerbGeometry(line)), m.kerb);
+      mergeInto(group, rw.carriageways.filter((c) => outsideCity(c.ring)).map((c) => lay(c, 0.06)), m.road);
+      mergeInto(group, rw.islands.filter((c) => outsideCity(c.ring)).map((c) => lay(c, KERB_TOP - 0.06)), m.island);
+      mergeInto(group, rw.kerbs.filter((line) => line.length > 1 && outsideCity(line)).map((line) => kerbGeometry(line)), m.kerb);
     }
   }
   if (has('roadmarks')) {
     const d = parseRoadMarks(await fetchBuffer(tileUrl(t.key, FILES.roadmarks)));
     const lines = [], areas = [];
     for (let k = 0; k < d.nTiles; k++) {
+      if (inCity((d.tiles[k * 4] + 0.5) * d.tile, (d.tiles[k * 4 + 1] + 0.5) * d.tile)) continue;
       const { lineGeo, areaGeo } = buildRoadMarkTile(d, k);
       if (lineGeo) lines.push(lineGeo);
       if (areaGeo) areas.push(areaGeo);
@@ -133,7 +139,7 @@ async function loadDetails(t, scene) {
   }
   // the inventory's trees, as the city plants its own (city-grid.js): their genus picks the crown and the calendar
   if (has('trees')) {
-    const trees = await (await fetch(tileUrl(t.key, FILES.trees))).json();
+    const trees = (await (await fetch(tileUrl(t.key, FILES.trees))).json()).filter((tree) => !inCity(tree.x, tree.z));
     const sites = trees.map((tree) => {
       const h = Math.abs(Math.sin(tree.x * 1.9 + tree.z * 8.1));
       const pheno = tree.g ?? 0;
