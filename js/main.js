@@ -41,6 +41,7 @@ import { NYCMapSystem } from './nyc-map.js';
 import { setupSceneCulling, setupNearShadows, updateSceneCulling, cullingReport } from './scene-culling.js';
 import { CityAudioSystem } from './audio-system.js';
 import { perf } from './perf.js';
+import { createDynamicResolution } from './dynamic-resolution.js';
 
 // Saved player state (localStorage 'slopgeneva-player-state'); older versions are ignored
 const SAVE_VERSION = 3;
@@ -74,6 +75,8 @@ async function initApp() {
     reversedDepthBuffer: true
   });
   renderer.setPixelRatio(quality.res);
+  // The pixel ratio follows the frame time where the GPU is the limit (the helicopter): js/dynamic-resolution.js
+  const dynamicResolution = createDynamicResolution(renderer, { max: quality.res, enabled: quality.dynres });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.lighting = new ClusteredLighting(256, 32, 28, 48);
@@ -980,7 +983,7 @@ async function initApp() {
           },
           info() { return renderer.info ? { calls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles } : null; },
         };
-        perf.attach({ renderer, scene, camera: cameraSystem.camera, sceneTarget: scenePass.renderTarget, extra: { cullingReport } });
+        perf.attach({ renderer, scene, camera: cameraSystem.camera, sceneTarget: scenePass.renderTarget, extra: { cullingReport, dynamicResolution } });
         initTimings = null;
         if (loadingOverlay) loadingOverlay.classList.add('hidden');
         audioSystem.ready = true;
@@ -1015,6 +1018,7 @@ async function initApp() {
       const where = cameraSystem.getActivePreset().category === 'follow' ? activeEnt.position : cameraSystem.currentPos;
       renderLocation(getLocationLabel(where.x, where.z));
     }
+    if (warmedUp) dynamicResolution.update(rawDt * 1000, now);
     perf.endFrame();
   });
 }

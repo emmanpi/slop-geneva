@@ -9,7 +9,8 @@ import * as THREE from 'three/webgpu';
 //   ?ssr=0         no screen-space reflections (and the scene pass writes its colour only, no normal / metalRough MRT)
 //   ?bloom=0       no bloom
 //   ?msaa=0        no 4x MSAA on the scene pass
-//   ?res=0.75      render resolution scale (pixel ratio; 1 = CSS pixels, as by default)
+//   ?res=0.75      render resolution scale (pixel ratio; 1 = CSS pixels, as by default); fixes it (no dynamic resolution)
+//   ?dynres=0      no dynamic resolution (js/dynamic-resolution.js)
 //   ?off=a,b       per-frame systems not updated (names: see SYSTEMS in the overlay or __perf.systems)
 //   ?hide=a,b      scene layers hidden (top-level scene children, by name or a part of it; see __perf.inventory())
 //
@@ -29,7 +30,9 @@ const quality = {
   ssr: flag('ssr'),
   bloom: flag('bloom'),
   msaa: flag('msaa'),
-  res: Math.min(2, Math.max(0.25, Number(params.get('res')) || 1))
+  res: Math.min(2, Math.max(0.25, Number(params.get('res')) || 1)),
+  // dynamic resolution (js/dynamic-resolution.js), unless ?dynres=0 or an explicit ?res= fixes it
+  dynres: flag('dynres') && !params.has('res')
 };
 
 const off = new Set(list('off'));
@@ -223,6 +226,7 @@ function readWindow() {
     gpuMs: w.gpuFrames ? { total: round(avg(w.gpuTotals)), p95: round(pct(w.gpuTotals, 0.95)), passes: perFrame(w.gpu, w.gpuFrames) } : null,
     drawCalls: perFrame(w.draws, w.frames),
     triangles: Object.fromEntries([...w.tris].map(([k, v]) => [k, Math.round(v / Math.max(1, w.frames))]).sort((a, b) => b[1] - a[1])),
+    pixelRatio: renderer ? renderer.getPixelRatio() : quality.res,
     drawCallsTotal: Math.round([...w.draws.values()].reduce((a, b) => a + b, 0) / Math.max(1, w.frames)),
     trianglesTotal: Math.round([...w.tris.values()].reduce((a, b) => a + b, 0) / Math.max(1, w.frames))
   };
@@ -317,7 +321,7 @@ function drawOverlay() {
   lines.push(`FPS ${round(1000 / ft, 0)}  frame ${round(ft, 1)} ms  p95 ${round(pct(frameTimes, 0.95), 1)} ms`);
   const cpuT = cpuAvg.get('total') || 0;
   lines.push(`CPU ${round(cpuT, 1)} ms   GPU ${renderer && renderer.backend.trackTimestamp ? round(gpuTotalAvg, 1) + ' ms' : 'n/a'}`);
-  lines.push(`res x${quality.res}  shadows ${quality.shadows ? 'on' : 'off'}  ssr ${quality.ssr ? 'on' : 'off'}  bloom ${quality.bloom ? 'on' : 'off'}  msaa ${quality.msaa ? 'on' : 'off'}`);
+  lines.push(`res x${renderer ? renderer.getPixelRatio().toFixed(2) : quality.res}${quality.dynres ? ' (dyn)' : ''}  shadows ${quality.shadows ? 'on' : 'off'}  ssr ${quality.ssr ? 'on' : 'off'}  bloom ${quality.bloom ? 'on' : 'off'}  msaa ${quality.msaa ? 'on' : 'off'}`);
   lines.push('— CPU (ms)');
   for (const [k, v] of [...cpuAvg].filter(([k]) => k !== 'total').sort((a, b) => b[1] - a[1]).slice(0, 8)) lines.push(`  ${k.padEnd(16)} ${v.toFixed(2)}${off.has(k) ? '  (off)' : ''}`);
   if (gpuAvg.size) {

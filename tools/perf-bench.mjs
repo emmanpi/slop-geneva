@@ -4,6 +4,7 @@
 //   npm run perf                       # baseline + every switch, every viewpoint
 //   npm run perf -- --quick            # baseline only, every viewpoint
 //   npm run perf -- --views=bellevue --only=systems
+//   npm run perf -- --dynres          # with the dynamic resolution on (off by default: same pixels every run)
 //   npm run perf -- --discover         # print the viewpoints (teleport keys) and the scene's layers, then stop
 //
 // For each viewpoint (a teleport, a mode, the chase camera, a fixed time & weather), it measures the baseline, then the city
@@ -73,7 +74,8 @@ async function openCity(browser, extra = '') {
   const context = await browser.newContext({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   page.on('pageerror', (e) => log('page error:', e.message));
-  const q = new URLSearchParams({ perf: '1', ...FIXED });
+  // (dynamic resolution off, so every run renders the same pixels; --dynres keeps it on)
+  const q = new URLSearchParams({ perf: '1', ...FIXED, ...(args.dynres ? {} : { dynres: '0' }) });
   const url = `${BASE}?${q}${extra ? '&' + extra : ''}`;
   const t0 = Date.now();
   await page.goto(url);
@@ -110,7 +112,7 @@ function pickViews(keys) {
 }
 
 const brief = (r) => r && {
-  fps: r.fps, frameMs: r.frameMs.avg, p95: r.frameMs.p95,
+  fps: r.fps, pixelRatio: r.pixelRatio, frameMs: r.frameMs.avg, p95: r.frameMs.p95,
   cpu: r.cpuMs.total, gpu: r.gpuMs ? r.gpuMs.total : null,
   draws: r.drawCallsTotal, tris: r.trianglesTotal
 };
