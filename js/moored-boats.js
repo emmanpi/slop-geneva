@@ -128,7 +128,11 @@ export function buildMooredBoats(scene) {
   const parts = smallBoatParts();
   const lit = (opts) => new THREE.MeshStandardNodeMaterial({ roughness: 0.5, metalness: 0.05, ...opts });
   const byKind = [[], [], []];
-  for (let i = 0; i < n; i++) byKind[data[i * 6 + 5]].push(i);
+  // In 100 m squares (row by row), so the boats bobbing near the camera have neighbouring slots: update() uploads
+  // just their span of each instance buffer
+  const square = (i) => Math.floor(data[i * 6 + 1] / 100) * 1e4 + Math.floor(data[i * 6] / 100);
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => square(a) - square(b) || a - b);
+  for (const i of order) byKind[data[i * 6 + 5]].push(i);
   const make = (geo, mat, list) => {
     const inst = new THREE.InstancedMesh(geo, mat, Math.max(1, list.length));
     inst.count = list.length;
@@ -137,16 +141,15 @@ export function buildMooredBoats(scene) {
     group.add(inst);
     return { inst, list };
   };
-  const all = [...Array(n).keys()];
   const meshes = [
-    make(parts.hull, lit({ roughness: 0.35 }), all),
-    make(parts.deck, lit({ vertexColors: true, roughness: 0.8 }), all),
+    make(parts.hull, lit({ roughness: 0.35 }), order),
+    make(parts.deck, lit({ vertexColors: true, roughness: 0.8 }), order),
     make(parts.motor, lit({ vertexColors: true }), byKind[0]),
     make(parts.sail, lit({ vertexColors: true }), byKind[1]),
     make(parts.tarp, lit({ roughness: 0.9 }), byKind[2])
   ];
   const hash = (k) => { const s = Math.sin(k * 91.7 + 3.1) * 43758.5453; return s - Math.floor(s); };
-  all.forEach((i) => meshes[0].inst.setColorAt(i, HULL_COLOURS[Math.floor(hash(i) * HULL_COLOURS.length)]));
+  order.forEach((i, k) => meshes[0].inst.setColorAt(k, HULL_COLOURS[Math.floor(hash(i) * HULL_COLOURS.length)]));
   byKind[2].forEach((i, k) => meshes[4].inst.setColorAt(k, TARP_COLOURS[Math.floor(hash(i + 7) * TARP_COLOURS.length)]));
   // each boat's index in each mesh
   const slots = meshes.map(({ list }) => { const m = new Map(); list.forEach((i, k) => m.set(i, k)); return m; });
@@ -183,6 +186,7 @@ export function buildMooredBoats(scene) {
 
   // Bobbing: the boats near the camera, a quarter of them per frame
   const near = [];
+  const lo = new Float64Array(meshes.length), hi = new Float64Array(meshes.length); // slots moved this frame, per mesh
   let frame = 0;
   function update(elapsed, camera) {
     if ((frame++ & 15) === 0) {
@@ -191,8 +195,28 @@ export function buildMooredBoats(scene) {
       for (let i = 0; i < n; i++) if (Math.abs(data[i * 6] - cx) < NEAR && Math.abs(data[i * 6 + 1] - cz) < NEAR) near.push(i);
     }
     if (!near.length) return;
-    for (let k = frame & 3; k < near.length; k += 4) place(near[k], elapsed);
-    for (const { inst } of meshes) inst.instanceMatrix.needsUpdate = true;
+    lo.fill(Infinity);
+    hi.fill(-1);
+    for (let k = frame & 3; k < near.length; k += 4) {
+      const i = near[k];
+      place(i, elapsed);
+      for (let j = 0; j < meshes.length; j++) {
+        const slot = slots[j].get(i);
+        if (slot === undefined) continue;
+        if (slot < lo[j]) lo[j] = slot;
+        if (slot > hi[j]) hi[j] = slot;
+      }
+    }
+    // Upload only the span of the instances moved, not the whole buffer of every mesh (~5000 boats: ~0.5 MB a frame,
+    // which stalled the GPU queue in hitches over the Rade). (main.js swaps instanceMatrix for a storage attribute:
+    // looked up here every time.)
+    for (let j = 0; j < meshes.length; j++) {
+      if (hi[j] < 0) continue;
+      const attr = meshes[j].inst.instanceMatrix;
+      attr.clearUpdateRanges();
+      attr.addUpdateRange(lo[j] * 16, (hi[j] - lo[j] + 1) * 16);
+      attr.needsUpdate = true;
+    }
   }
   return { group, update, stats: { boats: n, steamers: MOORINGS.steamers.length } };
 }

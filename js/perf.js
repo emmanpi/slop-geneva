@@ -150,6 +150,19 @@ let lastFrameEnd = 0;
 let win = null; // { frames, frameTimes[], cpu Map, gpu Map, gpuTotals[], draws Map, tris Map }
 const frameTimes = [];
 
+const HISTORY = 600;
+const history = [];
+let historyAt = 0;
+// The frames of the history slower than `ms`: the time since the previous frame, the CPU spent in the frame loop
+// (what is not CPU waited on the GPU or the browser) and the sections that took over 1 ms
+function hitches(ms = 25) {
+  return history.filter((h) => h && h.dt > ms).sort((a, b) => a.t - b.t).map((h) => ({
+    dt: round(h.dt, 1),
+    cpu: round(h.cpu, 1),
+    sections: Object.fromEntries(Object.entries(h.sections).filter(([, v]) => v > 1).map(([k, v]) => [k, round(v, 1)]))
+  }));
+}
+
 function endFrame() {
   const t = now();
   if (section !== null) frameSections.set(section, (frameSections.get(section) || 0) + t - sectionStart);
@@ -173,6 +186,9 @@ function endFrame() {
     for (const [k, v] of frameDraws) win.draws.set(k, (win.draws.get(k) || 0) + v);
     for (const [k, v] of frameTris) win.tris.set(k, (win.tris.get(k) || 0) + v);
   }
+  // the last HISTORY frames, to see what a hitch was made of (hitches())
+  history[historyAt] = { t, dt, cpu: cpuTotal, sections: Object.fromEntries(frameSections) };
+  historyAt = (historyAt + 1) % HISTORY;
   frameSections.clear();
   frameDraws.clear();
   frameTris.clear();
@@ -424,6 +440,7 @@ function attach({ renderer: r, scene, camera, sceneTarget, extra = {} }) {
     setLayer(pattern, visible) { if (visible) hidden.delete(pattern); else hidden.add(pattern); applyHidden(); },
     reset() { for (const k of [...off]) off.delete(k); hidden.clear(); applyHidden(); },
     startWindow,
+    hitches,
     readWindow,
     memory: () => (renderer.info.memory ? { ...renderer.info.memory } : null),
     ...extra

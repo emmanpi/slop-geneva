@@ -6,7 +6,7 @@
 //   npm run perf -- --views=bellevue --only=systems
 //   npm run perf -- --discover         # print the viewpoints (teleport keys) and the scene's layers, then stop
 //
-// For each viewpoint (a teleport, the chase camera, a fixed time & weather), it measures the baseline, then the city
+// For each viewpoint (a teleport, a mode, the chase camera, a fixed time & weather), it measures the baseline, then the city
 // with one part removed at a time ("leave one out"): the cost of a part = baseline - without it.
 //   - systems: a per-frame update() skipped (runtime switch)
 //   - layers: a top-level scene layer hidden (runtime switch)
@@ -32,13 +32,17 @@ const FIXED = { heure: args.heure || '16:45', meteo: args.meteo || 'beau', lang:
 const WIDTH = Number(args.width || 1512);
 const HEIGHT = Number(args.height || 945);
 
-// Street-level viewpoints: teleport keys (the city's landmarks, see --discover), the chase camera behind the player
+// Viewpoints: a teleport key (the city's landmarks, see --discover), the player's mode and the chase camera behind it.
+// Street level by bike; from the helicopter (~90 m above the ground: the far shadow cascade reaches further and far
+// more of the city is in view).
 const VIEWS = {
-  cornavin: 'cornavin', // station, dense streets, traffic & trams
-  montblanc: 'montblanc', // the bridge: flags, the Rade, boats, SSR on the water
-  jetdeau: 'jetdeau', // the lake, moored boats
-  cathedrale: 'cathedrale', // old town, photomesh
-  plainpalais: 'plainpalais' // photomesh, the plain
+  cornavin: { key: 'cornavin', mode: 'cyclist' }, // station, dense streets, traffic & trams
+  montblanc: { key: 'montblanc', mode: 'cyclist' }, // the bridge: flags, the Rade, boats, SSR on the water
+  jetdeau: { key: 'jetdeau', mode: 'cyclist' }, // the lake, moored boats
+  cathedrale: { key: 'cathedrale', mode: 'cyclist' }, // old town, photomesh
+  plainpalais: { key: 'plainpalais', mode: 'cyclist' }, // photomesh, the plain
+  heliRade: { key: 'montblanc', mode: 'helicopter' }, // over the Rade, the city all around
+  heliVieilleVille: { key: 'cathedrale', mode: 'helicopter' } // over the old town and its photomesh
 };
 
 const RENDER_SWITCHES = {
@@ -75,7 +79,6 @@ async function openCity(browser, extra = '') {
   await page.goto(url);
   await page.waitForFunction(() => window.__slopgeneva?.ready && window.__perf, null, { timeout: 180000, polling: 500 });
   log(`loaded ${extra || 'baseline'} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
-  await page.evaluate(() => { window.__slopgeneva.camera('chase'); });
   return { context, page };
 }
 
@@ -85,8 +88,13 @@ async function measure(page, ms = MEASURE) {
   return page.evaluate(() => window.__perf.readWindow());
 }
 
-async function gotoView(page, key) {
-  await page.evaluate((k) => window.__slopgeneva.teleport(k), key);
+async function gotoView(page, view) {
+  await page.evaluate(({ key, mode }) => {
+    const s = window.__slopgeneva;
+    s.mode(mode);
+    s.camera('chase');
+    s.teleport(key);
+  }, view);
   await sleep(WARM);
 }
 
@@ -94,9 +102,9 @@ function pickViews(keys) {
   const wanted = args.views ? String(args.views).split(',') : Object.keys(VIEWS);
   const out = {};
   for (const name of wanted) {
-    const key = VIEWS[name] || name;
-    if (keys.includes(key)) out[name] = key;
-    else log(`no teleport "${key}" (see --discover)`);
+    const view = VIEWS[name] || { key: name, mode: 'cyclist' };
+    if (keys.includes(view.key)) out[name] = view;
+    else log(`no teleport "${view.key}" (see --discover)`);
   }
   return out;
 }
@@ -132,7 +140,7 @@ async function main() {
     for (const [view, key] of Object.entries(views)) {
       await gotoView(page, key);
       const base = await measure(page);
-      const v = (result.views[view] = { teleport: key, baseline: base, systems: {}, layers: {} });
+      const v = (result.views[view] = { teleport: key.key, mode: key.mode, baseline: base, systems: {}, layers: {} });
       log(`${view}: ${JSON.stringify(brief(base))}`);
       if (args.quick) continue;
       if (only.includes('systems')) {
@@ -190,7 +198,7 @@ function summary(r) {
   const gain = (b, x) => (x ? `${(b.frameMs.avg - x.frameMs).toFixed(2)} | ${b.gpuMs && x.gpu != null ? (b.gpuMs.total - x.gpu).toFixed(2) : '–'} | ${(b.cpuMs.total - x.cpu).toFixed(2)} | ${b.drawCallsTotal - x.draws}` : '– | – | – | –');
   for (const [view, v] of Object.entries(r.views)) {
     const b = v.baseline;
-    L.push(`## ${view} (${v.teleport})`, '');
+    L.push(`## ${view} (${v.teleport}, ${v.mode || 'cyclist'})`, '');
     L.push(`**${b.fps} fps**, frame ${b.frameMs.avg} ms (p95 ${b.frameMs.p95}), CPU ${b.cpuMs.total} ms (of which render ${b.cpuMs.sections.render ?? '–'}), ${b.drawCallsTotal} draws, ${(b.trianglesTotal / 1e6).toFixed(2)} M tris`, '');
     if (b.gpuMs) {
       L.push('GPU pass timestamps (indicative only: on Apple GPUs a pass\'s span includes its overlap with the others, so they do not add up to the frame)', '', '| GPU pass | ms | draws | k tris |', '|---|---:|---:|---:|');

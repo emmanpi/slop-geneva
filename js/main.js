@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2, vec4, smoothstep } from 'three/tsl';
+import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2, vec4, smoothstep, packNormalToRGB, unpackRGBToNormal, sample } from 'three/tsl';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
 import { createPostProcessing } from './post-processing.js';
 import { ClusteredLighting } from 'three/addons/lighting/ClusteredLighting.js';
@@ -316,9 +316,12 @@ async function initApp() {
   const ssrFade = smoothstep(360.0, 180.0, positionView.z.negate());
   const maxSSRRoughness = 0.75;
   // Without SSR (?ssr=0) the scene pass writes its colour only
+  // (SSR's normals & metalness/roughness in 8 bits, as in three.js' SSR example: two fewer half-float 4x MSAA targets'
+  // worth of bandwidth in the scene pass; ?mrt8=0 keeps them half float, for A/B)
+  const mrt8 = new URLSearchParams(location.search).get('mrt8') !== '0';
   const sceneMRT = quality.ssr ? mrt({
     output: output,
-    normal: normalView,
+    normal: mrt8 ? packNormalToRGB(normalView) : normalView,
     metalRough: vec2(roughness.lessThan(maxSSRRoughness).select(metalness.mul(ssrFade), 0), roughness)
   }) : mrt({ output: output });
   if (quality.ssr) {
@@ -331,8 +334,14 @@ async function initApp() {
   let reflections = vec4(0);
   if (quality.ssr) {
     const scenePassDepth = scenePass.getTextureNode('depth');
-    const scenePassNormal = scenePass.getTextureNode('normal');
+    let scenePassNormal = scenePass.getTextureNode('normal');
     const scenePassMetalRough = scenePass.getTextureNode('metalRough');
+    if (mrt8) {
+      scenePass.getTexture('normal').type = THREE.UnsignedByteType;
+      scenePass.getTexture('metalRough').type = THREE.UnsignedByteType;
+      const packedNormal = scenePassNormal;
+      scenePassNormal = sample((uv) => unpackRGBToNormal(packedNormal.sample(uv)));
+    }
 
     const ssrPass = ssr(scenePassColor, scenePassDepth, scenePassNormal, {
       metalnessNode: scenePassMetalRough.r,
