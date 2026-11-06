@@ -1,65 +1,74 @@
 // tools/sample-photomesh-facades.mjs — measures the real facades in the SITG photomesh (Photomaillage 3D 2019, État
-// de Genève, open data): every wall triangle is matched to the OSM building footprint it belongs to
-// (js/geneva-geodata.js) and its texture is sampled into per-building brightness histograms. Per building:
+// de Genève, open data): every wall triangle is matched to the building footprint it belongs to and its texture is
+// sampled into per-building brightness histograms. Per building:
 //   rgb     the wall's colour (sRGB 0-255): the mean colour between the 45th and 92nd brightness percentile (no
 //           windows, no glare)
 //   win     the share of dark samples (under 62% of the wall's brightness) on the upper storeys: the windows
 //   ground  the ground floor's brightness against the storeys above (< 0.8: shop fronts, arcades, dark stone)
 //   rough   the spread of the wall's brightness (smooth render .. stone, brick, patterned)
 //   n       samples
-// By default the tiles cached by tools/build-photomesh.mjs; with --all, every tile over the frame, each downloaded,
-// measured and deleted (the whole frame: ~2,000 tiles, ~13 GB to download, about an hour; resumable).
-// Output: tools/data/cache/facade_samples.json { "<osm building index>": { rgb, win, ground, rough, n } }, read by
-// tools/build-geneva-facades.mjs (which groups them into facade archetypes for the whole city).
-// usage: node tools/sample-photomesh-facades.mjs [--all]
+// Modes:
+//   (default)            the tiles cached by tools/build-photomesh.mjs (the city centre), matched to the OSM footprints
+//                        of js/geneva-geodata.js. Output: tools/data/cache/facade_samples.json.
+//   --all                every photomesh tile over the frame (the city centre), each downloaded, measured and deleted;
+//                        resumable. Output: tools/data/cache/facade_samples.json.
+//   --canton [--area B]  every photomesh tile intersecting the canton outline (data/geneva-canton-boundary.json), or the
+//                        commune B, matched to the cadastral footprints (tools/data/cache/canton_footprints.json, keyed by
+//                        EGID or a footprint id). Streamed download→measure→delete, resumable. Output:
+//                        tools/data/cache/canton_facade_samples.json, state canton_facade_samples.state.json, progress in
+//                        tools/data/cache/canton_facades.log. This is the long step of the canton facade job.
+// usage: node tools/sample-photomesh-facades.mjs [--all | --canton] [--area 6640] [--limit N]
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import jpeg from 'jpeg-js';
-import { FRAME } from '../js/geneva-frame.js';
+import { FRAME, lv95ToWorld } from '../js/geneva-frame.js';
 import { parseTerrain, gridHeight } from '../js/terrain-grid.js';
 import { GENEVA_DATA } from '../js/geneva-geodata.js';
+import { fetchCommune, polyIntersectsRings, ringsBbox } from './lib/canton-area.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const CACHE = path.join(DIR, 'data', 'cache', 'photomesh');
-const OUT = path.join(DIR, 'data', 'cache', 'facade_samples.json');
-const STATE = path.join(DIR, 'data', 'cache', 'facade_samples.state.json'); // --all: progress, to resume
 const SERVICE = 'https://vector.sitg.ge.ch/arcgis/rest/services/Hosted/PHOTOMESH_2019/FeatureServer/0/query';
-const ALL = process.argv.includes('--all');
 const log = (...a) => console.log('[facade-samples]', ...a);
+const args = process.argv.slice(2);
+const ALL = args.includes('--all');
+const CANTON = args.includes('--canton');
+const area = args.includes('--area') ? +args[args.indexOf('--area') + 1] : null;
+const limit = args.includes('--limit') ? +args[args.indexOf('--limit') + 1] : null;
+const CITY_OUT = path.join(DIR, 'data', 'cache', 'facade_samples.json');
+const CITY_STATE = path.join(DIR, 'data', 'cache', 'facade_samples.state.json');
+const CANTON_OUT = path.join(DIR, 'data', 'cache', 'canton_facade_samples.json');
+const CANTON_STATE = path.join(DIR, 'data', 'cache', 'canton_facade_samples.state.json');
 const terrainFile = fs.readFileSync(path.join(DIR, '..', 'data', 'geneva-terrain.bin'));
 const TERRAIN = parseTerrain(terrainFile.buffer.slice(terrainFile.byteOffset, terrainFile.byteOffset + terrainFile.byteLength));
+// The ground the walls rise from: the city's terrain grid, or (--canton) the surroundings' mid ring (Thônex and the
+// whole canton lie outside the city grid, so its edge height would be wrong there).
+let GROUND = TERRAIN;
+function useCantonGround() {
+  const buf = fs.readFileSync(path.join(DIR, '..', 'data', 'geneva-surroundings.bin'));
+  const cols = buf.readUInt16LE(4), rows = buf.readUInt16LE(6);
+  GROUND = parseTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + 24 + cols * rows * 2));
+  log(`ground: the surroundings' mid ring (${cols}x${rows} @ ${GROUND.cell} m)`);
+}
 
-// --- Footprints on a grid ---------------------------------------------------------------------------------------------------
-const CELL = 20, grid = new Map();
-GENEVA_DATA.buildings.forEach((b, index) => {
-  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-  for (let i = 0; i < b.ring.length; i += 2) { x0 = Math.min(x0, b.ring[i]); x1 = Math.max(x1, b.ring[i]); z0 = Math.min(z0, b.ring[i + 1]); z1 = Math.max(z1, b.ring[i + 1]); }
-  const item = { index, ring: b.ring, x0, x1, z0, z1 };
-  for (let i = Math.floor(x0 / CELL); i <= Math.floor(x1 / CELL); i++) for (let j = Math.floor(z0 / CELL); j <= Math.floor(z1 / CELL); j++) {
-    const k = `${i},${j}`;
-    if (!grid.has(k)) grid.set(k, []);
-    grid.get(k).push(item);
-  }
-});
-const pip = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) { if ((r[i + 1] > z) !== (r[j + 1] > z) && x < ((r[j] - r[i]) * (z - r[i + 1])) / (r[j + 1] - r[i + 1]) + r[i]) c = !c; } return c; };
-const footprintAt = (x, z) => (grid.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`) || []).find((b) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1 && pip(b.ring, x, z));
-
-// --- Per building histograms ------------------------------------------------------------------------------------------------
+// --- Per building histograms (keyed by whatever footprintAt returns) ---------------------------------------------------------
 // [0..63] samples per brightness bin (all heights), [64..255] their r, g, b sums, [256..319] samples per bin on the
 // upper storeys, [320] ground floor brightness sum, [321] its samples, [322] upper brightness sum, [323] its samples
 const BINS = 64, SIZE = 324;
-const acc = new Map(); // index -> Float64Array(SIZE)
+const acc = new Map();
 const lumOf = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
-function add(index, r, g, b, above) {
-  let h = acc.get(index);
-  if (!h) acc.set(index, (h = new Float64Array(SIZE)));
+function add(key, r, g, b, above) {
+  let h = acc.get(key);
+  if (!h) acc.set(key, (h = new Float64Array(SIZE)));
   const L = lumOf(r, g, b), bin = Math.min(BINS - 1, Math.floor((L / 256) * BINS));
   h[bin]++; h[BINS + bin * 3] += r; h[BINS + bin * 3 + 1] += g; h[BINS + bin * 3 + 2] += b;
   if (above > 4.5) { h[256 + bin]++; h[322] += L; h[323]++; } else if (above <= 4) { h[320] += L; h[321]++; }
 }
+
+let footprintAt = null; // (x, z) -> a building key, or null
 
 let rngState = 20261103;
 const rand = () => ((rngState = Math.imul(rngState ^ (rngState >>> 15), 2246822519) + 1) >>> 0) / 4294967296;
@@ -84,9 +93,9 @@ function sampleTile(dir, name) {
         // the building: either side of the wall, a metre in
         const hx = nx / Math.hypot(nx, nz), hz = nz / Math.hypot(nx, nz);
         const f = footprintAt(cx - hx, cz - hz) || footprintAt(cx + hx, cz + hz);
-        if (!f) continue;
+        if (f == null) continue;
         matched++;
-        const ground = gridHeight(TERRAIN, cx, cz);
+        const ground = gridHeight(GROUND, cx, cz);
         const ta = vt[A[1] - 1], tb = vt[B[1] - 1], tc = vt[C[1] - 1];
         if (!ta || !tb || !tc) continue;
         const k = Math.max(1, Math.min(10, Math.round(nl / 3)));
@@ -98,7 +107,7 @@ function sampleTile(dir, name) {
           const u = ta[0] + (tb[0] - ta[0]) * p + (tc[0] - ta[0]) * q, w = ta[1] + (tb[1] - ta[1]) * p + (tc[1] - ta[1]) * q;
           const px = Math.min(img.width - 1, Math.max(0, Math.round(u * (img.width - 1)))), py = Math.min(img.height - 1, Math.max(0, Math.round(w * (img.height - 1))));
           const o = (py * img.width + px) * 4;
-          add(f.index, img.data[o], img.data[o + 1], img.data[o + 2], above);
+          add(f, img.data[o], img.data[o + 1], img.data[o + 2], above);
         }
       }
     }
@@ -107,7 +116,7 @@ function sampleTile(dir, name) {
 
 function features() {
   const out = {};
-  for (const [index, h] of acc) {
+  for (const [key, h] of acc) {
     const n = h.slice(0, BINS).reduce((a, b) => a + b, 0);
     if (n < 150) continue;
     // the wall: the bins between the 45th and 92nd percentile
@@ -130,13 +139,68 @@ function features() {
     const win = upperN ? dark / upperN : 0.25;
     const ground = h[321] > 20 && h[323] > 20 ? (h[320] / h[321]) / Math.max(1, h[322] / h[323]) : 1;
     const r3 = (x) => Math.round(x * 1000) / 1000;
-    out[index] = { rgb, win: r3(win), ground: r3(ground), rough: r3(rough), n };
+    out[key] = { rgb, win: r3(win), ground: r3(ground), rough: r3(rough), n };
   }
   return out;
 }
 
-// --- Tiles ------------------------------------------------------------------------------------------------------------------
-async function allTiles() {
+// --- City footprints (OSM, world coordinates), keyed by their index in js/geneva-geodata.js ----------------------------------
+function useCityFootprints() {
+  const CELL = 20, grid = new Map();
+  GENEVA_DATA.buildings.forEach((b, index) => {
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (let i = 0; i < b.ring.length; i += 2) { x0 = Math.min(x0, b.ring[i]); x1 = Math.max(x1, b.ring[i]); z0 = Math.min(z0, b.ring[i + 1]); z1 = Math.max(z1, b.ring[i + 1]); }
+    const item = { index, ring: b.ring, x0, x1, z0, z1 };
+    for (let i = Math.floor(x0 / CELL); i <= Math.floor(x1 / CELL); i++) for (let j = Math.floor(z0 / CELL); j <= Math.floor(z1 / CELL); j++) {
+      const k = `${i},${j}`;
+      if (!grid.has(k)) grid.set(k, []);
+      grid.get(k).push(item);
+    }
+  });
+  const pip = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 2; i < r.length; j = i, i += 2) { if ((r[i + 1] > z) !== (r[j + 1] > z) && x < ((r[j] - r[i]) * (z - r[i + 1])) / (r[j + 1] - r[i + 1]) + r[i]) c = !c; } return c; };
+  footprintAt = (x, z) => {
+    const b = (grid.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`) || []).find((q) => x >= q.x0 && x <= q.x1 && z >= q.z0 && z <= q.z1 && pip(q.ring, x, z));
+    return b ? b.index : null;
+  };
+}
+
+// --- Canton footprints (cadastre, LV95 -> world), keyed by EGID or "none:<index>", buffered ~1.5 m ---------------------------
+function useCantonFootprints() {
+  const footprints = JSON.parse(fs.readFileSync(path.join(DIR, 'data', 'cache', 'canton_footprints.json'), 'utf8'));
+  const CELL = 20, grid = new Map();
+  footprints.forEach((fp, index) => {
+    const key = fp.egid != null ? fp.egid : `none:${index}`;
+    const ring = fp.ring.map(([e, n]) => { const p = lv95ToWorld(e, n); return [p.x, p.z]; });
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (const [x, z] of ring) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    const item = { key, ring, x0: x0 - 1.5, x1: x1 + 1.5, z0: z0 - 1.5, z1: z1 + 1.5 };
+    for (let i = Math.floor(item.x0 / CELL); i <= Math.floor(item.x1 / CELL); i++) for (let j = Math.floor(item.z0 / CELL); j <= Math.floor(item.z1 / CELL); j++) {
+      const k = `${i},${j}`;
+      if (!grid.has(k)) grid.set(k, []);
+      grid.get(k).push(item);
+    }
+  });
+  // inside the ring, or within ~1.5 m of its boundary (walls sit just outside the cadastral footprint)
+  const inOrNear = (r, x, z, buf) => {
+    let c = false, d = buf;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [ax, az] = r[i], [bx, bz] = r[j];
+      if ((az > z) !== (bz > z) && x < ((bx - ax) * (z - az)) / (bz - az) + ax) c = !c;
+      const dx = bx - ax, dz = bz - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+      d = Math.min(d, Math.hypot(x - ax - t * dx, z - az - t * dz));
+    }
+    return c || d < buf;
+  };
+  footprintAt = (x, z) => {
+    const b = (grid.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`) || []).find((q) => x >= q.x0 && x <= q.x1 && z >= q.z0 && z <= q.z1 && inOrNear(q.ring, x, z, 1.5));
+    return b ? b.key : null;
+  };
+  log(`${footprints.length} cadastral footprints on the grid`);
+}
+
+// --- Tile listing -------------------------------------------------------------------------------------------------------------
+async function cityTiles() {
   const [minE, minN, maxE, maxN] = FRAME.lv95;
   const urls = new Set();
   for (let offset = 0; ; offset += 1000) {
@@ -152,22 +216,43 @@ async function allTiles() {
   return [...urls].sort();
 }
 
-if (ALL) {
-  const urls = await allTiles();
-  // resume: the histograms and the tiles done so far
-  const state = fs.existsSync(STATE) ? JSON.parse(fs.readFileSync(STATE, 'utf8')) : { done: [], acc: {} };
-  for (const [k, arr] of Object.entries(state.acc)) acc.set(+k, Float64Array.from(arr));
+async function cantonTiles() {
+  let rings, label;
+  if (area) { const c = await fetchCommune(area); rings = c.rings; label = `${c.name} (${c.bfs})`; }
+  else { const b = JSON.parse(fs.readFileSync(path.join(DIR, '..', 'data', 'geneva-canton-boundary.json'), 'utf8')); rings = b.lv95; label = 'the canton'; }
+  const [minE, minN, maxE, maxN] = ringsBbox(rings, 200);
+  const urls = [];
+  for (let offset = 0; ; offset += 2000) {
+    const params = new URLSearchParams({
+      where: '1=1', geometry: `${minE},${minN},${maxE},${maxN}`, geometryType: 'esriGeometryEnvelope', inSR: '2056',
+      spatialRel: 'esriSpatialRelIntersects', outFields: 'url_telechargement', returnGeometry: 'true', outSR: '2056', f: 'json',
+      resultOffset: String(offset), resultRecordCount: '2000'
+    });
+    const { features: fs2 } = await (await fetch(`${SERVICE}?${params}`)).json();
+    for (const f of fs2) {
+      const poly = f.geometry?.rings?.[0];
+      if (poly && polyIntersectsRings(rings, poly)) urls.push(f.attributes.url_telechargement);
+    }
+    if ((fs2?.length ?? 0) < 2000) break;
+  }
+  const sorted = urls.sort();
+  log(`${sorted.length} photomesh tiles over ${label}${limit ? ` (limited to ${limit})` : ''}`);
+  return limit ? sorted.slice(0, limit) : sorted;
+}
+
+// --- Streaming: download -> measure -> delete, resumable ------------------------------------------------------------------------
+async function stream(urls, { stateFile, outFile, parallel, flushEvery }) {
+  const state = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : { done: [], acc: {} };
+  for (const [k, arr] of Object.entries(state.acc)) acc.set(k, Float64Array.from(arr));
   const done = new Set(state.done);
-  log(`${urls.length} tiles over the frame, ${done.size} done before`);
+  log(`${urls.length} tiles, ${done.size} done before`);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'photomesh-'));
   const save = () => {
-    fs.writeFileSync(STATE, JSON.stringify({ done: [...done], acc: Object.fromEntries([...acc].map(([k, h]) => [k, Array.from(h, (x) => Math.round(x))])) }));
-    fs.writeFileSync(OUT, JSON.stringify(features()));
+    fs.writeFileSync(stateFile, JSON.stringify({ done: [...done], acc: Object.fromEntries([...acc].map(([k, h]) => [k, Array.from(h, (x) => Math.round(x))])) }));
+    fs.writeFileSync(outFile, JSON.stringify(features()));
   };
   let since = 0;
   const t0 = Date.now();
-  // downloads run ahead (PARALLEL at once) while the tiles are measured one by one
-  const PARALLEL = 6;
   const todo = urls.filter((u) => !done.has(path.basename(u, '.zip')));
   async function fetchTile(url) {
     const name = path.basename(url, '.zip');
@@ -188,7 +273,7 @@ if (ALL) {
   }
   const pending = [];
   let next = 0;
-  const fill = () => { while (pending.length < PARALLEL && next < todo.length) pending.push(fetchTile(todo[next++])); };
+  const fill = () => { while (pending.length < parallel && next < todo.length) pending.push(fetchTile(todo[next++])); };
   fill();
   while (pending.length) {
     const job = await pending.shift();
@@ -202,7 +287,7 @@ if (ALL) {
     } finally {
       if (job.temp) fs.rmSync(job.dir, { recursive: true, force: true });
     }
-    if (++since >= 20) {
+    if (++since >= flushEvery) {
       since = 0;
       save();
       const rate = (Date.now() - t0) / 1000 / Math.max(1, done.size - state.done.length);
@@ -211,10 +296,22 @@ if (ALL) {
   }
   save();
   fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+// --- Dispatch -------------------------------------------------------------------------------------------------------------------
+if (CANTON) {
+  useCantonFootprints();
+  useCantonGround();
+  const urls = await cantonTiles();
+  await stream(urls, { stateFile: CANTON_STATE, outFile: CANTON_OUT, parallel: 4, flushEvery: 50 });
+} else if (ALL) {
+  useCityFootprints();
+  await stream(await cityTiles(), { stateFile: CITY_STATE, outFile: CITY_OUT, parallel: 6, flushEvery: 20 });
 } else {
+  useCityFootprints();
   const tiles = fs.readdirSync(CACHE).filter((d) => /^\d{7}_\d{7}$/.test(d) && fs.existsSync(path.join(CACHE, d, `${d}.obj`)));
   log(`${tiles.length} cached photomesh tiles`);
   for (const name of tiles) sampleTile(path.join(CACHE, name), name);
-  fs.writeFileSync(OUT, JSON.stringify(features()));
+  fs.writeFileSync(CITY_OUT, JSON.stringify(features()));
 }
-log(`${walls} wall triangles, ${matched} matched to a footprint; ${Object.keys(JSON.parse(fs.readFileSync(OUT, 'utf8'))).length} buildings measured -> ${OUT}`);
+log(`${walls} wall triangles, ${matched} matched to a footprint; ${Object.keys(JSON.parse(fs.readFileSync(CANTON ? CANTON_OUT : CITY_OUT, 'utf8'))).length} buildings measured`);
