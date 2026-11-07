@@ -198,7 +198,7 @@ export function buildCantonGround(scene) {
     t.busy = true;
     try {
       const buffer = await fetchBuffer(tileUrl(t.key, FILES.terrain));
-      t.grid = parseTerrain(buffer);
+      const grid = parseTerrain(buffer);
       const map = t.layers.includes('ortho') ? await new THREE.TextureLoader().loadAsync(tileUrl(t.key, FILES.ortho).href) : null;
       if (map) {
         map.colorSpace = THREE.SRGBColorSpace;
@@ -209,6 +209,8 @@ export function buildCantonGround(scene) {
       t.material = new THREE.MeshStandardNodeMaterial({ roughness: 0.95, metalness: 0 });
       if (map) t.material.colorNode = texture(map, uv()).rgb;
       t.map = map;
+      // (the grid last: a tile with its grid is drawn, and its material must be there by then)
+      t.grid = grid;
       setFineGround(t.E, t.N, true);
       stats.ground++;
     } catch (error) {
