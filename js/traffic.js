@@ -379,8 +379,12 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     halfW: 0.86, halfL: 2.18 };
   const nearEdges = [];
   const nearSignals = [];
+  // From the air (the camera AIRBORNE m over the ground) the pedestrians are drawn within PED_AIR_DRAW m of it only: a
+  // person is a pixel or two beyond, and those not drawn walk on with a lighter gait (pedestrian-system.js renderPed)
+  const AIRBORNE = 40, PED_AIR_DRAW = 250;
+  const pedVisible = (x, z, r) => visible(x, z, r) && (!aloft || Math.hypot(x - camX, z - camZ) < PED_AIR_DRAW);
   const pedestrianSystem = createPedestrianSystem(network, {
-    player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView
+    player, nearEdges, nearSignals, mayCross, walkOn, visible: pedVisible, nearView
   });
   group.add(...pedestrianSystem.meshes);
 
@@ -542,6 +546,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   let camZ = 140;
   let camFwdX = 0;
   let camFwdZ = 1;
+  let aloft = false; // the camera high over the ground (the helicopter)
   function updateView(camera) {
     hasView = !!camera;
     if (!camera) return;
@@ -549,6 +554,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
     camX = camera.position.x;
     camY = camera.position.y;
     camZ = camera.position.z;
+    aloft = camY - groundHeight(camX, camZ) > AIRBORNE;
     const me = camera.matrixWorld.elements;
     camFwdX = -me[8];
     camFwdZ = -me[10];

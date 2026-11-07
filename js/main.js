@@ -13,6 +13,7 @@ import { streamSwissBuildings } from './swissbuildings3d.js';
 import { buildSurroundings } from './surroundings.js';
 import { buildCanton } from './canton.js';
 import { buildCantonGround } from './canton-ground.js';
+import { buildCityFarGround } from './city-far-ground.js';
 import { buildTrams } from './trams.js';
 import { buildJetDeau } from './jet-deau.js';
 import { createWeather, WEATHER_PRESETS } from './weather.js';
@@ -285,6 +286,8 @@ async function initApp() {
   setupSceneCulling(scene, cullingRoots, lightingSystem.sunLight.shadow);
   // Small casters (props, vehicles, people, the players) shade the near sun cascade only
   const nearCasters = setupNearShadows(scene, cameraSystem.camera, lightingSystem.sunLight.shadow);
+  // The city's ground seen from the air: a light one beyond the camera's surroundings (js/city-far-ground.js)
+  const cityFarGround = buildCityFarGround(scene, scene.getObjectByName('GenevaCityGrid'));
   console.info(`[shadows] ${nearCasters} small casters in the near cascade only`);
 
   // Initialize static world matrices once, including the chunks and shadow proxies created above.
@@ -914,6 +917,7 @@ async function initApp() {
     if (perf.run('canton')) {
       canton.update(cameraSystem.camera);
       cantonGround.update(cameraSystem.camera);
+      cityFarGround.update(cameraSystem.camera);
     }
     if (perf.run('trams')) {
       trams.update(dt, { vehicles: [trafficSystem.cars, trafficSystem.buses, trafficSystem.bikes], player: controllerManager.getActiveEntity().position });

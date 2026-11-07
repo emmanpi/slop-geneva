@@ -208,6 +208,7 @@ function buildGenevaCityGrid(scene) {
   const sidewalkMat = createSidewalkMaterial();
   const curbMat = createCurbMaterial();
   const waterMat = createWaterMaterial();
+  waterMat.name = 'CityWater'; // (stays detailed from the helicopter: city-far-ground.js)
   const lawnMat = createParkLawnMaterial(false);
   const pavingMat = createParkPavingMaterial();
   const paintMat = createRoadPaintMaterial();
