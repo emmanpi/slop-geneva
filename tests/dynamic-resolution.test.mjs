@@ -71,3 +71,32 @@ test('vsync-capped light load after a heavy one: climbs back within ~15 s', () =
   frames(() => 1000 / 60, 15);
   assert.equal(renderer.ratio, 1);
 });
+
+test('vsync: a step down that cannot reach the next refresh is undone (no blur for nothing)', () => {
+  // 60 Hz: anything over 16.7 ms is shown for 33.3 ms; the GPU needs 20 ms at full resolution, 18 at 0.85
+  const { renderer } = run((r) => (10 + 10 * r * r > 1000 / 60 ? 1000 / 30 : 1000 / 60), 30);
+  assert.equal(renderer.ratio, 1);
+});
+
+test('sharper than 1 on a Retina display when there is room, and back when it costs frames', () => {
+  const renderer = { ratio: 1, setPixelRatio(r) { this.ratio = r; } };
+  const dyn = createDynamicResolution(renderer, { max: 1.5, start: 1 });
+  let now = 0;
+  const frames = (cost, seconds) => { const end = now + seconds * 1000; while (now < end) { const ms = cost(renderer.ratio); now += ms; dyn.update(ms, now); } };
+  frames((r) => 4 + 4 * r * r, 20); // street level: plenty of room
+  assert.equal(renderer.ratio, 1.5);
+  frames((r) => 8 + 8 * r * r, 30); // a heavier view: 26 ms at 1.5, 16 at 1
+  assert.ok(8 + 8 * renderer.ratio ** 2 <= 18.2 && renderer.ratio >= 1, `the frame fits again (${renderer.ratio})`);
+});
+
+test('from a sharp view into a heavy one: back to 1 at once, even when the vsync hides the gain', () => {
+  const renderer = { ratio: 1, setPixelRatio(r) { this.ratio = r; } };
+  const dyn = createDynamicResolution(renderer, { max: 1.5, start: 1 });
+  let now = 0;
+  const frames = (cost, seconds) => { const end = now + seconds * 1000; while (now < end) { const ms = cost(renderer.ratio); now += ms; dyn.update(ms, now); } };
+  frames(() => 8, 20);
+  assert.equal(renderer.ratio, 1.5);
+  // 120 Hz: frames rounded to 8.3 ms; 26 ms at 1.5, 20 at 1: both rounded to 25 ms
+  frames((r) => Math.ceil((14 + 6 * r * r) / (1000 / 120)) * (1000 / 120), 10);
+  assert.equal(renderer.ratio, 1);
+});

@@ -79,7 +79,9 @@ async function initApp() {
   });
   renderer.setPixelRatio(quality.res);
   // The pixel ratio follows the frame time where the GPU is the limit (the helicopter): js/dynamic-resolution.js
-  const dynamicResolution = createDynamicResolution(renderer, { max: quality.res, enabled: quality.dynres });
+  // (from 1 pixel per CSS pixel, up to 1.5 on a Retina display where there is room)
+  const sharpest = quality.dynres ? Math.max(quality.res, Math.min(window.devicePixelRatio || 1, 1.5)) : quality.res;
+  const dynamicResolution = createDynamicResolution(renderer, { max: sharpest, start: quality.res, enabled: quality.dynres });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.lighting = new ClusteredLighting(256, 32, 28, 48);
